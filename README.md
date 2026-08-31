@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="public/assets/img/logo-uft.jpeg, width=120"/>
+    <img src="public/assets/img/logo-uft.jpeg width=120"/>
     <h2>Universidade Federal do Tocantins (UFT)</h2>
 </div>
 
