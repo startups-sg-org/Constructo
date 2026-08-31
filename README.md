@@ -18,9 +18,9 @@
 * [**Pedro Ryan Oliveira de Almeida**](https://github.com/PdroRyan)
 * [**Samuel Andrade Luz Carneiro**](https://github.com/Samuel1-salc)
 
-# 🏗️ WorkSite 3D-View
+# 🏗️ Constructo
 
-O **WorkSite 3D-View** é uma plataforma digital multiempreendimento voltada para a construção civil, criada para transformar o acompanhamento do avanço físico de obras em uma experiência **visual, interativa, rastreável e transparente**.
+O **Constructo** é uma plataforma digital multiempreendimento voltada para a construção civil, criada para transformar o acompanhamento do avanço físico de obras em uma experiência **visual, interativa, rastreável e transparente**.
 
 A proposta é conectar os dados de progresso registrados pela engenharia em campo à representação tridimensional do empreendimento, permitindo que clientes e construtoras acompanhem a evolução da obra de forma centralizada e compreensível.
 
@@ -42,7 +42,7 @@ O acompanhamento tradicional de obras apresenta desafios de comunicação e gest
 
 # 💡 Proposta
 
-O **WorkSite 3D-View** busca estabelecer um fluxo integrado entre engenharia, sistema e cliente:
+O **Constructo** busca estabelecer um fluxo integrado entre engenharia, sistema e cliente:
 
 **Engenharia registra avanço → Responsável valida → Atualização é publicada → Modelo 3D reflete o progresso → Cliente acompanha a evolução**
 
