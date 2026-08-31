@@ -1,7 +1,9 @@
 <div align="center">
-    <img src="public/assets/img/logo-uft.png width=120"/>
+    <img src="public/assets/img/logo-uft.png" width="120" alt="Logo daa UFT"/>
     <h2>Universidade Federal do Tocantins (UFT)</h2>
 </div>
+
+
 
 **Curso:** Bacharelado em Ciência da Computação  
 **Professor:** Jackson Gomes de Souza  
