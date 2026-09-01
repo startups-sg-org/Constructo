@@ -10,6 +10,17 @@
 
 <hr>
 
+## 👥 Equipe
+
+- [José Carlos da Silva Neto](https://github.com/jcarlos721)
+- [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
+- [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
+- [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
+
+<hr>
+
+<hr>
+
 ## 📚 Sumário
 
 - [Sobre o projeto](#-sobre-o-projeto)
@@ -55,17 +66,6 @@
 </table>
 
 </div>
-
-<hr>
-
-## 👥 Equipe
-
-- [José Carlos da Silva Neto](https://github.com/jcarlos721)
-- [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
-- [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
-- [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
-
-<hr>
 
 ## 🏗️ Sobre o projeto
 
