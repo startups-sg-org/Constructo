@@ -1,326 +1,193 @@
 <div align="center">
 
-<img src="public/assets/img/logo-uft.png" width="120" alt="Logo da UFT"/>
+<img src="public/assets/img/logo-uft.png" width="120" alt="Logo da Universidade Federal do Tocantins" />
 
-<h2>Universidade Federal do Tocantins (UFT)</h2>
+<h1>Constructo</h1>
+
+<p>Acompanhamento visual de obras com dados geoespaciais</p>
 
 </div>
 
-**Curso:** Bacharelado em Ciência da Computação
-**Professor:** Jackson Gomes de Souza
-**Disciplina:** Desenvolvimento Webmobile
-**Semestre:** 2026.2
+## Informações acadêmicas
 
-## 👥 Equipe
+|                 |                                         |
+| :-------------- | :-------------------------------------- |
+| **Instituição** | Universidade Federal do Tocantins (UFT) |
+| **Curso**       | Bacharelado em Ciência da Computação    |
+| **Disciplina**  | Desenvolvimento Webmobile               |
+| **Professor**   | Jackson Gomes de Souza                  |
+| **Semestre**    | 2026.2                                  |
 
-* [**José Carlos da Silva Neto**](https://github.com/bibimoura)
-* [**Eduardo Lopes de Oliveira Torres**](https://github.com/EduLps1)
-* [**Pedro Ryan Oliveira de Almeida**](https://github.com/PdroRyan)
-* [**Samuel Andrade Luz Carneiro**](https://github.com/Samuel1-salc)
+## Equipe
 
+<<<<<<< HEAD
 # 🏗️ Constructo
 
 O **Constructo** é uma plataforma digital multiempreendimento voltada para a construção civil, criada para transformar o acompanhamento do avanço físico de obras em uma experiência **visual, interativa, rastreável e transparente**.
+=======
+* [José Carlos da Silva Neto](https://github.com/jcarlos721)
+* [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
+* [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
+* [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
 
-A proposta é conectar os dados de progresso registrados pela engenharia em campo à representação tridimensional do empreendimento, permitindo que clientes e construtoras acompanhem a evolução da obra de forma centralizada e compreensível.
+## Sobre o projeto
+>>>>>>> 56dbd82 (Reestruturação do README.MD com os entregáveis da disciplina)
 
-Em vez de apresentar apenas percentuais e relatórios técnicos, a plataforma busca representar visualmente o estágio da construção por meio de um modelo 3D dinâmico.
+O **Constructo** é uma proposta de plataforma para o acompanhamento visual do avanço de obras. Seu objetivo é tornar informações de localização, identificação e andamento dos empreendimentos mais claras e fáceis de consultar.
 
----
+Durante a disciplina, o projeto será desenvolvido como um módulo funcional de **acompanhamento de obras baseado em dados GeoJSON**. A aplicação utilizará informações geoespaciais para posicionar as obras no mapa e apresentar seus respectivos dados de acompanhamento.
 
-# 🎯 Problema
+> **Escopo desta entrega:** visualização e acompanhamento de obras por meio de dados GeoJSON.
 
-O acompanhamento tradicional de obras apresenta desafios de comunicação e gestão, entre eles:
+A visão completa da plataforma inclui outros recursos, como autenticação, gestão de usuários, evidências fotográficas, auditoria e visualização tridimensional. Esses recursos não fazem parte da entrega da disciplina e estão registrados neste documento apenas como possibilidades de evolução futura.
 
-* **Falta de transparência:** percentuais e relatórios técnicos podem ser difíceis de interpretar pelo comprador;
-* **Alto volume de chamados:** clientes recorrem frequentemente ao atendimento para saber o estágio de suas unidades;
-* **Dados fragmentados:** informações de progresso, fotos, comunicados e cronogramas ficam distribuídos entre diferentes canais;
-* **Ausência de histórico auditável:** dificuldade em identificar quem realizou determinada atualização e quando ela ocorreu;
-* **Desconexão visual:** um percentual como “65% da estrutura concluída” não demonstra claramente ao cliente o que já foi construído.
+## Problema
 
----
+Informações sobre o andamento de obras frequentemente ficam distribuídas entre planilhas, relatórios e diferentes canais de comunicação. Além de dificultar a consulta, essa fragmentação reduz a clareza sobre onde cada obra está localizada e qual é sua situação atual.
 
-# 💡 Proposta
+O Constructo busca facilitar essa leitura ao reunir a localização e os dados essenciais das obras em uma interface cartográfica interativa.
 
+## Solução proposta
+
+<<<<<<< HEAD
 O **Constructo** busca estabelecer um fluxo integrado entre engenharia, sistema e cliente:
+=======
+O módulo recebe dados no formato **GeoJSON** e os representa em um mapa. Cada elemento geográfico corresponde a uma obra ou área de interesse e pode conter propriedades descritivas, como nome, etapa, percentual de conclusão e última atualização.
+>>>>>>> 56dbd82 (Reestruturação do README.MD com os entregáveis da disciplina)
 
-**Engenharia registra avanço → Responsável valida → Atualização é publicada → Modelo 3D reflete o progresso → Cliente acompanha a evolução**
+O fluxo principal da aplicação é:
 
-A plataforma procura responder continuamente à principal pergunta do comprador:
+**Dados GeoJSON → Processamento pela aplicação → Representação no mapa → Consulta do andamento da obra**
 
-> **Em qual estágio está a construção do meu imóvel hoje?**
+Essa abordagem permite relacionar a situação de cada obra à sua localização, tornando o acompanhamento mais direto e visual.
 
-Seu principal diferencial está no vínculo entre o **dado real de progresso da obra** e sua **representação visual no modelo 3D**.
+## Escopo da entrega da disciplina
 
-Por exemplo, em vez de apenas informar que determinada etapa está 60% concluída, o sistema poderá representar os pavimentos concluídos, destacar aqueles em execução e diferenciar visualmente as etapas ainda não iniciadas.
+### Funcionalidades previstas
 
----
+* carregar dados de obras estruturados no formato GeoJSON;
+* representar no mapa pontos, linhas ou polígonos presentes nesses dados;
+* identificar visualmente as obras ou áreas mapeadas;
+* permitir a seleção de um elemento geográfico;
+* exibir os dados de acompanhamento associados ao elemento selecionado;
+* diferenciar visualmente as obras de acordo com seu estado de execução, quando essa informação estiver disponível no GeoJSON;
+* adaptar a interface a diferentes tamanhos de tela.
 
-# 👥 Perfis de Usuário
+### Fora do escopo desta entrega
 
-A plataforma considera a seguinte estrutura hierárquica:
+As funcionalidades abaixo representam a visão futura do Constructo e **não fazem parte do módulo entregável durante a disciplina**:
 
-**Construtora → Empreendimento → Torre/Bloco → Pavimento → Unidade → Cliente**
+* autenticação, autorização e gestão de usuários;
+* gestão de construtoras, empreendimentos, torres, pavimentos e unidades;
+* cadastro e edição de obras por meio de um painel administrativo;
+* fluxo de aprovação e publicação de atualizações;
+* envio de fotos, documentos e outras evidências;
+* timeline, comunicados e notificações;
+* vinculação de clientes a unidades e módulo **Meu Apê**;
+* histórico de alterações e auditoria;
+* isolamento de dados entre construtoras;
+* integração com serviços externos e sistemas de gestão;
+* visualização 3D e processamento de modelos GLB, glTF, BIM ou IFC;
+* relatórios, indicadores e análises avançadas.
 
-## 🏠 Cliente / Comprador
+## Requisitos funcionais
 
-* Acesso aos empreendimentos e unidades aos quais estiver vinculado;
-* Consulta ao progresso da construção;
-* Visualização interativa do modelo 3D;
-* Acesso ao módulo **Meu Apê**;
-* Consulta à timeline, galeria de fotos e comunicados oficiais.
+| Código   | Requisito                                                                                                              |
+| :------- | :--------------------------------------------------------------------------------------------------------------------- |
+| **RF01** | A aplicação deve carregar uma fonte de dados válida no formato GeoJSON.                                                |
+| **RF02** | A aplicação deve representar no mapa as geometrias contidas no GeoJSON.                                                |
+| **RF03** | O usuário deve conseguir selecionar uma obra ou área representada no mapa.                                             |
+| **RF04** | A aplicação deve apresentar as propriedades de acompanhamento do elemento selecionado.                                 |
+| **RF05** | A aplicação deve utilizar diferenciação visual para comunicar o estado das obras, quando esse dado estiver disponível. |
+| **RF06** | A aplicação deve informar de maneira compreensível a ocorrência de dados inválidos ou falhas no carregamento.          |
 
-## 👷 Engenharia / Obra
+## Requisitos não funcionais
 
-* Registro e atualização das etapas construtivas;
-* Informações de percentuais, datas e observações;
-* Anexo de evidências fotográficas;
-* Envio de atualizações para validação antes da publicação.
+| Código    | Requisito                                                                                                         |
+| :-------- | :---------------------------------------------------------------------------------------------------------------- |
+| **RNF01** | A interface deve ser responsiva e adequada à interação em dispositivos móveis.                                    |
+| **RNF02** | A navegação e as interações com o mapa devem permanecer fluidas para o conjunto de dados utilizado na disciplina. |
+| **RNF03** | As informações textuais e os estados visuais devem ser legíveis e de fácil compreensão.                           |
+| **RNF04** | A aplicação deve preservar a integridade dos arquivos GeoJSON de origem durante sua leitura.                      |
+| **RNF05** | Erros de carregamento ou de estrutura dos dados devem ser tratados sem interromper toda a interface.              |
 
-## 🏢 Administrador da Construtora
+## GeoJSON no Constructo
 
-* Gestão de empreendimentos, torres, pavimentos e unidades;
-* Gestão de usuários e permissões;
-* Vinculação entre clientes e unidades;
-* Validação e publicação das atualizações;
-* Consulta ao histórico de auditoria.
+O [GeoJSON](https://geojson.org/) é um formato baseado em JSON utilizado para representar dados geográficos. Ele permite armazenar geometrias como pontos, linhas e polígonos, além de propriedades associadas a cada elemento.
 
----
+No contexto do Constructo:
 
-# ✅ Requisitos Funcionais
+* a propriedade `geometry` determina onde e como a obra será representada no mapa;
+* o objeto `properties` armazena as informações utilizadas no acompanhamento;
+* cada `Feature` representa uma obra ou uma área relevante para o projeto.
 
-Os requisitos funcionais estão organizados entre funcionalidades previstas para o MVP da disciplina e funcionalidades destinadas à evolução posterior da plataforma.
+Exemplo conceitual de uma obra:
 
-## 🧩 Escopo da Disciplina
+```json
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-48.3336, -10.184]
+  },
+  "properties": {
+    "nome": "Obra Exemplo",
+    "status": "em_execucao",
+    "progresso": 45,
+    "ultimaAtualizacao": "2026-08-31"
+  }
+}
+```
 
-**RF01 — Gestão de usuários e acesso**
-O sistema deverá permitir cadastro, autenticação, gerenciamento de perfis e controle de permissões.
+> Os nomes e valores das propriedades poderão ser ajustados de acordo com o conjunto de dados adotado pela equipe.
 
-**RF02 — Gestão dos empreendimentos**
-O sistema deverá permitir o cadastro e gerenciamento da estrutura de construtoras, empreendimentos, torres, pavimentos e unidades.
+## Demonstração inicial
 
-**RF03 — Gestão do progresso da obra**
-O sistema deverá permitir o registro e a consulta das etapas construtivas, seus percentuais de avanço e o fluxo de atualização, validação e publicação.
+A demonstração inicial apresenta a delimitação geográfica do município de Palmas por meio de dados GeoJSON. A imagem serve como referência visual para demonstrar como uma área geográfica pode ser identificada, desenhada e destacada no mapa.
 
-**RF04 — Gestão de evidências**
-O sistema deverá permitir o envio, armazenamento e consulta de fotografias e arquivos relacionados ao progresso da obra.
+Na aplicação, o mesmo princípio será utilizado para representar geograficamente as obras cadastradas. Dependendo dos dados disponíveis, uma obra poderá ser representada por um ponto, linha ou polígono e associada a propriedades como empresa responsável, nome do empreendimento, status, percentual de progresso e data da última atualização.
 
-**RF05 — Comunicação e acompanhamento**
-O sistema deverá disponibilizar timeline de atualizações, galeria de fotografias, comunicados e notificações aos usuários.
+Essa demonstração valida o conceito central do projeto:
 
-**RF06 — Auditoria**
-O sistema deverá registrar o histórico das alterações relevantes, identificando a operação realizada, o usuário responsável e o momento da alteração.
+**Delimitação de Palmas → Representação geográfica das obras → Associação dos dados de acompanhamento → Visualização no mapa**
 
-**RF07 — Visualização 3D do progresso**
-O sistema deverá carregar modelos GLB/glTF previamente preparados e representar visualmente os estados das etapas da construção com base nos dados de progresso registrados.
+<div align="center">
 
-## 🚀 Evolução Futura
+<img src="public/assets/img/mapa_palmas.png" width="700" alt="Limites territoriais do município de Palmas/TO" />
 
-**RF08 — Processamento avançado de modelos 3D**
-O sistema poderá evoluir para realizar ingestão, análise e processamento automatizado de modelos tridimensionais mais complexos.
+<p><em>Figura 1 — Limites territoriais do município de Palmas/TO.</em></p>
 
-**RF09 — Analytics**
-O sistema poderá disponibilizar métricas de utilização da plataforma, incluindo acessos, telas visualizadas e interações com o modelo 3D.
+</div>
 
----
+## Jornada principal
 
-# ⚙️ Requisitos Não Funcionais
+1. A aplicação carrega os dados GeoJSON disponíveis;
+2. as obras são posicionadas e identificadas no mapa;
+3. o usuário navega pelo mapa e seleciona uma obra;
+4. a aplicação apresenta as informações de acompanhamento associadas;
+5. o usuário compara a localização e a situação das obras mapeadas.
 
-## 🚀 Desempenho 3D
+## Critérios de conclusão da entrega
 
-**RNF01 — Performance do visualizador**
-O visualizador 3D deverá proporcionar navegação fluida nos dispositivos móveis suportados, permitindo rotação, zoom, seleção de elementos e movimentação de câmera.
+O módulo será considerado concluído quando:
 
-**RNF02 — Limites dos modelos**
-Os modelos GLB/glTF deverão respeitar critérios de tamanho e complexidade compatíveis com os dispositivos suportados. Os limites serão definidos por meio de testes durante o desenvolvimento.
+* um arquivo GeoJSON válido puder ser carregado pela aplicação;
+* as geometrias forem exibidas corretamente no mapa;
+* o usuário puder selecionar uma obra e consultar seus dados;
+* os estados definidos no conjunto de dados possuírem uma representação compreensível;
+* a interface funcionar adequadamente no ambiente definido para a disciplina;
+* falhas comuns de carregamento forem comunicadas ao usuário.
 
-**RNF03 — Carregamento**
-O sistema deverá minimizar o tempo de carregamento dos modelos e apresentar feedback visual enquanto recursos mais pesados estiverem sendo carregados.
+## Evolução futura
 
-## 🔐 Segurança e Isolamento
+Após a entrega acadêmica, o Constructo poderá evoluir gradualmente para uma plataforma mais ampla:
 
-**RNF04 — Autenticação e autorização**
-Recursos protegidos deverão exigir autenticação válida e respeitar as permissões atribuídas a cada usuário.
+1. **Gestão da plataforma:** autenticação, perfis, permissões e cadastro de empreendimentos;
+2. **Atualização colaborativa:** registro, validação e publicação do progresso das obras;
+3. **Comunicação:** fotos, documentos, timeline, comunicados e notificações;
+4. **Rastreabilidade:** histórico de alterações e auditoria;
+5. **Experiência do cliente:** unidades vinculadas, módulo Meu Apê e acompanhamento personalizado;
+6. **Visualização avançada:** modelos 3D, BIM/IFC, realidade aumentada e visitas virtuais;
+7. **Inteligência de dados:** relatórios, indicadores, planejado versus realizado e integrações externas.
 
-**RNF05 — Proteção dos dados**
-Dados sensíveis e informações de autenticação deverão ser protegidos durante armazenamento e transmissão.
-
-**RNF06 — Isolamento multi-tenant**
-Dados de diferentes construtoras deverão permanecer logicamente isolados, impedindo acesso indevido entre organizações.
-
-## 📱 Compatibilidade
-
-**RNF07 — Compatibilidade mobile**
-O aplicativo deverá ser compatível com dispositivos Android e iOS dentro das versões suportadas pelo projeto.
-
-**RNF08 — Responsividade e usabilidade**
-A interface deverá adaptar-se aos diferentes tamanhos de tela e considerar interação por toque, legibilidade e facilidade de navegação.
-
-## 🌐 Resiliência
-
-**RNF09 — Tratamento de falhas**
-Falhas de comunicação, carregamento ou indisponibilidade temporária de serviços deverão ser tratadas de forma controlada e comunicadas ao usuário.
-
-**RNF10 — Integridade dos dados**
-Operações críticas deverão preservar a consistência das informações mesmo diante de falhas ou interrupções.
-
-## 📊 Observabilidade
-
-**RNF11 — Logs e monitoramento**
-A aplicação deverá registrar informações relevantes para diagnóstico de erros e permitir o acompanhamento da saúde e do desempenho dos serviços.
-
----
-
-# 🔄 Jornadas Principais
-
-## 👷 Jornada 1 — Atualização do Progresso
-
-**Ator principal:** Engenharia / Obra
-
-1. O profissional acessa o empreendimento;
-2. Seleciona a etapa que deseja atualizar;
-3. Informa o progresso, observações e evidências;
-4. Salva a atualização como rascunho;
-5. O sistema mantém a atualização aguardando validação.
-
-**Resultado esperado:** uma atualização de progresso fica registrada e pronta para análise.
-
----
-
-## ✅ Jornada 2 — Validação e Publicação
-
-**Ator principal:** Administrador / Responsável pela validação
-
-1. O responsável consulta as atualizações pendentes;
-2. Analisa os dados e evidências;
-3. Aprova ou rejeita a atualização;
-4. Caso aprovada, a informação é publicada;
-5. O sistema registra a operação na auditoria;
-6. O progresso atualizado fica disponível para os usuários autorizados.
-
-**Resultado esperado:** apenas informações validadas passam a representar oficialmente o estado da obra.
-
----
-
-## 🏠 Jornada 3 — Acompanhamento pelo Cliente
-
-**Ator principal:** Cliente / Comprador
-
-1. O cliente realiza sua autenticação;
-2. Seleciona seu empreendimento ou unidade;
-3. Acessa o módulo **Meu Apê**;
-4. Consulta o progresso atual;
-5. Visualiza a timeline, fotografias e comunicados;
-6. Acessa o modelo 3D para visualizar o estágio da construção.
-
-**Resultado esperado:** o cliente consegue compreender e acompanhar a evolução do seu imóvel em um único ambiente.
-
----
-
-## 🏢 Jornada 4 — Gestão do Empreendimento
-
-**Ator principal:** Administrador da Construtora
-
-1. O administrador gerencia empreendimentos, torres, pavimentos e unidades;
-2. Vincula clientes às respectivas unidades;
-3. Gerencia usuários e permissões;
-4. Consulta o andamento dos empreendimentos;
-5. Consulta o histórico das operações realizadas.
-
-**Resultado esperado:** a construtora mantém centralizada a administração das informações e dos acessos à plataforma.
-
----
-
-# 🎨 Mapeamento 3D e Progresso
-
-Um dos principais elementos do **WorkSite 3D-View** é a associação entre os dados de progresso da obra e os elementos identificáveis do modelo GLB/glTF.
-
-Conforme o estado da construção é atualizado, o visualizador poderá alterar a representação dos elementos correspondentes:
-
-| Status           | Representação no Modelo 3D                         |
-| :--------------- | :------------------------------------------------- |
-| **Não iniciada** | Oculto ou transparente                             |
-| **Em execução**  | Destacado ou semitransparente                      |
-| **Concluída**    | Visível com acabamento final                       |
-| **Selecionado**  | Destaque, foco da câmera e informações contextuais |
-
-No MVP, serão utilizados modelos previamente preparados e organizados para permitir essa associação, evitando a necessidade de processamento automatizado de modelos BIM complexos.
-
----
-
-# 💻 Stack Tecnológica
-
-| Camada              | Tecnologia                     | Função                                  |
-| :------------------ | :----------------------------- | :-------------------------------------- |
-| **Mobile**          | React Native + Expo            | Aplicativo para Android e iOS           |
-| **Renderização 3D** | React Three Fiber + Three.js   | Visualização e interação com modelos 3D |
-| **Backend / API**   | Python + Django REST Framework | Regras de negócio, API e autorização    |
-| **Banco de Dados**  | PostgreSQL                     | Persistência dos dados                  |
-| **Armazenamento**   | S3 / Cloudflare R2             | Fotografias, arquivos e modelos 3D      |
-| **Filas e Cache**   | Redis + Workers                | Processamento assíncrono e cache        |
-| **Observabilidade** | OpenTelemetry                  | Logs, métricas e traces                 |
-| **Notificações**    | Firebase Cloud Messaging       | Notificações push                       |
-
----
-
-# 🚀 MVP
-
-A primeira versão do **WorkSite 3D-View** tem como objetivo validar o fluxo principal da plataforma com baixa complexidade operacional.
-
-O MVP contempla:
-
-* Autenticação e controle de usuários;
-* Isolamento multi-tenant;
-* Cadastro de empreendimentos, torres, pavimentos e unidades;
-* Registro manual do progresso da obra;
-* Workflow de rascunho, validação e publicação;
-* Evidências fotográficas;
-* Timeline de evolução;
-* Galeria de fotos;
-* Módulo **Meu Apê**;
-* Registro de auditoria;
-* Visualizador 3D utilizando modelos GLB/glTF previamente preparados;
-* Representação visual do progresso da construção no modelo 3D.
-
-O MVP não pretende realizar processamento automático de modelos BIM. A prioridade é validar o fluxo:
-
-**Engenharia atualiza → Sistema registra → Responsável valida → Modelo reage → Cliente entende**
-
----
-
-# 🛣️ Roadmap
-
-## Fase 0 — Descoberta Técnica
-
-* Testes de performance dos modelos 3D em dispositivos móveis;
-* Definição dos limites de geometria e texturas;
-* Definição das convenções de identificação dos elementos dos modelos;
-* Prototipação da comunicação entre API e visualizador 3D.
-
-## Fase 1 — MVP Operacional
-
-* Desenvolvimento de autenticação, domínio, progresso, evidências, auditoria e visualização 3D;
-* Implementação do módulo **Meu Apê**;
-* Validação da jornada completa entre engenharia e cliente.
-
-## Fase 2 — Piloto Controlado
-
-* Testes com um empreendimento;
-* Ajustes de performance e usabilidade;
-* Implementação e validação das notificações;
-* Monitoramento de erros e utilização.
-
-## Fase 3 — Evolução da Plataforma
-
-* Painel web especializado para engenharia;
-* Processamento assíncrono de modelos e arquivos;
-* CDN para distribuição de assets;
-* Relatórios de planejado x realizado;
-* Expansão dos recursos de analytics.
-
-## Fase 4 — Recursos Avançados
-
-* Ingestão automatizada de BIM/IFC;
-* Integrações com sistemas externos e ERPs;
-* Tour virtual 360°;
-* Realidade Aumentada e Realidade Virtual.
+Essas etapas são direcionamentos de produto e não constituem compromisso de implementação durante a disciplina.
