@@ -8,7 +8,7 @@
 
 </div>
 
----
+<hr>
 
 ## 📚 Sumário
 
@@ -23,17 +23,40 @@
 - [Critérios de conclusão](#-critérios-de-conclusão-da-entrega)
 - [Evolução futura](#-evolução-futura)
 
----
+<hr>
 
 ## 🎓 Informações acadêmicas
 
-|                 |                                         |
-| :-------------- | :-------------------------------------- |
-| **Instituição** | Universidade Federal do Tocantins (UFT) |
-| **Curso**       | Bacharelado em Ciência da Computação    |
-| **Disciplina**  | Desenvolvimento Webmobile               |
-| **Professor**   | Jackson Gomes de Souza                  |
-| **Semestre**    | 2026.2                                  |
+<div align="center">
+
+<table align="center">
+  <tbody>
+    <tr>
+      <th align="left">Instituição</th>
+      <td align="left">Universidade Federal do Tocantins (UFT)</td>
+    </tr>
+    <tr>
+      <th align="left">Curso</th>
+      <td align="left">Bacharelado em Ciência da Computação</td>
+    </tr>
+    <tr>
+      <th align="left">Disciplina</th>
+      <td align="left">Desenvolvimento Webmobile</td>
+    </tr>
+    <tr>
+      <th align="left">Professor</th>
+      <td align="left">Jackson Gomes de Souza</td>
+    </tr>
+    <tr>
+      <th align="left">Semestre</th>
+      <td align="left">2026.2</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<hr>
 
 ## 👥 Equipe
 
@@ -42,7 +65,7 @@
 - [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
 - [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
 
----
+<hr>
 
 ## 🏗️ Sobre o projeto
 
@@ -55,11 +78,15 @@ Durante a disciplina, o projeto será desenvolvido como um módulo funcional de 
 
 A visão completa da plataforma inclui outros recursos, como autenticação, gestão de usuários, evidências fotográficas, auditoria e visualização tridimensional. Esses recursos não fazem parte da entrega da disciplina e estão registrados neste documento apenas como possibilidades de evolução futura.
 
+<hr>
+
 ## 🎯 Problema
 
 Informações sobre o andamento de obras frequentemente ficam distribuídas entre planilhas, relatórios e diferentes canais de comunicação. Além de dificultar a consulta, essa fragmentação reduz a clareza sobre onde cada obra está localizada e qual é sua situação atual.
 
 O Constructo busca facilitar essa leitura ao reunir a localização e os dados essenciais das obras em uma interface cartográfica interativa.
+
+<hr>
 
 ## 💡 Solução proposta
 
@@ -73,7 +100,7 @@ O fluxo principal da aplicação é:
 
 Essa abordagem permite relacionar a situação de cada obra à sua localização, tornando o acompanhamento mais direto e visual.
 
----
+<hr>
 
 ## 📦 Escopo da entrega da disciplina
 
@@ -104,28 +131,89 @@ As funcionalidades abaixo representam a visão futura do Constructo e **não faz
 - visualização 3D e processamento de modelos GLB, glTF, BIM ou IFC;
 - relatórios, indicadores e análises avançadas.
 
+<hr>
+
 ## ✅ Requisitos funcionais
 
-| Código   | Requisito                                                                                                              |
-| :------- | :--------------------------------------------------------------------------------------------------------------------- |
-| **RF01** | A aplicação deve carregar uma fonte de dados válida no formato GeoJSON.                                                |
-| **RF02** | A aplicação deve representar no mapa as geometrias contidas no GeoJSON.                                                |
-| **RF03** | O usuário deve conseguir selecionar uma obra ou área representada no mapa.                                             |
-| **RF04** | A aplicação deve apresentar as propriedades de acompanhamento do elemento selecionado.                                 |
-| **RF05** | A aplicação deve utilizar diferenciação visual para comunicar o estado das obras, quando esse dado estiver disponível. |
-| **RF06** | A aplicação deve informar de maneira compreensível a ocorrência de dados inválidos ou falhas no carregamento.          |
+<div align="center">
+
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Código</th>
+      <th align="left">Requisito</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><strong>RF01</strong></td>
+      <td align="left">A aplicação deve carregar uma fonte de dados válida no formato GeoJSON.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RF02</strong></td>
+      <td align="left">A aplicação deve representar no mapa as geometrias contidas no GeoJSON.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RF03</strong></td>
+      <td align="left">O usuário deve conseguir selecionar uma obra ou área representada no mapa.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RF04</strong></td>
+      <td align="left">A aplicação deve apresentar as propriedades de acompanhamento do elemento selecionado.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RF05</strong></td>
+      <td align="left">A aplicação deve utilizar diferenciação visual para comunicar o estado das obras, quando esse dado estiver disponível.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RF06</strong></td>
+      <td align="left">A aplicação deve informar de maneira compreensível a ocorrência de dados inválidos ou falhas no carregamento.</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<hr>
 
 ## ⚙️ Requisitos não funcionais
 
-| Código    | Requisito                                                                                                         |
-| :-------- | :---------------------------------------------------------------------------------------------------------------- |
-| **RNF01** | A interface deve ser responsiva e adequada à interação em dispositivos móveis.                                    |
-| **RNF02** | A navegação e as interações com o mapa devem permanecer fluidas para o conjunto de dados utilizado na disciplina. |
-| **RNF03** | As informações textuais e os estados visuais devem ser legíveis e de fácil compreensão.                           |
-| **RNF04** | A aplicação deve preservar a integridade dos arquivos GeoJSON de origem durante sua leitura.                      |
-| **RNF05** | Erros de carregamento ou de estrutura dos dados devem ser tratados sem interromper toda a interface.              |
+<div align="center">
 
----
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Código</th>
+      <th align="left">Requisito</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><strong>RNF01</strong></td>
+      <td align="left">A interface deve ser responsiva e adequada à interação em dispositivos móveis.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RNF02</strong></td>
+      <td align="left">A navegação e as interações com o mapa devem permanecer fluidas para o conjunto de dados utilizado na disciplina.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RNF03</strong></td>
+      <td align="left">As informações textuais e os estados visuais devem ser legíveis e de fácil compreensão.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RNF04</strong></td>
+      <td align="left">A aplicação deve preservar a integridade dos arquivos GeoJSON de origem durante sua leitura.</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>RNF05</strong></td>
+      <td align="left">Erros de carregamento ou de estrutura dos dados devem ser tratados sem interromper toda a interface.</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<hr>
 
 ## 🗺️ GeoJSON no Constructo
 
@@ -157,6 +245,8 @@ Exemplo conceitual de uma obra:
 
 > Os nomes e valores das propriedades poderão ser ajustados de acordo com o conjunto de dados adotado pela equipe.
 
+<hr>
+
 ## 📍 Demonstração inicial
 
 A demonstração inicial apresenta a delimitação geográfica do município de Palmas por meio de dados GeoJSON. A imagem serve como referência visual para demonstrar como uma área geográfica pode ser identificada, desenhada e destacada no mapa.
@@ -177,7 +267,7 @@ Essa demonstração valida o conceito central do projeto:
 
 </div>
 
----
+<hr>
 
 ## 🔄 Jornada principal
 
@@ -186,6 +276,8 @@ Essa demonstração valida o conceito central do projeto:
 3. o usuário navega pelo mapa e seleciona uma obra;
 4. a aplicação apresenta as informações de acompanhamento associadas;
 5. o usuário compara a localização e a situação das obras mapeadas.
+
+<hr>
 
 ## 🏁 Critérios de conclusão da entrega
 
@@ -198,7 +290,7 @@ O módulo será considerado concluído quando:
 - a interface funcionar adequadamente no ambiente definido para a disciplina;
 - falhas comuns de carregamento forem comunicadas ao usuário.
 
----
+<hr>
 
 ## 🚀 Evolução futura
 
