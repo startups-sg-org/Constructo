@@ -229,11 +229,11 @@ A aplicação será organizada para impedir que dados pertencentes a uma constru
 
 ---
 
-## DOMINUS — Inteligência Territorial da Obra
+## 10. DOMINUS — Inteligência territorial da obra
 
-O **DOMINUS** é o módulo geoespacial do **Constructo**, responsável por representar e acompanhar territorialmente as obras cadastradas na plataforma.
+O **DOMINUS** será o módulo geoespacial do **Constructo**, responsável por representar obras e áreas de interesse diretamente sobre o território.
 
-Utilizando dados no formato **GeoJSON**, o módulo permite delimitar áreas de execução, visualizar a distribuição espacial da obra e associar informações gerenciais diretamente ao território.
+A representação geográfica utilizará dados no formato **GeoJSON**, permitindo delimitar áreas relacionadas às obras cadastradas e associar informações de acompanhamento a essas regiões.
 
 <div align="center">
 
@@ -241,7 +241,9 @@ Utilizando dados no formato **GeoJSON**, o módulo permite delimitar áreas de e
 
 </div>
 
-Ao selecionar uma área no mapa, o usuário poderá consultar indicadores relacionados ao andamento da obra, como:
+Ao selecionar uma obra ou área representada no mapa, o usuário poderá acessar uma visão resumida de sua situação.
+
+O módulo poderá apresentar indicadores relacionados a:
 
 - progresso físico;
 - situação do cronograma;
@@ -250,5 +252,21 @@ Ao selecionar uma área no mapa, o usuário poderá consultar indicadores relaci
 - qualidade da execução;
 - riscos e ocorrências;
 - situação geral da obra.
+
+Sempre que aplicável, os indicadores poderão ser relacionados às respectivas **fontes de evidência**, permitindo que o usuário avance da visão resumida apresentada no mapa até:
+
+- planilhas;
+- relatórios;
+- documentos técnicos;
+- registros fotográficos;
+- demais arquivos vinculados à obra.
+
+O objetivo do módulo é permitir uma navegação baseada no fluxo:
+
+<p align="center">
+<strong>território → obra → situação → indicador → evidência</strong>
+</p>
+
+Dessa forma, o **DOMINUS** funcionará como uma interface territorial para consulta e acompanhamento das informações gerenciadas pelos demais módulos do Constructo.
 
 ---
