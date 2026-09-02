@@ -100,11 +100,24 @@ O fluxo principal da aplicação é:
 
 Essa abordagem permite relacionar a situação de cada obra à sua localização, tornando o acompanhamento mais direto e visual.
 
+### Stack tecnológica
+
+A arquitetura tecnológica estruturada no arquivo "Obras-transparentes-clientes-conectados.pdf" para suportar a visão completa do Constructo é:
+
+- **Mobile (Frontend):** React Native + Expo
+- **Renderização 3D:** React Three Fiber + Three.js
+- **Backend / API:** Python + Django REST Framework
+- **Dados & Armazenamento:** PostgreSQL + S3 / Cloudflare R2
+- **Filas & Cache:** Redis + Workers
+- **Observabilidade e Push:** OpenTelemetry + Firebase Cloud Messaging
+
 <hr>
 
 ## 📦 Escopo da entrega da disciplina
 
 ### Funcionalidades previstas
+
+Para esta etapa acadêmica, o escopo está delimitado à construção de um módulo de visualização cartográfica interativa e responsiva. O fluxo principal consistirá em:
 
 - carregar dados de obras estruturados no formato GeoJSON;
 - representar no mapa pontos, linhas ou polígonos presentes nesses dados;
@@ -294,14 +307,11 @@ O módulo será considerado concluído quando:
 
 ## 🚀 Evolução futura
 
-Após a entrega acadêmica, o Constructo poderá evoluir gradualmente para uma plataforma mais ampla:
+Após o escopo acadêmico, o projeto evoluirá para uma plataforma SaaS multi-tenant abrangente. As funcionalidades projetadas incluem:
 
-1. **Gestão da plataforma:** autenticação, perfis, permissões e cadastro de empreendimentos;
-2. **Atualização colaborativa:** registro, validação e publicação do progresso das obras;
-3. **Comunicação:** fotos, documentos, timeline, comunicados e notificações;
-4. **Rastreabilidade:** histórico de alterações e auditoria;
-5. **Experiência do cliente:** unidades vinculadas, módulo Meu Apê e acompanhamento personalizado;
-6. **Visualização avançada:** modelos 3D, BIM/IFC, realidade aumentada e visitas virtuais;
-7. **Inteligência de dados:** relatórios, indicadores, planejado versus realizado e integrações externas.
+- **Gestão e Administração:** autenticação, gestão de usuários, painel administrativo de obras e isolamento de dados entre diferentes construtoras;
+- **Comunicação e Experiência (Módulo Meu Apê):** timeline de avanço, upload de evidências fotográficas e documentos, comunicados oficiais e envio de notificações push automáticas;
+- **Visualização Avançada:** acompanhamento interativo por meio de modelos 3D (GLB/glTF), com ingestão futura automatizada de arquivos BIM/IFC, tours 360° e experiências em Realidade Aumentada (RA);
+- **Rastreabilidade e Inteligência:** histórico de alterações com auditoria rigorosa, cruzamento de dados (planejado versus realizado), analytics de uso e integração automatizada com ERPs.
 
-Essas etapas são direcionamentos de produto e não constituem compromisso de implementação durante a disciplina.
+Essas etapas representam a continuidade do produto além da disciplina e não constituem compromisso de implementação no módulo atual.
