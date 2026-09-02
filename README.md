@@ -226,3 +226,29 @@ A aplicação deverá manter informações suficientes para identificar:
 ## 9. Isolamento entre construtoras
 
 A aplicação será organizada para impedir que dados pertencentes a uma construtora sejam acessados indevidamente por usuários de outra organização.
+
+---
+
+## DOMINUS — Inteligência Territorial da Obra
+
+O **DOMINUS** é o módulo geoespacial do **Constructo**, responsável por representar e acompanhar territorialmente as obras cadastradas na plataforma.
+
+Utilizando dados no formato **GeoJSON**, o módulo permite delimitar áreas de execução, visualizar a distribuição espacial da obra e associar informações gerenciais diretamente ao território.
+
+<div align="center">
+
+<img src="public/assets/img/mapa_palmas.png" width="850" alt="Interface do módulo DOMINUS">
+
+</div>
+
+Ao selecionar uma área no mapa, o usuário poderá consultar indicadores relacionados ao andamento da obra, como:
+
+- progresso físico;
+- situação do cronograma;
+- custos e desvios financeiros;
+- produtividade;
+- qualidade da execução;
+- riscos e ocorrências;
+- situação geral da obra.
+
+---
