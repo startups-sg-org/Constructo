@@ -1,0 +1,150 @@
+.indicadores-page {
+	min-height: 100vh;
+	padding: 80px clamp(50px, 5vw, 72px);
+	background: linear-gradient(135deg, #12161F 0%, #12161F 100%);
+	color: #12161F;
+}
+
+.indicadores-page__header {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 24px;
+	max-width: 1180px;
+	margin: 0 auto 32px;
+}
+
+.indicadores-page__eyebrow {
+	margin: 0 0 8px;
+	color: #F0F6FC;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.indicadores-page h1 {
+	margin: 0;
+	color: #F0F6FC;
+	font-size: clamp(28px, 4vw, 46px);
+	line-height: 1.05;
+}
+
+.indicadores-page__updated {
+	margin: 0 0 4px;
+	color: #8B949E;
+	font-size: 14px;
+}
+
+.indicadores-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 18px;
+	max-width: 1180px;
+	margin: 0 auto;
+}
+
+.indicator-card {
+	display: flex;
+	min-height: 100px;
+	flex-direction: column;
+	padding: 20px;
+	border: 1px solid #8B949E;
+	border-top: 4px solid #7c9d87;
+	border-radius: 8px;
+	background: rgba(38, 48, 64,1);
+	box-shadow: 0 12px 32px rgba(38, 48, 64, 1);
+}
+
+.indicator-card--positive {
+	border-top-color: #3e8959;
+}
+
+.indicator-card--attention {
+	border-top-color: #c68a32;
+}
+
+.indicator-card--critical {
+	border-top-color: #bd5549;
+}
+
+.indicator-card__header {
+	display: flex;
+	align-items: start;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.indicator-card__label {
+	color: #8B949E;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.indicator-card__trend {
+	color: #8B949E;
+	font-size: 12px;
+	text-align: right;
+}
+
+.indicator-card__value {
+	margin: 24px 0 8px;
+	color: #F0F6FC;
+	font-size: clamp(30px, 3vw, 30px);
+	font-weight: 500;
+	line-height: 1;
+}
+
+.indicator-card__unit {
+	margin-left: 4px;
+	color: #F0F6FC;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.indicator-card__description {
+	margin: auto 0 0;
+	color: #F0F6FC;
+	font-size: 16px;
+	line-height: 1.4;
+}
+
+.indicator-card__evidence {
+	margin-top: 14px;
+	color: #356b49;
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.indicadores-state {
+	margin: 48px auto;
+	padding: 24px;
+	color: #536258;
+	text-align: center;
+}
+
+.indicadores-state--error {
+	color: #a73f35;
+}
+
+@media (max-width: 900px) {
+	.indicadores-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 760px) {
+	.indicadores-page {
+		padding: 32px 16px;
+	}
+
+	.indicadores-page__header {
+		align-items: start;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.indicadores-grid {
+		grid-template-columns: 1fr;
+	}
+}
