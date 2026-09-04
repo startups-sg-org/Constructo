@@ -1,0 +1,49 @@
+name: Sprint
+about: Crie uma issue de Sprint para agrupar e acompanhar as issues planejadas.
+title: "Sprint XX - "
+labels: ["sprint"]
+body:
+  - type: input
+    id: periodo
+    attributes:
+      label: Período
+      description: Exemplo: 25/08 a 07/09
+      placeholder: dd/mm a dd/mm
+    validations:
+      required: true
+
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Objetivo principal da sprint.
+      placeholder: Descreva o objetivo da sprint
+    validations:
+      required: true
+
+  - type: textarea
+    id: backlog
+    attributes:
+      label: Backlog principal
+      description: Liste os principais itens previstos para a sprint.
+      placeholder: |
+        - Item 1
+        - Item 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: issues_relacionadas
+    attributes:
+      label: Issues da sprint
+      description: Vincule as issues que fazem parte desta sprint usando #número.
+      value: |
+        - [ ] #
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > Dica: use a lista acima para acompanhar o andamento das issues da sprint.
+        > Exemplo: `- [ ] #8` (pendente) e `- [x] #8` (concluída).
