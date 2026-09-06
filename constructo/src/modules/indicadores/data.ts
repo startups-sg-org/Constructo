@@ -5,7 +5,7 @@ export const indicadoresMock: ObraIndicadores = {
   obraNome: 'Residencial Comodoro',
   atualizacaoEm: '04/09/2026',
   progressoFisico: {
-    label: 'Progresso físico',
+    label: 'Progresso',
     value: 68,
     unit: '%',
     description: 'Avanço executado da obra',
@@ -13,7 +13,7 @@ export const indicadoresMock: ObraIndicadores = {
     trend: '+4,2% no período',
   },
   progressoPlanejado: {
-    label: 'Progresso planejado',
+    label: 'Prazo',
     value: 72,
     unit: '%',
     description: 'Avanço previsto até a data',
@@ -27,7 +27,7 @@ export const indicadoresMock: ObraIndicadores = {
     status: 'neutral',
   },
   situacaoObra: {
-    label: 'Situação da obra',
+    label: 'Situação',
     value: 'Em andamento',
     description: 'Sem impedimentos registrados',
     status: 'positive',

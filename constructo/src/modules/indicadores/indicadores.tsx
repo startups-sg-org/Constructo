@@ -1,5 +1,5 @@
 import './indicadores.css'
-import IndicatorCard from './IndicatorCard'
+import IndicatorCard, { IndicatorCardLoad } from './IndicatorCard'
 import type { DataState, ObraIndicadores } from './types'
 
 interface IndicadoresProps {
@@ -43,6 +43,9 @@ function Indicadores({ data, state = 'ready', errorMessage }: IndicadoresProps) 
 				{metrics.map((metric) => (
 					<IndicatorCard key={metric.label} metric={metric} />
 				))}
+			</section>
+			<section className='indicador-porcentagem' aria-labelledby='indicador-de-etapa-da-construcao'>
+				<IndicatorCardLoad metric={data.progressoFisico} />
 			</section>
 		</main>
 	)
