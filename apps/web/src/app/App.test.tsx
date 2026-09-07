@@ -1,12 +1,15 @@
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import App from './App'
+import MapComponent from '@features/map/components/MapComponent'
 
-describe('App', () => {
-  it('renderiza a rota inicial', () => {
-    render(<App />)
+describe('MapComponent', () => {
+  it('renderiza a seção do mapa', () => {
+    render(<MapComponent />)
 
-    expect(screen.getByText('Hello World')).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', { name: 'Mapa de Obras' }),
+    ).toBeInTheDocument()
   })
 })
+

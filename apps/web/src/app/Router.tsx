@@ -1,10 +1,10 @@
 import { createBrowserRouter } from 'react-router'
-import MapComponent from '@features/Map/MapComponent'
+import MapComponent from '@features/map/components/MapComponent'
 
 
 export const router = createBrowserRouter([
   {
-    path: '/MapComponent',
+    path: '/',
     element: <MapComponent/>,
   },
 ])
