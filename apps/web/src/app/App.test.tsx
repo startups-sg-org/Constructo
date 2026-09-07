@@ -1,15 +1,16 @@
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import MapComponent from '@features/map/components/MapComponent'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+import App from './App'
 
-describe('MapComponent', () => {
-  it('renderiza a seção do mapa', () => {
-    render(<MapComponent />)
+afterEach(cleanup)
 
-    expect(
-      screen.getByRole('region', { name: 'Mapa de Obras' }),
-    ).toBeInTheDocument()
+describe('App', () => {
+  it('renderiza o mapa na rota inicial', () => {
+    render(<App />)
+
+    expect(screen.getByRole('region', { name: 'Mapa de Obras' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'UFT' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Praça dos Girassóis' })).toBeChecked()
   })
 })
-

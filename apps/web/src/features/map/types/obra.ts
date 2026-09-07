@@ -1,15 +1,27 @@
-import type { FeatureCollection, Polygon } from 'geojson'
+export type CoordenadaObra = [latitude: number, longitude: number]
 
-export interface ObraProperties {
+export type TipoObra = 'Educacional' | 'Urbanização' | 'Residencial' | 'Comercial' | 'Saúde' | 'Aeroportuária' | 'Esportiva'
+export type StatusObra = 'Em andamento' | 'Paralisada' | 'Concluída'
+
+export interface Obra {
   id: string
   nome: string
+  local: string
   municipio: string
-  uf: 'TO'
-  tipo: 'Residencial' | 'Comercial' | 'Educacional' | 'Saúde' | 'Logística'
-  status: 'Em andamento' | 'Planejada'
-  progresso: number
+  uf: string
+  tipo: TipoObra
+  status: StatusObra
   descricao: string
-  ficticia: true
+  responsavel: string
+  progresso: number
+  orcamento: number
+  dataInicio: string
+  previsaoConclusao: string
+  coordenadas: CoordenadaObra[]
+  /** Pátios e outras áreas excluídas do preenchimento do polígono. */
+  aneisInternos?: CoordenadaObra[][]
+  escopoCoordenadas?: string
+  origemCoordenadas: 'OpenStreetMap' | 'Simulação'
+  fonteCoordenadas?: string
+  ficticia: boolean
 }
-
-export type ObrasGeoJson = FeatureCollection<Polygon, ObraProperties>
