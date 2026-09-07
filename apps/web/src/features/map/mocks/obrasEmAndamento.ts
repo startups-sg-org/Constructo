@@ -17,6 +17,10 @@ export const obrasEmAndamento = {
         "tipo": "Residencial",
         "status": "Em andamento",
         "progresso": 65,
+        "progressoFisico": 65,
+        "progressoPlanejado": 70,
+        "etapaAtual": "Estrutura e Alvenaria",
+        "ultimaAtualizacao": "05/09/2026",
         "descricao": "Construção de dois blocos residenciais com área de convivência.",
         "ficticia": true
       },
@@ -59,6 +63,10 @@ export const obrasEmAndamento = {
         "tipo": "Comercial",
         "status": "Em andamento",
         "progresso": 40,
+        "progressoFisico": 40,
+        "progressoPlanejado": 50,
+        "etapaAtual": "Fundações e Subsolo",
+        "ultimaAtualizacao": "01/09/2026",
         "descricao": "Construção de lojas e estacionamento para um centro comercial.",
         "ficticia": true
       },
@@ -101,6 +109,10 @@ export const obrasEmAndamento = {
         "tipo": "Educacional",
         "status": "Em andamento",
         "progresso": 80,
+        "progressoFisico": 80,
+        "progressoPlanejado": 85,
+        "etapaAtual": "Acabamento e Pintura",
+        "ultimaAtualizacao": "04/09/2026",
         "descricao": "Construção de salas de aula, biblioteca e quadra coberta.",
         "ficticia": true
       },
@@ -143,6 +155,10 @@ export const obrasEmAndamento = {
         "tipo": "Saúde",
         "status": "Em andamento",
         "progresso": 25,
+        "progressoFisico": 25,
+        "progressoPlanejado": 30,
+        "etapaAtual": "Terraplenagem e Infraestrutura",
+        "ultimaAtualizacao": "02/09/2026",
         "descricao": "Construção de consultórios e salas de atendimento ambulatorial.",
         "ficticia": true
       },

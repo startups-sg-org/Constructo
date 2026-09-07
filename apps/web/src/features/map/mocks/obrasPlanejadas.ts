@@ -17,6 +17,10 @@ export const obrasPlanejadas = {
         "tipo": "Residencial",
         "status": "Planejada",
         "progresso": 0,
+        "progressoFisico": 0,
+        "progressoPlanejado": 10,
+        "etapaAtual": "Projetos e Licenciamento",
+        "ultimaAtualizacao": "20/08/2026",
         "descricao": "Implantação de conjunto residencial com infraestrutura de acesso.",
         "ficticia": true
       },
@@ -59,6 +63,10 @@ export const obrasPlanejadas = {
         "tipo": "Logística",
         "status": "Planejada",
         "progresso": 0,
+        "progressoFisico": 0,
+        "progressoPlanejado": 15,
+        "etapaAtual": "Estudo de Viabilidade",
+        "ultimaAtualizacao": "15/08/2026",
         "descricao": "Construção de galpão com docas e pátio de movimentação.",
         "ficticia": true
       },
@@ -101,6 +109,10 @@ export const obrasPlanejadas = {
         "tipo": "Educacional",
         "status": "Planejada",
         "progresso": 0,
+        "progressoFisico": 0,
+        "progressoPlanejado": 5,
+        "etapaAtual": "Aprovação de Alvará",
+        "ultimaAtualizacao": "28/08/2026",
         "descricao": "Construção de unidade escolar com laboratório e refeitório.",
         "ficticia": true
       },

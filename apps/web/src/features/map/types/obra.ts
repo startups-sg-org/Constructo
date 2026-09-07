@@ -8,6 +8,10 @@ export interface ObraProperties {
   tipo: 'Residencial' | 'Comercial' | 'Educacional' | 'Saúde' | 'Logística'
   status: 'Em andamento' | 'Planejada'
   progresso: number
+  progressoFisico: number
+  progressoPlanejado: number
+  etapaAtual: string
+  ultimaAtualizacao: string
   descricao: string
   ficticia: true
 }
