@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { latLngBounds } from 'leaflet'
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
 import {
   CircleMarker,
   FeatureGroup,
@@ -13,6 +17,15 @@ import { obrasEmAndamento } from '../mocks/obrasEmAndamento'
 import { obrasPlanejadas } from '../mocks/obrasPlanejadas'
 import type { ObraProperties } from '../types/obra'
 import ObraInfoPanel from './ObraInfoPanel'
+<<<<<<< HEAD
+=======
+=======
+import { useEffect, useId, useMemo, useState } from 'react'
+import { LayersControl, MapContainer, Polygon, Popup, TileLayer, useMap } from 'react-leaflet'
+import { obrasMock } from '../mocks/obras'
+import type { Obra } from '../types/obra'
+>>>>>>> 7de5ac41716a281eb54c99b7dcf30bb8d167eafe
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
 import './MapComponent.css'
 
 const camadas = [
@@ -30,14 +43,42 @@ const limites = latLngBounds(
   ),
 )
 
+<<<<<<< HEAD
 export default function MapComponent() {
   const [selectedObra, setSelectedObra] = useState<ObraProperties | null>(null)
 
+=======
+function formatarData(data: string) {
+  const [ano, mes, dia] = data.split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
+function ObrasNoMapa({ obras }: { obras: Obra[] }) {
+  const [obraSelecionada, setObraSelecionada] = useState<string | null>(null)
+  const map = useMap()
+
+  useEffect(() => {
+    map.fitBounds(latLngBounds(obras.flatMap((obra) => obra.coordenadas)), {
+      padding: [24, 24],
+    })
+  }, [map, obras])
+
+<<<<<<< HEAD
+export default function MapComponent() {
+  const [selectedObra, setSelectedObra] = useState<ObraProperties | null>(null)
+
+=======
+>>>>>>> 7de5ac41716a281eb54c99b7dcf30bb8d167eafe
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
   return (
     <section aria-labelledby='map-title'>
       <h1 id='map-title'>Mapa de Obras</h1>
       <p>7 obras fictícias no Tocantins. Localizações e perímetros aproximados.</p>
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
       <div className="map-container-wrapper">
         <MapContainer className='map' bounds={limites} boundsOptions={{ padding: [24, 24] }}>
           <TileLayer
@@ -98,6 +139,36 @@ export default function MapComponent() {
           onClose={() => setSelectedObra(null)}
         />
       </div>
+<<<<<<< HEAD
+=======
+=======
+export function MapComponent({ obras = obrasMock }: MapComponentProps) {
+  const tituloId = useId()
+  const limites = useMemo(
+    () => obras.length > 0 ? latLngBounds(obras.flatMap((obra) => obra.coordenadas)) : null,
+    [obras],
+  )
+
+  return (
+    <section aria-labelledby={tituloId}>
+      <h1 id={tituloId}>Mapa de Obras</h1>
+      <p>{obras.length} {obras.length === 1 ? 'obra cadastrada' : 'obras cadastradas'}</p>
+      {limites ? (
+        <MapContainer
+          className='map-container'
+          bounds={limites}
+          boundsOptions={{ padding: [24, 24] }}
+          scrollWheelZoom={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url='https://tiles.stadiamaps.com/tiles/stamen_toner_dark/{z}/{x}/{y}{r}.png'
+          />
+          <ObrasNoMapa obras={obras} />
+        </MapContainer>
+      ) : <p role='status'>Nenhuma obra cadastrada para exibir no mapa.</p>}
+>>>>>>> 7de5ac41716a281eb54c99b7dcf30bb8d167eafe
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
     </section>
   )
 }

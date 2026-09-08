@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .map-container-wrapper {
   position: relative;
   width: 100%;
@@ -14,4 +15,46 @@
   .map {
     height: 620px;
   }
-}
+}
+=======
+.map-container {
+    height: 800px;
+    width: 100%;
+}
+
+.obra-popup h2 {
+    font-size: 1rem;
+    line-height: 1.4;
+.map-container-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.map {
+  width: 100%;
+  height: 450px;
+}
+
+.obra-popup dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.4rem 0.75rem;
+}
+
+.obra-popup dt {
+    font-weight: 600;
+}
+
+.obra-popup dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 768px) {
+  .map {
+    height: 620px;
+  }
+}
+>>>>>>> e843e842ea52cf171ab6c9d1d89fc8605dae0142
