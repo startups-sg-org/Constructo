@@ -1,3 +1,9 @@
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
 .map-container {
     height: 800px;
     width: 100%;

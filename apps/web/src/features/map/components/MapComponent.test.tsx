@@ -34,6 +34,9 @@ describe('MapComponent', () => {
     const { container } = render(<MapComponent />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
+    // Antes da seleção, o painel de informações não deve estar na tela
+    expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
+
     fireEvent.click(poligonos[0])
     const popup = within(screen.getByRole('article'))
     expect(popup.getByRole('heading', { name: 'Modernização dos espaços acadêmicos' })).toBeInTheDocument()
@@ -43,12 +46,23 @@ describe('MapComponent', () => {
     expect(popup.getByText('02/03/2026')).toBeInTheDocument()
     expect(popup.getByText('26/02/2027')).toBeInTheDocument()
     expect(popup.getByText('Obra e informações fictícias para demonstração.')).toBeInTheDocument()
-    expect(poligonos[0]).toHaveAttribute('stroke', 'red')
+    expect(poligonos[0]).toHaveAttribute('stroke', 'green')
+
+    // O painel lateral deve ser aberto exibindo o resumo da obra selecionada
+    const painel = within(screen.getByRole('complementary', { name: 'Informações da Obra Selecionada' }))
+    expect(painel.getByRole('heading', { name: 'Modernização dos espaços acadêmicos' })).toBeInTheDocument()
+    expect(painel.getByText('Progresso Físico')).toBeInTheDocument()
+    expect(painel.getByText('Progresso Planejado')).toBeInTheDocument()
+    expect(painel.getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument()
+    expect(painel.getByRole('button', { name: 'Ver documentos' })).toBeInTheDocument()
 
     fireEvent.click(poligonos[1])
-    expect(screen.getByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })).toBeInTheDocument()
-    expect(poligonos[1]).toHaveAttribute('stroke', 'red')
+    expect(screen.getAllByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })[0]).toBeInTheDocument()
+    expect(poligonos[1]).toHaveAttribute('stroke', 'green')
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
+
+    // O conteúdo do painel lateral deve ter sido atualizado com os dados da nova obra
+    expect(painel.getByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })).toBeInTheDocument()
   })
 
   it('preserva os cinco pátios do HGP e apresenta o escopo e a fonte do contorno', () => {
@@ -62,7 +76,7 @@ describe('MapComponent', () => {
     // Um subcaminho externo e cinco recortes no SVG renderizado pelo Leaflet.
     expect(poligono.getAttribute('d')?.match(/M/g)).toHaveLength(6)
     fireEvent.click(poligono)
-    expect(screen.getByRole('heading', { name: hospital.nome })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: hospital.nome })[0]).toBeInTheDocument()
     expect(screen.getByText(hospital.escopoCoordenadas!)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Fonte do contorno' })).toHaveAttribute('href', hospital.fonteCoordenadas)
   })
