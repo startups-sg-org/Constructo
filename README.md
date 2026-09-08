@@ -21,11 +21,44 @@
 
 ## 📚 Documentação
 
-Este repositório divide sua documentação em três partes:
+Este repositório divide sua documentação nas seguintes partes:
 
 1. **README.md** — visão do produto e entregáveis da disciplina;
-2. **[EVOLUCAO_FUTURA.md](docs/EVOLUCAO_FUTURA.md)** — recursos planejados para depois da entrega acadêmica;
-3. **[STACK_TECNOLOGICA.md](docs/STACK_TECNOLOGICA.md)** — arquitetura, tecnologias adotadas e papel de cada componente.
+2. **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — organização do monorepo e regras entre camadas;
+3. **[ORIENTACOES.md](docs/ORIENTACOES.md)** — convenções práticas de desenvolvimento;
+4. **[STACK_TECNOLOGICA.md](docs/STACK_TECNOLOGICA.md)** — tecnologias adotadas e papel de cada componente;
+5. **[EVOLUCAO_FUTURA.md](docs/EVOLUCAO_FUTURA.md)** — recursos planejados para depois da entrega acadêmica.
+
+---
+
+## 🧱 Aplicações e monorepo
+
+O Constructo é um produto web e mobile mantido em um monorepo pnpm:
+
+```text
+apps/web     → aplicação web React + Vite
+apps/mobile  → aplicação mobile React Native + Expo
+```
+
+O backend Django REST Framework está previsto na arquitetura e será adicionado como um serviço separado quando sua implementação começar.
+
+### Pré-requisitos
+
+- Node.js 22.22 ou superior;
+- pnpm 11.21.0, preferencialmente ativado por Corepack.
+
+### Instalação e execução
+
+Execute todos os comandos de instalação e validação na raiz do repositório:
+
+```bash
+pnpm install
+pnpm dev:web
+pnpm dev:mobile
+pnpm check
+```
+
+Copie o `.env.example` de cada aplicativo para um arquivo `.env.local` quando precisar configurar a URL da API.
 
 ---
 
