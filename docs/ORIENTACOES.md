@@ -48,9 +48,21 @@ Regras:
 - `app/` contém composição global, roteamento, providers e inicialização;
 - `features/` contém funcionalidades e regras específicas de cada domínio;
 - `shared/` contém apenas elementos realmente reutilizáveis e sem conhecimento de features;
-- uma feature não deve acessar arquivos internos de outra feature;
+- uma feature não deve acessar arquivos internos de outra feature — em `apps/web`, `eslint.config.js` verifica isso por lint, não só por convenção;
 - APIs públicas de features devem ser expostas por um arquivo `index.ts`;
 - código compartilhado entre web e mobile só deve ir para `packages/` quando existir um caso real de reutilização.
+
+## Componentes de feature são "burros"
+
+Um componente dentro de `features/` recebe tudo por props e não conhece o contexto em que vai ser composto. Na prática:
+
+- não importa de outra feature, nem pelo alias `@features/*` nem por caminho relativo;
+- não decide se aparece — quem o compõe decide montá-lo ou não;
+- não fixa layout pensado para um vizinho específico (`width`, `flex-shrink`, posicionamento que só faz sentido ao lado de outro elemento);
+- não guarda uma constante que precise ficar sincronizada manualmente com um valor definido em outro componente, timing de animação incluído;
+- não presume chrome de página, como o `<h1>` de uma rota — quando precisa de um nome acessível, recebe o texto por prop.
+
+O critério prático: o componente deve poder ser movido para outro lugar da composição — inclusive um container ainda não escrito — sem precisar mudar.
 
 ## TypeScript e imports
 
