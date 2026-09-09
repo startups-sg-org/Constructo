@@ -16,7 +16,7 @@ interface MapComponentProps {
   duracaoMovimentoMs?: number
 }
 
-const OPCOES_ENQUADRAMENTO: FitBoundsOptions = { padding: [48, 48] }
+const OPCOES_ENQUADRAMENTO: FitBoundsOptions = { padding: [16, 16] }
 const CLASSES_STATUS = {
   'Em andamento': 'map-poligono-em-andamento',
   Paralisada: 'map-poligono-paralisada',

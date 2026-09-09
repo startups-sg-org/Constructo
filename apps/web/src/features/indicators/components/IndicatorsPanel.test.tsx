@@ -27,7 +27,7 @@ describe('IndicatorsPanel', () => {
     ).toBeDisabled()
 
     expect(screen.getByText('Progresso')).toBeInTheDocument()
-    expect(screen.getByText('Prazo')).toBeInTheDocument()
+    expect(screen.getByText('Planejado')).toBeInTheDocument()
     expect(screen.getAllByText('Etapa atual')).toHaveLength(2)
     expect(screen.getByText('Situação')).toBeInTheDocument()
   })

@@ -2,11 +2,9 @@
 .map-wrapper {
     position: relative;
     width: 100%;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
-}
-
-.map-container {
-    height: 800px;
 }
 
 .map-section {
@@ -15,13 +13,13 @@
     height: 100%;
     min-height: 0;
     overflow: hidden;
-    background: #172322;
+    background: var(--cor-painel);
 }
 
 .map-container {
     width: 100%;
     height: 100%;
-    background: #172322;
+    background: var(--cor-painel);
 }
 
 .map-poligono {
@@ -37,22 +35,22 @@
 }
 
 .map-poligono-em-andamento {
-    stroke: #31c4ae;
-    fill: #31c4ae;
+    stroke: var(--cor-destaque);
+    fill: var(--cor-destaque);
 }
 
 .map-poligono-paralisada {
-    stroke: #ef766e;
-    fill: #ef766e;
+    stroke: var(--cor-perigo-clara);
+    fill: var(--cor-perigo-clara);
 }
 
 .map-poligono-concluida {
-    stroke: #6fcf8d;
-    fill: #6fcf8d;
+    stroke: var(--cor-sucesso-clara);
+    fill: var(--cor-sucesso-clara);
 }
 
 .map-poligono-selecionado {
-    stroke: #45d3be;
+    stroke: var(--cor-destaque-clara);
     stroke-width: 5;
     stroke-opacity: 1;
     fill-opacity: 0.34;
@@ -71,7 +69,7 @@
 .map-section .leaflet-bar,
 .map-section .leaflet-control-layers {
     overflow: hidden;
-    border: 1px solid rgb(217 227 224 / 90%);
+    border: 1px solid var(--cor-borda);
     border-radius: var(--raio-pequeno);
     box-shadow: var(--sombra-suave);
 }
@@ -105,7 +103,7 @@
 
 .map-section .leaflet-control-attribution {
     background: rgb(255 255 255 / 82%);
-    color: #53615e;
+    color: var(--cor-texto-suave);
     backdrop-filter: blur(0.5rem);
 }
 

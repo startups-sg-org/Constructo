@@ -11,9 +11,9 @@ describe('App', () => {
 
     expect(screen.getByRole('region', { name: 'Mapa de Obras' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'UFT' })).toBeChecked()
-    expect(screen.getByRole('complementary', { name: 'Informações da Obra Selecionada' })).toHaveTextContent('Modernização dos espaços acadêmicos')
-    expect(screen.getByRole('region', { name: 'Indicadores de acompanhamento' })).toHaveTextContent('58%')
-    expect(container.querySelector('.map-wrapper [aria-label="Informações da Obra Selecionada"]')).not.toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Indicadores de acompanhamento' })).not.toBeInTheDocument()
+    expect(container.querySelector('.map-slot [aria-label="Informações da Obra Selecionada"]')).not.toBeInTheDocument()
     expect(screen.queryByText('Visão geral')).not.toBeInTheDocument()
     expect(screen.queryByText('Área de integração')).not.toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Links institucionais' })).toBeInTheDocument()
@@ -48,13 +48,18 @@ describe('App', () => {
     const { container } = render(<App />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fechar painel de informações' }))
-    expect(screen.getByRole('list', { name: 'Como consultar uma obra' })).toHaveTextContent('Localize a obra no mapa')
+    expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Indicadores de acompanhamento' })).not.toBeInTheDocument()
 
     fireEvent.click(poligonos[1])
 
     expect(screen.getByRole('complementary', { name: 'Informações da Obra Selecionada' })).toHaveTextContent('Revitalização dos passeios e da iluminação')
+    expect(container.querySelector('.map-slot > .painel-info-obra')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Indicadores de acompanhamento' })).toHaveTextContent('Revitalização dos passeios e da iluminação')
     expect(screen.getByRole('region', { name: 'Indicadores de acompanhamento' })).toHaveTextContent('42%')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar painel de informações' }))
+    expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Indicadores de acompanhamento' })).not.toBeInTheDocument()
   })
 })

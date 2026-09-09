@@ -1,0 +1,31 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "selector-class-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$",
+    "declaration-property-value-no-unknown": true,
+    "no-duplicate-selectors": true,
+    "no-descending-specificity": null,
+    "custom-property-empty-line-before": null,
+    "media-feature-range-notation": "prefix",
+    "property-no-vendor-prefix": [
+      true,
+      {
+        "ignoreProperties": [
+          "/backdrop-filter/"
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/index.css"
+      ],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

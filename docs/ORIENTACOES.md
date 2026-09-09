@@ -52,6 +52,30 @@ Regras:
 - APIs públicas de features devem ser expostas por um arquivo `index.ts`;
 - código compartilhado entre web e mobile só deve ir para `packages/` quando existir um caso real de reutilização.
 
+## Estilização
+
+A aparência do aplicativo web vem de CSS puro: cada componente importa um `.css`
+irmão, e o Vite concatena todos em um único bundle. Não há escopo automático —
+o nome da classe é a única fronteira.
+
+- `src/index.css` é a **única fonte de verdade** da identidade visual. Só ele
+  declara cor literal; todos os outros arquivos consomem os tokens `--cor-*`,
+  `--raio-*`, `--sombra-*` e `--movimento-*` definidos ali.
+- Precisa de uma cor que não existe? Adicione o token em `index.css` com nome
+  semântico (o que ele significa, não onde é usado) em vez de escrever o valor
+  no componente.
+- A escala de tinta acompanha a superfície: `--cor-texto*` sobre fundos claros,
+  `--cor-texto-claro*` sobre o cromo e os painéis escuros.
+- Classes seguem BEM (`bloco__elemento--modificador`) em kebab-case.
+- Cada seletor deve pertencer a um único arquivo. Duas camadas estilizando a
+  mesma classe é colisão, não sobreposição.
+- Uma página pode posicionar o componente que compõe, mas evite alcançar
+  elementos internos dele por seletor estrutural.
+
+`pnpm lint` roda o Stylelint junto do ESLint e reprova cor literal fora do
+`index.css`. Para corrigir o que é automático: `pnpm --filter @constructo/web
+lint:css:fix`.
+
 ## TypeScript e imports
 
 - Código novo deve permanecer compatível com o modo estrito do TypeScript.

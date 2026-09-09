@@ -19,7 +19,7 @@
     color: var(--cor-texto);
     box-shadow: var(--sombra-elevada);
     backdrop-filter: blur(1rem);
-    scrollbar-color: #b7c8c4 transparent;
+    scrollbar-color: var(--cor-borda-forte) transparent;
     scrollbar-width: thin;
 }
 
@@ -52,22 +52,22 @@
 }
 
 .sidebar-identificacao {
-    background: #edf2f1;
+    background: var(--cor-fundo-suave);
     color: var(--cor-texto-suave);
 }
 
 .sidebar-status {
     background: var(--cor-destaque-suave);
-    color: #0b6a5e;
+    color: var(--cor-destaque-escuro);
 }
 
 .sidebar-status[data-status='Paralisada'] {
-    background: #fff0ee;
+    background: var(--cor-perigo-fundo);
     color: var(--cor-perigo);
 }
 
 .sidebar-status[data-status='Concluída'] {
-    background: #eaf7ef;
+    background: color-mix(in srgb, var(--cor-sucesso) 12%, var(--cor-superficie));
     color: var(--cor-sucesso);
 }
 
@@ -162,7 +162,7 @@
     height: 0.55rem;
     overflow: hidden;
     border-radius: 999px;
-    background: #dfe9e6;
+    background: var(--cor-fundo-suave);
 }
 
 .sidebar-progresso-trilho span {
@@ -170,7 +170,7 @@
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, var(--cor-primaria), var(--cor-destaque));
-    box-shadow: 0 0 0.75rem rgb(15 138 123 / 28%);
+    box-shadow: 0 0 0.75rem color-mix(in srgb, var(--cor-destaque) 28%, transparent);
 }
 
 .sidebar-lista-dados {
@@ -215,10 +215,10 @@
 
 .sidebar-aviso {
     padding: 0.75rem;
-    border: 1px solid #ead8b5;
+    border: 1px solid color-mix(in srgb, var(--cor-atencao) 30%, var(--cor-superficie));
     border-radius: var(--raio-pequeno);
-    background: #fff8e9;
-    color: #79551e;
+    background: color-mix(in srgb, var(--cor-atencao) 10%, var(--cor-superficie));
+    color: var(--cor-atencao);
     font-size: 0.75rem;
     line-height: 1.45;
 }

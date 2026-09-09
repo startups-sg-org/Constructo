@@ -1,14 +1,11 @@
 .app-shell {
-  --surface: #fffdfa;
-  --surface-muted: #f4f1eb;
-  --ink: #1a202c;
-  --border: #d6d2ca;
-  --accent: #075fc4;
+  height: 100dvh;
   min-height: 100dvh;
   display: grid;
   grid-template-rows: 4.5rem minmax(0, 1fr) auto;
-  color: var(--ink);
-  background: var(--surface);
+  overflow: hidden;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
 }
 
 .app-header {
@@ -16,9 +13,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
-  color: #fff;
-  background: #252b35;
-  border-bottom: 1px solid #12161d;
+  color: var(--cor-texto-claro);
+  background: var(--cor-cromo);
+  border-bottom: 1px solid var(--cor-cromo-borda);
 }
 
 .brand {
@@ -38,22 +35,22 @@
   width: 2.5rem;
   height: 2.5rem;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 0.3);
+  border: 1px solid rgb(255 255 255 / 30%);
   border-radius: 0.75rem;
   color: inherit;
-  background: rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 10%);
 }
 
 .brand-mark {
-  color: #252b35;
-  background: #f8c319;
+  color: var(--cor-marca-tinta);
+  background: var(--cor-marca);
 }
 
 .brand-mark svg,
 .profile-button svg {
   width: 1.65rem;
   height: 1.65rem;
-  stroke: currentColor;
+  stroke: currentcolor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.6;
@@ -68,7 +65,7 @@
 .profile-button:focus-visible,
 .navigation-item:hover,
 .navigation-item:focus-visible {
-  outline: 3px solid #84c5ff;
+  outline: 3px solid var(--cor-foco);
   outline-offset: -3px;
 }
 
@@ -82,7 +79,7 @@
   position: relative;
   z-index: 2;
   width: 3.75rem;
-  transition: width 180ms ease;
+  transition: width var(--movimento-rapido) ease;
 }
 
 .navigation-shell.is-open {
@@ -96,8 +93,8 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem 0.5rem;
-  background: #e8e5ea;
-  border-right: 1px solid var(--border);
+  background: var(--cor-trilho);
+  border-right: 1px solid var(--cor-borda);
   overflow: hidden;
 }
 
@@ -121,7 +118,7 @@
   padding: 0 0.7rem;
   border: 1px solid transparent;
   border-radius: 0.7rem;
-  color: #303847;
+  color: var(--cor-trilho-texto);
   font-size: 0.95rem;
   font-weight: 650;
   text-decoration: none;
@@ -134,16 +131,16 @@
   width: 1.3rem;
   min-width: 1.3rem;
   height: 1.3rem;
-  stroke: currentColor;
+  stroke: currentcolor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
 }
 
 .navigation-item[aria-current='page'] {
-  color: #fff;
-  background: var(--accent);
-  border-color: #034990;
+  color: var(--cor-texto-claro);
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria-forte);
 }
 
 .navigation-search-button {
@@ -157,15 +154,15 @@
   align-items: center;
   gap: 0.65rem;
   padding: 0 0.7rem;
-  border: 1px solid #bbb7c0;
+  border: 1px solid var(--cor-trilho-borda);
   border-radius: 0.7rem;
-  color: #4a5568;
-  background: #fff;
+  color: var(--cor-texto-tenue);
+  background: var(--cor-superficie);
 }
 
 .search-field:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgb(7 95 196 / 0.16);
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px var(--cor-primaria-halo);
 }
 
 .search-field input {
@@ -173,14 +170,14 @@
   min-width: 0;
   border: 0;
   outline: 0;
-  color: var(--ink);
+  color: var(--cor-texto);
   background: transparent;
   font: inherit;
 }
 
 .navigation-empty {
   padding: 0.75rem;
-  color: #687386;
+  color: var(--cor-texto-suave);
   font-size: 0.85rem;
   line-height: 1.35;
 }
@@ -193,17 +190,17 @@
   width: 1.7rem;
   height: 2.6rem;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--cor-borda);
   border-radius: 0 0.7rem 0.7rem 0;
-  color: #303847;
-  background: #f4f1f5;
-  box-shadow: 0.15rem 0 0.35rem rgb(26 32 44 / 0.12);
+  color: var(--cor-trilho-texto);
+  background: var(--cor-trilho-recuo);
+  box-shadow: 0.15rem 0 0.35rem rgb(26 32 44 / 12%);
   cursor: pointer;
   transform: translateY(-50%);
 }
 
 .navigation-toggle svg {
-  transition: transform 180ms ease;
+  transition: transform var(--movimento-rapido) ease;
 }
 
 .navigation-shell.is-open .navigation-toggle svg {
@@ -213,7 +210,9 @@
 .app-main {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
 }
 
 .app-footer {
@@ -223,9 +222,9 @@
   gap: 1rem;
   min-height: 3rem;
   padding: 0.65rem 1rem;
-  color: #fff;
+  color: var(--cor-texto-claro);
   font-size: 0.8rem;
-  background: #252b35;
+  background: var(--cor-cromo);
 }
 
 .footer-meta {
@@ -236,7 +235,7 @@
 }
 
 .map-credits {
-  color: #9fabbc;
+  color: var(--cor-texto-claro-tenue);
   font-size: 0.66rem;
 }
 
@@ -252,27 +251,15 @@
 }
 
 .footer-links a {
-  color: #dce4ef;
+  color: var(--cor-texto-claro-suave);
   text-decoration: none;
 }
 
 .footer-links a:hover,
 .footer-links a:focus-visible {
-  color: #fff;
+  color: var(--cor-texto-claro);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 @media (max-width: 40rem) {
@@ -296,7 +283,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.4rem;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--cor-borda);
     border-right: 0;
   }
 

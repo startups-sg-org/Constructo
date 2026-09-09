@@ -1,25 +1,74 @@
+/* Única fonte de verdade da identidade visual. Nenhum outro arquivo declara
+   cor, raio, sombra ou duração literal — todos consomem os tokens abaixo. */
 :root {
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 
-  --cor-fundo: #eef3f2;
-  --cor-superficie: #ffffff;
+  /* Superfícies claras: corpo da aplicação e cartões sobre ele. */
+  --cor-fundo: #fffdfa;
+  --cor-fundo-suave: #f4f1eb;
+  --cor-superficie: #fff;
   --cor-superficie-translucida: rgb(255 255 255 / 94%);
-  --cor-texto: #172321;
-  --cor-texto-suave: #66736f;
-  --cor-borda: #d9e3e0;
-  --cor-primaria: #0b6175;
-  --cor-primaria-forte: #084b5a;
-  --cor-destaque: #0f8a7b;
-  --cor-destaque-suave: #e6f4f1;
-  --cor-foco: #38bdf8;
+  --cor-texto: #1a202c;
+  --cor-texto-suave: #687386;
+  --cor-texto-tenue: #4a5568;
+  --cor-borda: #d6d2ca;
+  --cor-borda-forte: #cbc7be;
+
+  /* Superfícies escuras: cromo do AppShell e painéis de dados. */
+  --cor-cromo: #252b35;
+  --cor-cromo-borda: #12161d;
+  --cor-cromo-elevado: #303744;
+  --cor-painel: #151b24;
+  --cor-painel-translucido: rgb(18 24 38 / 92%);
+  --cor-painel-borda: #273241;
+
+  /* Tinta sobre as superfícies escuras acima. */
+  --cor-texto-claro: #fff;
+  --cor-texto-claro-suave: #dce4ef;
+  --cor-texto-claro-tenue: #9aa6b7;
+  --cor-texto-claro-fraco: #64748b;
+
+  /* Trilho de navegação lateral. */
+  --cor-trilho: #e8e5ea;
+  --cor-trilho-recuo: #f4f1f5;
+  --cor-trilho-borda: #bbb7c0;
+  --cor-trilho-texto: #303847;
+
+  /* Marca e acentos. */
+  --cor-marca: #f8c319;
+  --cor-marca-tinta: #252b35;
+  --cor-primaria: #075fc4;
+  --cor-primaria-forte: #034990;
+  --cor-primaria-halo: rgb(7 95 196 / 16%);
+  --cor-destaque: #00bda0;
+  --cor-destaque-clara: #45d3be;
+  --cor-destaque-suave: #e2f6f1;
+  --cor-destaque-escuro: #0d3939;
+
+  /* Estados. A variante base assenta sobre fundo claro; a variante `-clara`
+     existe para o mesmo estado sobre os painéis escuros. */
+  --cor-sucesso: #217a4c;
+  --cor-sucesso-clara: #4ade80;
+  --cor-atencao: #a86612;
+  --cor-atencao-clara: #e4a11b;
+  --cor-perigo: #b8463f;
+  --cor-perigo-clara: #f87171;
+  --cor-perigo-fundo: #fff0f0;
+  --cor-info: #2563eb;
+  --cor-info-clara: #60a5fa;
+  --cor-foco: #84c5ff;
 
   --raio-pequeno: 0.5rem;
   --raio-medio: 0.875rem;
   --raio-grande: 1.125rem;
+  --raio-pilula: 999px;
   --sombra-suave: 0 0.25rem 1rem rgb(19 39 36 / 10%);
+  --sombra-elevada: 0 1rem 3rem rgb(7 31 29 / 20%);
+  --sombra-cartao: 0 0.25rem 0.9rem rgb(26 32 44 / 8%);
+
   --movimento-rapido: 160ms;
   --movimento-padrao: 260ms;
   --curva-suave: cubic-bezier(0.22, 1, 0.36, 1);
@@ -42,8 +91,7 @@ body,
 
 body {
   min-width: 20rem;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden auto;
   background: var(--cor-fundo);
   color: var(--cor-texto);
   -webkit-font-smoothing: antialiased;
@@ -73,7 +121,7 @@ a {
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }

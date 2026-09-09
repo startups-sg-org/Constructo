@@ -14,6 +14,17 @@ afterEach(() => {
 const ROTULO = 'Mapa de Obras'
 
 describe('MapComponent', () => {
+  it('usa um enquadramento inicial próximo, com margem reduzida', () => {
+    const reenquadrar = vi.spyOn(LeafletMap.prototype, 'fitBounds')
+
+    render(<MapComponent obras={obrasMock} rotulo={ROTULO} />)
+
+    expect(reenquadrar).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ padding: [16, 16] }),
+    )
+  })
+
   it('renderiza todas as obras e permite ocultar e reexibir suas camadas', () => {
     const { container } = render(<MapComponent obras={obrasMock} rotulo={ROTULO} />)
     const poligonos = () => container.querySelectorAll('path.leaflet-interactive')
@@ -42,9 +53,9 @@ describe('MapComponent', () => {
 
     fireEvent.click(poligonos[0])
     expect(onSelecionarObra).toHaveBeenCalledWith(obrasMock[0].id)
-    // Sem seleção externa, nenhum polígono é destacado.
+    // Sem seleção externa, o componente mantém a própria seleção.
     expect(poligonos[0]).toHaveClass('map-poligono-em-andamento')
-    expect(poligonos[0]).not.toHaveClass('map-poligono-selecionado')
+    expect(poligonos[0]).toHaveClass('map-poligono-selecionado')
 
     rerender(
       <MapComponent obras={obrasMock} rotulo={ROTULO} obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />,

@@ -1,29 +1,30 @@
 .painel-info-obra {
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  left: 1rem;
   bottom: 1rem;
   width: 380px;
   max-width: calc(100% - 2rem);
-  background: rgba(18, 24, 38, 0.92);
+  background: var(--cor-painel-translucido);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
-  color: #f1f5f9;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: var(--raio-medio);
+  box-shadow: var(--sombra-elevada);
+  color: var(--cor-texto-claro-suave);
   z-index: 2000;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: slideInRight 0.25s ease-out;
+  animation: slide-in-left var(--movimento-padrao) ease-out;
 }
 
-@keyframes slideInRight {
+@keyframes slide-in-left {
   from {
-    transform: translateX(100%);
+    transform: translateX(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -35,8 +36,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 3%);
 }
 
 .painel-info-obra__header-title {
@@ -49,38 +50,40 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--cor-texto-claro);
   line-height: 1.3;
 }
 
 .painel-info-obra__local {
   margin: 0;
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--cor-texto-claro-tenue);
 }
 
 .painel-info-obra__btn-close {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--cor-texto-claro-tenue);
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  transition: background 0.2s, color 0.2s;
+  border-radius: var(--raio-pequeno);
+  transition:
+    background var(--movimento-rapido) ease,
+    color var(--movimento-rapido) ease;
 }
 
 .painel-info-obra__btn-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgb(255 255 255 / 10%);
+  color: var(--cor-texto-claro);
 }
 
 .status-badge {
   display: inline-block;
   align-self: flex-start;
   padding: 0.25rem 0.625rem;
-  border-radius: 20px;
+  border-radius: var(--raio-pilula);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -88,21 +91,21 @@
 }
 
 .status-badge--em-andamento {
-  background: rgba(34, 197, 94, 0.2);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: color-mix(in srgb, var(--cor-sucesso-clara) 20%, transparent);
+  color: var(--cor-sucesso-clara);
+  border: 1px solid color-mix(in srgb, var(--cor-sucesso-clara) 40%, transparent);
 }
 
 .status-badge--paralisada {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--cor-perigo-clara) 20%, transparent);
+  color: var(--cor-perigo-clara);
+  border: 1px solid color-mix(in srgb, var(--cor-perigo-clara) 40%, transparent);
 }
 
 .status-badge--concluida {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--cor-info-clara) 20%, transparent);
+  color: var(--cor-info-clara);
+  border: 1px solid color-mix(in srgb, var(--cor-info-clara) 40%, transparent);
 }
 
 .painel-info-obra__content {
@@ -126,7 +129,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--cor-texto-claro-fraco);
 }
 
 .progresso-metric {
@@ -142,33 +145,33 @@
 }
 
 .progresso-metric__label {
-  color: #cbd5e1;
+  color: var(--cor-texto-claro-suave);
 }
 
 .progresso-metric__value {
   font-weight: 700;
-  color: #ffffff;
+  color: var(--cor-texto-claro);
 }
 
 .progresso-metric__bar-bg {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgb(255 255 255 / 10%);
+  border-radius: var(--raio-pilula);
   overflow: hidden;
 }
 
 .progresso-metric__bar-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.4s ease-in-out;
+  border-radius: inherit;
+  transition: width 400ms ease-in-out;
 }
 
 .progresso-metric__bar-fill--fisico {
-  background: linear-gradient(90deg, #10b981, #34d399);
+  background: linear-gradient(90deg, var(--cor-destaque), var(--cor-sucesso-clara));
 }
 
 .progresso-metric__bar-fill--planejado {
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  background: linear-gradient(90deg, var(--cor-info), var(--cor-info-clara));
 }
 
 .painel-info-obra__details-list {
@@ -176,10 +179,10 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgb(0 0 0 / 20%);
   padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--raio-pequeno);
+  border: 1px solid rgb(255 255 255 / 5%);
 }
 
 .painel-info-obra__detail-item {
@@ -190,7 +193,7 @@
 
 .painel-info-obra__detail-item dt {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--cor-texto-claro-tenue);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -199,7 +202,7 @@
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: #f1f5f9;
+  color: var(--cor-texto-claro-suave);
 }
 
 .painel-info-obra__actions {
@@ -212,45 +215,42 @@
 .painel-info-obra__btn {
   flex: 1;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--raio-pequeno);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--movimento-rapido) ease;
   border: none;
   text-align: center;
 }
 
 .painel-info-obra__btn--primary {
-  background: #2563eb;
-  color: #ffffff;
+  background: var(--cor-primaria);
+  color: var(--cor-texto-claro);
 }
 
 .painel-info-obra__btn--primary:hover {
-  background: #1d4ed8;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  background: var(--cor-primaria-forte);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-primaria) 30%, transparent);
 }
 
 .painel-info-obra__btn--secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgb(255 255 255 / 8%);
+  color: var(--cor-texto-claro-suave);
+  border: 1px solid rgb(255 255 255 / 15%);
 }
 
 .painel-info-obra__btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background: rgb(255 255 255 / 15%);
+  color: var(--cor-texto-claro);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 40rem) {
   .painel-info-obra {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    inset: auto 0 0;
     width: 100%;
     max-width: 100%;
     height: 60vh;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--raio-grande) var(--raio-grande) 0 0;
   }
 }

@@ -31,8 +31,8 @@ const obra: Obra = {
 }
 
 describe('SidebarComponent', () => {
-  // A decisão de montar ou não a sidebar saiu do componente (DominusPage.test.tsx
-  // cobre "sem obra selecionada, não há região complementary").
+  // A decisão de montar ou não a sidebar é de quem compõe a página; o componente
+  // só descreve a obra que recebe.
 
   it('apresenta os indicadores da obra selecionada', () => {
     render(<SidebarComponent obra={obra} onFechar={vi.fn()} />)
