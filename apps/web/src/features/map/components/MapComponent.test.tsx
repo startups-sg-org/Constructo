@@ -40,7 +40,11 @@ describe('MapComponent', () => {
     )
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
+    // Antes da seleção, o painel de informações não deve estar na tela
+    expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
+
     fireEvent.click(poligonos[0])
+
     expect(onSelecionarObra).toHaveBeenCalledWith(obrasMock[0].id)
     // Sem seleção externa, nenhum polígono é destacado.
     expect(poligonos[0]).toHaveClass('map-poligono-em-andamento')
@@ -56,6 +60,7 @@ describe('MapComponent', () => {
     )
     expect(poligonos[1]).toHaveClass('map-poligono-selecionado')
     expect(poligonos[0]).not.toHaveClass('map-poligono-selecionado')
+
   })
 
   it('não exibe a antiga faixa de informações e ação', () => {
@@ -86,6 +91,8 @@ describe('MapComponent', () => {
 
     // Um subcaminho externo e cinco recortes no SVG renderizado pelo Leaflet.
     expect(poligono.getAttribute('d')?.match(/M/g)).toHaveLength(6)
+
+
   })
 
   it('recebe uma coleção externa e informa quando não existem obras', () => {
