@@ -16,6 +16,7 @@
 - [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
 - [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
 - [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
+- [Matheus Henrique de Freitas](https://github.com/MatheusHFreitas)
 
 ---
 
