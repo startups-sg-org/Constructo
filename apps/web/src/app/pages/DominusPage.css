@@ -34,6 +34,8 @@
        SidebarComponent) a lê para manter largura fixa enquanto este wrapper
        anima e recorta, sem precisar conhecer o layout que o compõe. */
     --sidebar-largura: 320px;
+    /* Pareada com ATRASO_ENQUADRAMENTO_MS em DominusPage.tsx: o mapa espera essa
+       duração antes de reenquadrar a obra selecionada. */
     --sidebar-duracao: 900ms;
 
     animation: dominus-page-painel-entrada var(--sidebar-duracao) cubic-bezier(0.42, 0, 0.58, 1);
