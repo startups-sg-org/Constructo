@@ -1,11 +1,14 @@
 import { latLngBounds, type FitBoundsOptions, type Map as LeafletMap } from 'leaflet'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LayersControl, MapContainer, Polygon, TileLayer, useMap } from 'react-leaflet'
 import type { Obra } from '../types/obra'
 import './MapComponent.css'
 
 interface MapComponentProps {
   obras: Obra[]
+  /** Nome acessível da região do mapa. Quem o compõe decide o texto — o
+      componente não presume que existe um título de página ao redor. */
+  rotulo: string
   obraSelecionadaId?: string | null
   /** Notifica o id da obra clicada, ou null ao limpar a seleção; quem compõe
       o mapa já tem a coleção e resolve o id em dados completos se precisar. */
@@ -106,8 +109,7 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, atrasoEnquadr
   )
 }
 
-export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra, atrasoEnquadramentoMs }: MapComponentProps) {
-  const tituloId = useId()
+export function MapComponent({ obras, rotulo, obraSelecionadaId, onSelecionarObra, atrasoEnquadramentoMs }: MapComponentProps) {
   const [mapa, setMapa] = useState<LeafletMap | null>(null)
   const limites = useMemo(() => obras.length > 0 ? limitesDe(obras) : null, [obras])
 
@@ -121,8 +123,7 @@ export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra, atras
   }
 
   return (
-    <section className='map-section' aria-labelledby={tituloId}>
-      <h1 id={tituloId}>Mapa de Obras</h1>
+    <section className='map-section' aria-label={rotulo}>
       <p>{obras.length} {obras.length === 1 ? 'obra cadastrada' : 'obras cadastradas'}</p>
       {limites ? (
         <>

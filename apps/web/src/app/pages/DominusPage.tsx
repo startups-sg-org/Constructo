@@ -9,6 +9,10 @@ import './DominusPage.css'
     selecionada depois que a sidebar termina de abrir espaço para si. */
 const ATRASO_ENQUADRAMENTO_MS = 900
 
+/** Título da página e nome acessível da região do mapa: o mapa não presume
+    que existe um h1 ao redor, então é quem o compõe que fornece ambos. */
+const TITULO_PAGINA = 'Mapa de Obras'
+
 export function DominusPage() {
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null)
 
@@ -28,8 +32,10 @@ export function DominusPage() {
         </div>
       )}
       <div className='dominus-page-mapa'>
+        <h1>{TITULO_PAGINA}</h1>
         <MapComponent
           obras={obrasMock}
+          rotulo={TITULO_PAGINA}
           obraSelecionadaId={obraSelecionada?.id ?? null}
           onSelecionarObra={selecionarObra}
           atrasoEnquadramentoMs={ATRASO_ENQUADRAMENTO_MS}
