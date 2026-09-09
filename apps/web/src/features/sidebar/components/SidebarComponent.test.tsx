@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Obra } from '@features/map'
+import type { Obra } from '@shared/domain/obra'
 import { SidebarComponent } from './SidebarComponent'
 
 afterEach(cleanup)
