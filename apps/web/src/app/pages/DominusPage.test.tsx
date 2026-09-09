@@ -16,28 +16,24 @@ describe('DominusPage', () => {
     const painel = screen.getByRole('complementary', { name: 'Modernização dos espaços acadêmicos' })
     expect(painel).toBeInTheDocument()
     expect(screen.getByText('58%')).toBeInTheDocument()
-    expect(poligonos[0]).toHaveAttribute('stroke', 'green')
+    expect(poligonos[0]).toHaveClass('map-poligono-selecionado')
 
     fireEvent.click(poligonos[1])
     expect(screen.getByRole('complementary', { name: 'Revitalização dos passeios e da iluminação' }))
       .toBeInTheDocument()
-    expect(poligonos[1]).toHaveAttribute('stroke', 'green')
-    expect(poligonos[0]).toHaveAttribute('stroke', 'white')
+    expect(poligonos[1]).toHaveClass('map-poligono-selecionado')
+    expect(poligonos[0]).not.toHaveClass('map-poligono-selecionado')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar detalhes da obra' }))
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
-    expect(poligonos[1]).toHaveAttribute('stroke', 'white')
+    expect(poligonos[1]).not.toHaveClass('map-poligono-selecionado')
   })
 
-  it('volta à visão geral pelo botão, encerrando a seleção', () => {
-    const { container } = render(<DominusPage />)
-    const poligonos = container.querySelectorAll('path.leaflet-interactive')
+  it('não exibe a antiga faixa de título, contagem e ação acima do mapa', () => {
+    render(<DominusPage />)
 
-    fireEvent.click(poligonos[0])
-    expect(screen.getByRole('complementary')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Ver todas as obras' }))
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
-    expect(poligonos[0]).toHaveAttribute('stroke', 'white')
+    expect(screen.queryByText('6 obras cadastradas')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ver todas as obras' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Mapa de Obras' })).toHaveClass('sr-only')
   })
 })
