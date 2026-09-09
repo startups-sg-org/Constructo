@@ -10,12 +10,20 @@ export function DominusPage() {
 
   return (
     <div className='dominus-page'>
-      <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
-      <MapComponent
-        obras={obrasMock}
-        obraSelecionadaId={obraSelecionada?.id ?? null}
-        onSelecionarObra={setObraSelecionada}
-      />
+      {/* A sidebar não decide mais se aparece: quem a compõe decide montá-la,
+          e este wrapper — não o componente — é quem abre espaço para ela. */}
+      {obraSelecionada && (
+        <div className='dominus-page-painel'>
+          <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
+        </div>
+      )}
+      <div className='dominus-page-mapa'>
+        <MapComponent
+          obras={obrasMock}
+          obraSelecionadaId={obraSelecionada?.id ?? null}
+          onSelecionarObra={setObraSelecionada}
+        />
+      </div>
     </div>
   )
 }

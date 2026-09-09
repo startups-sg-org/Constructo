@@ -3,7 +3,7 @@ import type { Obra } from '@shared/domain/obra'
 import './SidebarComponent.css'
 
 interface SidebarComponentProps {
-  obra: Obra | null
+  obra: Obra
   onFechar: () => void
 }
 
@@ -14,16 +14,15 @@ function formatarData(data: string) {
   return `${dia}/${mes}/${ano}`
 }
 
+// Mostrar ou não a sidebar é decisão de quem a compõe, não dela mesma: quem
+// não tem obra selecionada simplesmente não a monta.
 export function SidebarComponent({ obra, onFechar }: SidebarComponentProps) {
   const tituloId = useId()
 
-  if (!obra) {
-    return null
-  }
-
   return (
     <aside className='sidebar' aria-labelledby={tituloId}>
-      {/* Largura fixa: a caixa externa cresce e recorta, o conteúdo não reflui. */}
+      {/* Largura fixa: o wrapper que compõe este painel cresce e recorta a
+          partir de fora; este conteúdo não reflui enquanto isso acontece. */}
       <div className='sidebar-conteudo'>
         <header className='sidebar-cabecalho'>
           <h2 id={tituloId}>{obra.nome}</h2>
