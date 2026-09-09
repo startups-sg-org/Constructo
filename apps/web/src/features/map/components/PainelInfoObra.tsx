@@ -60,7 +60,7 @@ export function PainelInfoObra({
 
   return (
     <aside className="painel-info-obra" aria-label="Informações da Obra Selecionada">
-      <header className="painel-info-obra__header">
+      <div className="painel-info-obra__header">
         <div className="painel-info-obra__header-title">
           <span className={`status-badge ${getStatusClass(obra.status)}`}>
             {obra.status}
@@ -80,7 +80,7 @@ export function PainelInfoObra({
             &times;
           </button>
         )}
-      </header>
+      </div>
 
       <div className="painel-info-obra__content">
         <section className="painel-info-obra__section">

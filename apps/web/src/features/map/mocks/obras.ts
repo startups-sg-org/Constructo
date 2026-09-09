@@ -104,7 +104,7 @@ export const obrasMock: Obra[] = [
     "progresso": 42,
     "progressoFisico": 42,
     "progressoPlanejado": 50,
-    "etapaAtual": "Instalação de piso tátil e iluminação LED",
+    "etapaAtual": "Piso tátil e LED",
     "ultimaAtualizacao": "2026-09-03",
     "orcamento": 1750000,
     "dataInicio": "2026-05-04",

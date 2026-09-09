@@ -1,10 +1,15 @@
 import { createBrowserRouter } from 'react-router'
-import { MapComponent } from '@features/map'
-
+import { AppShell } from './layout/AppShell'
+import { HomePage } from './pages/HomePage'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <MapComponent/>,
+    element: <AppShell />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+    ],
   },
 ])

@@ -38,14 +38,7 @@ describe('MapComponent', () => {
     expect(screen.queryByRole('complementary', { name: 'Informações da Obra Selecionada' })).not.toBeInTheDocument()
 
     fireEvent.click(poligonos[0])
-    const popup = within(screen.getByRole('article'))
-    expect(popup.getByRole('heading', { name: 'Modernização dos espaços acadêmicos' })).toBeInTheDocument()
-    expect(popup.getByText('58%')).toBeInTheDocument()
-    expect(popup.getByText('Construtora Horizonte (fictícia)')).toBeInTheDocument()
-    expect(popup.getByText(/2\.800\.000,00/)).toBeInTheDocument()
-    expect(popup.getByText('02/03/2026')).toBeInTheDocument()
-    expect(popup.getByText('26/02/2027')).toBeInTheDocument()
-    expect(popup.getByText('Obra e informações fictícias para demonstração.')).toBeInTheDocument()
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
     expect(poligonos[0]).toHaveAttribute('stroke', 'green')
 
     // O painel lateral deve ser aberto exibindo o resumo da obra selecionada
@@ -57,7 +50,7 @@ describe('MapComponent', () => {
     expect(painel.getByRole('button', { name: 'Ver documentos' })).toBeInTheDocument()
 
     fireEvent.click(poligonos[1])
-    expect(screen.getAllByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })[0]).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })).toBeInTheDocument()
     expect(poligonos[1]).toHaveAttribute('stroke', 'green')
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
 
@@ -76,9 +69,7 @@ describe('MapComponent', () => {
     // Um subcaminho externo e cinco recortes no SVG renderizado pelo Leaflet.
     expect(poligono.getAttribute('d')?.match(/M/g)).toHaveLength(6)
     fireEvent.click(poligono)
-    expect(screen.getAllByRole('heading', { name: hospital.nome })[0]).toBeInTheDocument()
-    expect(screen.getByText(hospital.escopoCoordenadas!)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Fonte do contorno' })).toHaveAttribute('href', hospital.fonteCoordenadas)
+    expect(screen.getByRole('heading', { name: hospital.nome })).toBeInTheDocument()
   })
 
   it('recebe uma coleção externa e informa quando não existem obras', () => {
