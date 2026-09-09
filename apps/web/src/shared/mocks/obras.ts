@@ -14,7 +14,7 @@ export const obrasMock: Obra[] = [
     "descricao": "Reforma de laboratórios de ensino, adequação de acessibilidade e modernização da iluminação do câmpus.",
     "responsavel": "Construtora Horizonte (fictícia)",
     "progresso": 58,
-    "progressoFisico": 58,
+    "progressoFisico":58,
     "progressoPlanejado": 65,
     "etapaAtual": "Adequação de acessibilidade e laboratórios",
     "ultimaAtualizacao": "2026-09-01",

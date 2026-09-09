@@ -1,29 +1,22 @@
 import { latLngBounds, type FitBoundsOptions, type Polygon as LeafletPolygon } from 'leaflet'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LayersControl, MapContainer, Polygon, TileLayer, useMap } from 'react-leaflet'
+import { obrasMock } from '@shared/mocks/obras'
 import type { Obra } from '../types/obra'
+import { PainelInfoObra } from './PainelInfoObra'
 import './MapComponent.css'
 
 interface MapComponentProps {
-  obras: Obra[]
-  /** Nome acessível da região do mapa. Quem o compõe decide o texto — o
-      componente não presume que existe um título de página ao redor. */
-  rotulo: string
+  obras?: Obra[]
+  rotulo?: string
   obraSelecionadaId?: string | null
-  /** Notifica o id da obra clicada, ou null ao limpar a seleção; quem compõe
-      o mapa já tem a coleção e resolve o id em dados completos se precisar. */
+  onSelectObra?: (obra: Obra | null) => void
   onSelecionarObra?: (id: string | null) => void
-  /** Mantém o movimento do mapa no mesmo ritmo das superfícies que o compõem. */
+  showDetailsPanel?: boolean
   duracaoMovimentoMs?: number
 }
 
-type ObrasNoMapaProps = Pick<
-  MapComponentProps,
-  'obras' | 'obraSelecionadaId' | 'onSelecionarObra' | 'duracaoMovimentoMs'
->
-
 const OPCOES_ENQUADRAMENTO: FitBoundsOptions = { padding: [48, 48] }
-
 const CLASSES_STATUS = {
   'Em andamento': 'map-poligono-em-andamento',
   Paralisada: 'map-poligono-paralisada',
@@ -35,39 +28,22 @@ function limitesDe(obras: Obra[]) {
 }
 
 function prefereMovimentoReduzido() {
-  return typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function opcoesVoo(duracaoMovimentoMs: number): FitBoundsOptions {
-  return {
-    ...OPCOES_ENQUADRAMENTO,
-    animate: !prefereMovimentoReduzido(),
-    duration: duracaoMovimentoMs / 1000,
-    easeLinearity: 0.2,
-  }
-}
-
 function classeDaObra(obra: Obra, selecionada: boolean) {
-  return [
-    'map-poligono',
-    CLASSES_STATUS[obra.status],
-    selecionada ? 'map-poligono-selecionado' : '',
-  ].filter(Boolean).join(' ')
+  return ['map-poligono', CLASSES_STATUS[obra.status], selecionada ? 'map-poligono-selecionado' : '']
+    .filter(Boolean).join(' ')
 }
 
-interface PoligonoObraProps {
+function PoligonoObra({ obra, selecionada, onSelecionar }: {
   obra: Obra
   selecionada: boolean
-  onSelecionarObra?: (id: string | null) => void
-}
-
-function PoligonoObra({ obra, selecionada, onSelecionarObra }: PoligonoObraProps) {
+  onSelecionar: (obra: Obra) => void
+}) {
   const poligono = useRef<LeafletPolygon | null>(null)
 
-  // O Leaflet não atualiza className por setStyle. A classe dinâmica continua
-  // sendo a fonte visual no CSS; a referência só espelha o estado no SVG.
   useEffect(() => {
     poligono.current?.getElement()?.classList.toggle('map-poligono-selecionado', selecionada)
   }, [selecionada])
@@ -77,16 +53,22 @@ function PoligonoObra({ obra, selecionada, onSelecionarObra }: PoligonoObraProps
       ref={poligono}
       className={classeDaObra(obra, selecionada)}
       positions={[obra.coordenadas, ...(obra.aneisInternos ?? [])]}
-      eventHandlers={{
-        click() {
-          onSelecionarObra?.(obra.id)
-        },
-      }}
+      eventHandlers={{ click: () => onSelecionar(obra) }}
     />
   )
 }
 
-function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, duracaoMovimentoMs = 620 }: ObrasNoMapaProps) {
+function ObrasNoMapa({
+  obras,
+  obraSelecionadaId,
+  onSelecionar,
+  duracaoMovimentoMs,
+}: {
+  obras: Obra[]
+  obraSelecionadaId: string | null
+  onSelecionar: (obra: Obra) => void
+  duracaoMovimentoMs: number
+}) {
   const map = useMap()
   const idAnterior = useRef(obraSelecionadaId)
 
@@ -94,34 +76,26 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, duracaoMovime
     map.fitBounds(limitesDe(obras), OPCOES_ENQUADRAMENTO)
   }, [map, obras])
 
-  // O mapa é responsivo mesmo fora desta página: se qualquer container mudar
-  // de tamanho, o Leaflet recalcula o próprio viewport.
   useEffect(() => {
-    if (typeof ResizeObserver === 'undefined') {
-      return
-    }
-    const observador = new ResizeObserver(() => map.invalidateSize({ animate: false, pan: false }))
-    observador.observe(map.getContainer())
-    return () => observador.disconnect()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => map.invalidateSize({ animate: false, pan: false }))
+    observer.observe(map.getContainer())
+    return () => observer.disconnect()
   }, [map])
 
-  // Só reage a mudanças reais de seleção: comparar com o id anterior evita
-  // reenquadrar na montagem e sobrevive à dupla execução de efeitos do StrictMode.
   useEffect(() => {
-    if (idAnterior.current === obraSelecionadaId) {
-      return
-    }
+    if (idAnterior.current === obraSelecionadaId) return
     idAnterior.current = obraSelecionadaId
-
     const selecionada = obras.find((obra) => obra.id === obraSelecionadaId)
     const destino = selecionada ? latLngBounds(selecionada.coordenadas) : limitesDe(obras)
-    const opcoes = opcoesVoo(duracaoMovimentoMs)
-
-    if (opcoes.animate) {
-      map.flyToBounds(destino, opcoes)
-    } else {
-      map.fitBounds(destino, opcoes)
+    const opcoes: FitBoundsOptions = {
+      ...OPCOES_ENQUADRAMENTO,
+      animate: !prefereMovimentoReduzido(),
+      duration: duracaoMovimentoMs / 1000,
+      easeLinearity: 0.2,
     }
+    if (opcoes.animate) map.flyToBounds(destino, opcoes)
+    else map.fitBounds(destino, opcoes)
   }, [map, obras, obraSelecionadaId, duracaoMovimentoMs])
 
   return (
@@ -131,7 +105,7 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, duracaoMovime
           <PoligonoObra
             obra={obra}
             selecionada={obraSelecionadaId === obra.id}
-            onSelecionarObra={onSelecionarObra}
+            onSelecionar={onSelecionar}
           />
         </LayersControl.Overlay>
       ))}
@@ -139,30 +113,61 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, duracaoMovime
   )
 }
 
-export function MapComponent({ obras, rotulo, obraSelecionadaId, onSelecionarObra, duracaoMovimentoMs }: MapComponentProps) {
+export function MapComponent({
+  obras = obrasMock,
+  rotulo = 'Mapa de Obras',
+  obraSelecionadaId,
+  onSelectObra,
+  onSelecionarObra,
+  showDetailsPanel = false,
+  duracaoMovimentoMs = 620,
+}: MapComponentProps) {
+  const [internalId, setInternalId] = useState<string | null>(null)
+  const activeId = obraSelecionadaId !== undefined ? obraSelecionadaId : internalId
+  const obraSelecionada = useMemo(
+    () => obras.find((obra) => obra.id === activeId) ?? null,
+    [obras, activeId],
+  )
   const limites = useMemo(() => obras.length > 0 ? limitesDe(obras) : null, [obras])
+
+  function selecionarObra(obra: Obra) {
+    if (obraSelecionadaId === undefined) setInternalId(obra.id)
+    onSelecionarObra?.(obra.id)
+    onSelectObra?.(obra)
+  }
+
+  function limparSelecao() {
+    if (obraSelecionadaId === undefined) setInternalId(null)
+    onSelecionarObra?.(null)
+    onSelectObra?.(null)
+  }
 
   return (
     <section className='map-section' aria-label={rotulo}>
       {limites ? (
-        <MapContainer
-          className='map-container'
-          bounds={limites}
-          boundsOptions={OPCOES_ENQUADRAMENTO}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url='https://tiles.stadiamaps.com/tiles/stamen_toner_dark/{z}/{x}/{y}{r}.png'
-          />
-          <ObrasNoMapa
-            obras={obras}
-            obraSelecionadaId={obraSelecionadaId}
-            onSelecionarObra={onSelecionarObra}
-            duracaoMovimentoMs={duracaoMovimentoMs}
-          />
-        </MapContainer>
-      ) : <p className='map-estado-vazio' role='status'>Nenhuma obra cadastrada para exibir no mapa.</p>}
+        <div className='map-wrapper'>
+          <MapContainer
+            className='map-container'
+            bounds={limites}
+            boundsOptions={OPCOES_ENQUADRAMENTO}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url='https://tiles.stadiamaps.com/tiles/stamen_toner_dark/{z}/{x}/{y}{r}.png'
+            />
+            <ObrasNoMapa
+              obras={obras}
+              obraSelecionadaId={activeId}
+              onSelecionar={selecionarObra}
+              duracaoMovimentoMs={duracaoMovimentoMs}
+            />
+          </MapContainer>
+          {showDetailsPanel && <PainelInfoObra obra={obraSelecionada} onClose={limparSelecao} />}
+        </div>
+      ) : (
+        <p className='map-estado-vazio' role='status'>Nenhuma obra cadastrada para exibir no mapa.</p>
+      )}
     </section>
   )
 }

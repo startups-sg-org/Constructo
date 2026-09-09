@@ -1,18 +1,16 @@
 .dominus-page {
     position: relative;
-    flex: 1;
+    width: 100%;
+    height: 100%;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
-    isolation: isolate;
     background: #172322;
 }
 
 .dominus-page-mapa {
     position: absolute;
     inset: 0;
-    min-width: 0;
-    min-height: 0;
 }
 
 @keyframes painel-entrar {
@@ -101,4 +99,12 @@
     .dominus-page-painel {
         animation-duration: 1ms;
     }
+}
+
+.map-wrapper,
+.map-section,
+.map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }

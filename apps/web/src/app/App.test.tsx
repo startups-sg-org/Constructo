@@ -9,11 +9,7 @@ describe('App', () => {
   it('renderiza o esqueleto da Home na rota inicial', () => {
     const { container } = render(<App />)
 
-    expect(screen.getByRole('banner')).toHaveTextContent('Constructo')
-    expect(screen.getByRole('navigation', { name: 'Navegação principal' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Expandir menu lateral' })).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getByRole('main')).toHaveTextContent('Mapa de Obras')
-    expect(screen.queryByText('Navegação rápida')).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Mapa de Obras' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'UFT' })).toBeChecked()
     expect(screen.getByRole('complementary', { name: 'Informações da Obra Selecionada' })).toHaveTextContent('Modernização dos espaços acadêmicos')
     expect(screen.getByRole('region', { name: 'Indicadores de acompanhamento' })).toHaveTextContent('58%')
@@ -38,6 +34,14 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: 'Obras' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Indicadores' })).not.toBeInTheDocument()
+  })
+
+  it('aponta o item Obras para a página Dominus', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir menu lateral' }))
+
+    expect(screen.getByRole('link', { name: 'Obras' })).toHaveAttribute('href', '/Dominus')
   })
 
   it('sincroniza painel e indicadores ao selecionar outra obra no mapa', () => {

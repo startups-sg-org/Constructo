@@ -14,9 +14,9 @@ export interface Obra {
   descricao: string
   responsavel: string
   progresso: number
-  progressoFisico?: number
-  progressoPlanejado?: number
-  etapaAtual?: string
+  progressoFisico: number
+  progressoPlanejado: number
+  etapaAtual: string
   ultimaAtualizacao?: string
   orcamento: number
   dataInicio: string

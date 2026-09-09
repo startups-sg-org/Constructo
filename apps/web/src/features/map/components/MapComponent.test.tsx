@@ -86,6 +86,8 @@ describe('MapComponent', () => {
 
     // Um subcaminho externo e cinco recortes no SVG renderizado pelo Leaflet.
     expect(poligono.getAttribute('d')?.match(/M/g)).toHaveLength(6)
+
+
   })
 
   it('recebe uma coleção externa e informa quando não existem obras', () => {
