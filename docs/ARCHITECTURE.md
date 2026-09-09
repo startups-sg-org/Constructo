@@ -35,6 +35,8 @@ No mobile, `src/app` é reservado por convenção ao Expo Router. Enquanto esse 
 
 Cada diretório representa uma capacidade do produto, como autenticação, obras, unidades, timeline ou DOMINUS. Uma feature deve esconder sua implementação e expor uma API pública pequena.
 
+Um componente de feature é "burro": recebe dados, texto e callbacks inteiramente por props, sem importar tipos, constantes ou dados de outra feature para preenchê-los. Ele não decide o que só quem o compõe pode saber — se aparece, que espaço ocupa ao lado de outros elementos, que atraso espera antes de uma animação — e não guarda um valor que precise ficar sincronizado manualmente com uma constante definida em outro arquivo. Chrome de página, como o título da rota, também é fornecido de fora. O critério prático: dá para remover o componente do lugar em que está e recompô-lo em outro contexto — inclusive um container ainda não escrito — sem alterá-lo.
+
 ### `shared`
 
 Contém infraestrutura e interface reutilizáveis que não dependem de uma feature específica. Um módulo não deve ser colocado em `shared` apenas porque é usado duas vezes dentro da mesma feature.
@@ -48,7 +50,7 @@ app ───────► features ───────► shared
 ```
 
 - `shared` não importa de `features` ou `app`;
-- uma feature não importa arquivos internos de outra feature;
+- uma feature não importa arquivos internos de outra feature — nem pelo alias `@features/*`, nem por caminho relativo; em `apps/web` isso é verificado por lint (`no-restricted-imports` em `eslint.config.js`), não só por convenção;
 - `app` pode compor features e recursos compartilhados;
 - clientes não contêm regras de autorização consideradas fonte de verdade.
 
