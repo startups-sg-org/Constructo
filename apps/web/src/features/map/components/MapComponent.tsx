@@ -1,18 +1,16 @@
 import { latLngBounds, type FitBoundsOptions, type Map as LeafletMap } from 'leaflet'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { LayersControl, MapContainer, Polygon, TileLayer, useMap } from 'react-leaflet'
-import { obrasMock } from '../mocks/obras'
 import type { Obra } from '../types/obra'
 import './MapComponent.css'
 
 interface MapComponentProps {
-  obras?: Obra[]
+  obras: Obra[]
   obraSelecionadaId?: string | null
   onSelecionarObra?: (obra: Obra | null) => void
 }
 
-type ObrasNoMapaProps = Required<Pick<MapComponentProps, 'obras'>> &
-  Pick<MapComponentProps, 'obraSelecionadaId' | 'onSelecionarObra'>
+type ObrasNoMapaProps = Pick<MapComponentProps, 'obras' | 'obraSelecionadaId' | 'onSelecionarObra'>
 
 const OPCOES_ENQUADRAMENTO: FitBoundsOptions = { padding: [24, 24] }
 
@@ -98,7 +96,7 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapa
   )
 }
 
-export function MapComponent({ obras = obrasMock, obraSelecionadaId, onSelecionarObra }: MapComponentProps) {
+export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra }: MapComponentProps) {
   const tituloId = useId()
   const [mapa, setMapa] = useState<LeafletMap | null>(null)
   const limites = useMemo(() => obras.length > 0 ? limitesDe(obras) : null, [obras])
