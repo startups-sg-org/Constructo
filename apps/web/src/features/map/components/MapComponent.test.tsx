@@ -30,13 +30,13 @@ describe('MapComponent', () => {
     expect(poligonos()).toHaveLength(1)
   })
 
-  it('notifica a obra clicada e destaca apenas a obra selecionada', () => {
+  it('notifica o id da obra clicada e destaca apenas a obra selecionada', () => {
     const onSelecionarObra = vi.fn()
     const { container, rerender } = render(<MapComponent obras={obrasMock} onSelecionarObra={onSelecionarObra} />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
     fireEvent.click(poligonos[0])
-    expect(onSelecionarObra).toHaveBeenCalledWith(obrasMock[0])
+    expect(onSelecionarObra).toHaveBeenCalledWith(obrasMock[0].id)
     // Sem seleção externa, nenhum polígono é destacado.
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
 
