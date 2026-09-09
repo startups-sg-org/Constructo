@@ -1,0 +1,240 @@
+.indicators-panel {
+  --indicator-surface: #151b24;
+  --indicator-border: #273241;
+  --indicator-text: #eef3fb;
+  --indicator-muted: #9aa6b7;
+  --indicator-accent: #00bda0;
+  display: grid;
+  gap: 1rem;
+}
+
+.indicators-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid #343c48;
+  border-radius: 0.8rem;
+  color: #f4f6f8;
+  background: #252b35;
+}
+
+.indicators-panel__header span {
+  color: #f4f6f8;
+  font-size: clamp(0.9rem, 1.15vw, 1rem);
+  font-weight: 700;
+}
+
+.indicators-panel__header h2 {
+  margin-top: 0.25rem;
+  color: #cbd3de;
+  font-size: clamp(0.75rem, 0.95vw, 0.85rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.indicators-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.indicators-panel__actions small {
+  color: #aeb8c6;
+  font-size: 0.7rem;
+}
+
+.indicators-panel__actions button {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 1px solid #596577;
+  border-radius: 0.55rem;
+  color: #cbd3de;
+  background: #303744;
+}
+
+.indicators-panel__actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.indicators-panel__actions svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.indicator-card,
+.indicator-progress {
+  box-sizing: border-box;
+  border: 1px solid var(--indicator-border);
+  border-radius: 0.9rem;
+  color: var(--indicator-text);
+  background: var(--indicator-surface);
+  box-shadow: 0 0.25rem 0.9rem rgb(26 32 44 / 0.08);
+}
+
+.indicator-card {
+  display: flex;
+  min-width: 0;
+  min-height: 10rem;
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+
+.indicator-card__header {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.indicator-card__label,
+.indicator-progress__eyebrow {
+  color: var(--indicator-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.indicator-card__trend {
+  color: var(--indicator-accent);
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.indicator-card__value {
+  display: flex;
+  min-height: 4.5rem;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  margin: 0.45rem 0;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.indicator-card__unit {
+  margin-left: 0.15rem;
+}
+
+.indicator-card__description {
+  max-width: 18rem;
+  margin: 0;
+  align-self: center;
+  color: var(--indicator-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.indicator-card__evidence {
+  display: inline-flex;
+  margin-top: 0.65rem;
+  color: var(--indicator-accent);
+  font-size: 0.78rem;
+}
+
+.indicator-card--attention {
+  border-top-color: #e4a11b;
+}
+
+.indicator-card--critical {
+  border-top-color: #e55353;
+}
+
+.indicator-card--positive {
+  border-top-color: var(--indicator-accent);
+}
+
+.indicator-progress {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem 1rem;
+  padding: 1.2rem;
+}
+
+.indicator-progress strong {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.25rem;
+}
+
+.indicator-progress__value {
+  align-self: center;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.45rem;
+  color: var(--indicator-accent);
+  background: #0d3939;
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.indicator-progress__track {
+  height: 0.8rem;
+  grid-column: 1 / -1;
+  border-radius: 999px;
+  background: #103c3e;
+  overflow: hidden;
+}
+
+.indicator-progress__track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--indicator-accent);
+  transition: width 400ms ease;
+}
+
+.indicators-state {
+  padding: 2rem;
+  border: 1px solid #d6d2ca;
+  border-radius: 0.9rem;
+  color: #687386;
+  text-align: center;
+}
+
+.indicators-state--error {
+  color: #a22828;
+  background: #fff0f0;
+}
+
+@media (max-width: 64rem) {
+  .indicators-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .indicators-panel__header {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .indicators-grid {
+    grid-template-columns: 1fr;
+  }
+}
