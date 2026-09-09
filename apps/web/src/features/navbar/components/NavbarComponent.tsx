@@ -4,19 +4,15 @@ import type { ItemNavegacao } from '../types/navegacao'
 import './NavbarComponent.css'
 
 interface NavbarComponentProps {
-  /** Itens da navegação principal. Rotas novas entram aqui, não no componente. */
-  itens?: ItemNavegacao[]
+  /** Itens da navegação principal. A navbar não conhece as rotas do Router;
+      quem a compõe decide quais existem e as mantém sincronizadas. */
+  itens: ItemNavegacao[]
   marca?: string
   /** Área à direita da navegação: sessão do usuário, busca, notificações. */
   acoes?: ReactNode
 }
 
-/** Apenas as rotas que o Router já registra; a lista cresce junto com ele. */
-const ITENS_PADRAO: ItemNavegacao[] = [
-  { rotulo: 'Mapa', para: '/', exato: true },
-]
-
-export function NavbarComponent({ itens = ITENS_PADRAO, marca = 'Constructo', acoes }: NavbarComponentProps) {
+export function NavbarComponent({ itens, marca = 'Constructo', acoes }: NavbarComponentProps) {
   const menuId = useId()
   const [menuAberto, setMenuAberto] = useState(false)
 
