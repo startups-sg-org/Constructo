@@ -1,7 +1,6 @@
-/* Ocupa o espaço restante quando composto ao lado de outro painel. */
+/* Empilha os próprios filhos (título, contagem, botão, mapa); como ocupar
+   espaço ao lado de um irmão é decisão de quem compõe, não deste componente. */
 .map-section {
-    flex: 1;
-    min-width: 0;
     display: flex;
     flex-direction: column;
 }

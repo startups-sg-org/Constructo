@@ -10,12 +10,20 @@ export function MapaPage() {
 
   return (
     <div className='mapa-page'>
-      <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
-      <MapComponent
-        obras={obrasMock}
-        obraSelecionadaId={obraSelecionada?.id ?? null}
-        onSelecionarObra={setObraSelecionada}
-      />
+      {/* A sidebar não decide mais se aparece: quem a compõe decide montá-la,
+          e este wrapper — não o componente — é quem abre espaço para ela. */}
+      {obraSelecionada && (
+        <div className='mapa-page-painel'>
+          <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
+        </div>
+      )}
+      <div className='mapa-page-mapa'>
+        <MapComponent
+          obras={obrasMock}
+          obraSelecionadaId={obraSelecionada?.id ?? null}
+          onSelecionarObra={setObraSelecionada}
+        />
+      </div>
     </div>
   )
 }

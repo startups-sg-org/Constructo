@@ -27,11 +27,8 @@ const obra: Obra = {
 }
 
 describe('SidebarComponent', () => {
-  it('não renderiza nada quando nenhuma obra está selecionada', () => {
-    const { container } = render(<SidebarComponent obra={null} onFechar={vi.fn()} />)
-
-    expect(container).toBeEmptyDOMElement()
-  })
+  // A decisão de montar ou não a sidebar saiu do componente (MapaPage.test.tsx
+  // cobre "sem obra selecionada, não há região complementary").
 
   it('apresenta os indicadores da obra selecionada', () => {
     render(<SidebarComponent obra={obra} onFechar={vi.fn()} />)

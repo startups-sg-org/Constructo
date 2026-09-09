@@ -4,3 +4,54 @@
     gap: 1rem;
     padding: 1rem;
 }
+
+/* A abertura anima a própria largura: é o que faz o painel "abrir espaço" e
+   empurrar o mapa progressivamente. Animar só opacity/transform deixa a caixa
+   surgir de uma vez — o conteúdo desliza dentro de um vão que já apareceu
+   instantaneamente.
+
+   O preço é que o container do mapa muda de tamanho a cada quadro, e o
+   Leaflet não detecta isso sozinho; MapComponent observa o próprio
+   container e chama invalidateSize durante a animação.
+
+   A curva é simétrica (ease-in-out) de propósito. Curvas adiantadas, como
+   cubic-bezier(.22, 1, .36, 1), concluem 90% do percurso no primeiro terço do
+   tempo: parecem instantâneas por mais que se aumente a duração. */
+@keyframes mapa-page-painel-entrada {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: var(--sidebar-largura);
+        opacity: 1;
+    }
+}
+
+.mapa-page-painel {
+    /* --sidebar-largura é uma variável herdável: o conteúdo do painel (hoje,
+       SidebarComponent) a lê para manter largura fixa enquanto este wrapper
+       anima e recorta, sem precisar conhecer o layout que o compõe. */
+    --sidebar-largura: 320px;
+    --sidebar-duracao: 900ms;
+
+    animation: mapa-page-painel-entrada var(--sidebar-duracao) cubic-bezier(0.42, 0, 0.58, 1);
+    width: var(--sidebar-largura);
+    flex-shrink: 0;
+    /* Recorta o conteúdo de largura fixa enquanto a caixa cresce, em vez de
+       reposicioná-lo a cada quadro. */
+    overflow: hidden;
+}
+
+.mapa-page-mapa {
+    /* Ocupa o espaço restante ao lado do painel, quando ele existe. */
+    flex: 1;
+    min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mapa-page-painel {
+        animation: none;
+    }
+}
