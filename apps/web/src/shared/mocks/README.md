@@ -1,7 +1,7 @@
 # Obras de demonstração em Palmas
 
 `obras.ts` exporta `obrasMock`, uma coleção tipada pela interface `Obra` de
-`../types/obra.ts`. Ela contém seis obras fictícias em andamento, com progresso,
+`../domain/obra.ts`. Ela contém seis obras fictícias em andamento, com progresso,
 responsável, orçamento em reais, datas ISO (`YYYY-MM-DD`) e informações de localização.
 Empresas, valores, cronogramas e intervenções são inventados.
 
@@ -39,6 +39,6 @@ O primeiro ponto de cada perímetro se repete ao final para fechar o polígono.
 os recortes. `escopoCoordenadas` descreve a área representada no popup.
 
 Para acrescentar uma obra, adicione um objeto com ID único em `obrasMock`.
-O componente deriva a contagem, as camadas, os popups e o enquadramento da coleção.
-Também aceita a propriedade `obras` para receber outra coleção e apresenta um
-estado vazio quando ela não contém registros.
+`MapComponent` recebe a coleção pela propriedade obrigatória `obras` — não a
+importa diretamente — e deriva dela a contagem, as camadas, os popups e o
+enquadramento; apresenta um estado vazio quando a coleção não contém registros.

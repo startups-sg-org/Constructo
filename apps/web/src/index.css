@@ -1,17 +1,100 @@
-/* Reset global de espaçamento e dimensionamento */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+
+    --cor-fundo: #eef3f2;
+    --cor-superficie: #ffffff;
+    --cor-superficie-translucida: rgb(255 255 255 / 94%);
+    --cor-texto: #172321;
+    --cor-texto-suave: #66736f;
+    --cor-borda: #d9e3e0;
+    --cor-primaria: #0b6175;
+    --cor-primaria-forte: #084b5a;
+    --cor-destaque: #0f8a7b;
+    --cor-destaque-suave: #e6f4f1;
+    --cor-sucesso: #217a4c;
+    --cor-atencao: #a86612;
+    --cor-perigo: #b8463f;
+    --cor-foco: #38bdf8;
+
+    --raio-pequeno: 0.5rem;
+    --raio-medio: 0.875rem;
+    --raio-grande: 1.125rem;
+    --sombra-suave: 0 0.25rem 1rem rgb(19 39 36 / 10%);
+    --sombra-elevada: 0 1rem 3rem rgb(7 31 29 / 20%);
+
+    --movimento-rapido: 160ms;
+    --movimento-padrao: 260ms;
+    --curva-suave: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html,
 body,
 #root {
-  min-width: 20rem;
-  min-height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 body {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-width: 20rem;
+    overflow: hidden;
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+    color: inherit;
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+a {
+    color: var(--cor-primaria);
+}
+
+:focus-visible {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 3px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

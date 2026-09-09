@@ -1,4 +1,4 @@
-import type { Obra } from '../types/obra'
+import type { Obra } from '../domain/obra'
 
 // Intervenções, empresas, valores e cronogramas fictícios em locais reais.
 // Contornos do OpenStreetMap: fontes e escopo documentados em cada obra e no README.
