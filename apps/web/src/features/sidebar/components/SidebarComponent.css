@@ -1,0 +1,78 @@
+/* A abertura anima a largura: é o que faz o painel "abrir espaço" e empurrar o
+   mapa progressivamente. Animar só opacity/transform deixa a caixa surgir de uma
+   vez — o conteúdo desliza dentro de um vão que já apareceu instantaneamente.
+
+   O preço é que o container do mapa muda de tamanho a cada quadro, e o Leaflet
+   não detecta isso sozinho; o MapComponent observa o próprio container e chama
+   invalidateSize durante a animação.
+
+   A curva é simétrica (ease-in-out) de propósito. Curvas adiantadas, como
+   cubic-bezier(.22, 1, .36, 1), concluem 90% do percurso no primeiro terço do
+   tempo: parecem instantâneas por mais que se aumente a duração. */
+@keyframes sidebar-entrada {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: var(--sidebar-largura);
+        opacity: 1;
+    }
+}
+
+.sidebar {
+    --sidebar-largura: 320px;
+    --sidebar-duracao: 900ms;
+
+    animation: sidebar-entrada var(--sidebar-duracao) cubic-bezier(0.42, 0, 0.58, 1);
+    width: var(--sidebar-largura);
+    flex-shrink: 0;
+    /* Recorta o conteúdo de largura fixa enquanto a caixa cresce, em vez de
+       reposicioná-lo a cada quadro. */
+    overflow: hidden;
+}
+
+.sidebar-conteudo {
+    width: var(--sidebar-largura);
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid currentColor;
+}
+
+.sidebar-cabecalho {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.sidebar h2 {
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.sidebar dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.4rem 0.75rem;
+}
+
+.sidebar dt {
+    font-weight: 600;
+}
+
+.sidebar dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar {
+        animation: none;
+    }
+}
