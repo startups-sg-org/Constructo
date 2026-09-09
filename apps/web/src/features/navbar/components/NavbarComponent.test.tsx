@@ -2,13 +2,19 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { ItemNavegacao } from '../types/navegacao'
 import { NavbarComponent } from './NavbarComponent'
 
 afterEach(cleanup)
 
+// Fixture própria: a navbar não tem mais itens embutidos, quem a compõe decide.
+const ITENS_MAPA: ItemNavegacao[] = [
+  { rotulo: 'Mapa', para: '/', exato: true },
+]
+
 describe('NavbarComponent', () => {
   it('apresenta a marca e a navegação principal', () => {
-    render(<NavbarComponent />, { wrapper: MemoryRouter })
+    render(<NavbarComponent itens={ITENS_MAPA} />, { wrapper: MemoryRouter })
 
     const cabecalho = screen.getByRole('banner')
 
@@ -18,7 +24,7 @@ describe('NavbarComponent', () => {
   })
 
   it('não concorre com o título da página', () => {
-    render(<NavbarComponent />, { wrapper: MemoryRouter })
+    render(<NavbarComponent itens={ITENS_MAPA} />, { wrapper: MemoryRouter })
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
   })
@@ -26,14 +32,14 @@ describe('NavbarComponent', () => {
   it('marca o link da rota ativa', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
-        <NavbarComponent />
+        <NavbarComponent itens={ITENS_MAPA} />
       </MemoryRouter>,
     )
 
     expect(screen.getByRole('link', { name: 'Mapa' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('renderiza os itens recebidos no lugar dos padrões', () => {
+  it('renderiza os itens recebidos', () => {
     const itens = [
       { rotulo: 'Obras', para: '/obras' },
       { rotulo: 'Timeline', para: '/timeline' },
@@ -47,7 +53,7 @@ describe('NavbarComponent', () => {
   })
 
   it('alterna o menu recolhido e o fecha ao navegar', () => {
-    render(<NavbarComponent />, { wrapper: MemoryRouter })
+    render(<NavbarComponent itens={ITENS_MAPA} />, { wrapper: MemoryRouter })
 
     const alternador = screen.getByRole('button', { name: 'Abrir menu' })
     const menu = document.getElementById(alternador.getAttribute('aria-controls') ?? '')
@@ -63,7 +69,7 @@ describe('NavbarComponent', () => {
   })
 
   it('fecha o menu aberto com Escape', () => {
-    render(<NavbarComponent />, { wrapper: MemoryRouter })
+    render(<NavbarComponent itens={ITENS_MAPA} />, { wrapper: MemoryRouter })
 
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }))
     fireEvent.keyDown(window, { key: 'Escape' })
@@ -72,12 +78,12 @@ describe('NavbarComponent', () => {
   })
 
   it('exibe a área de ações apenas quando ela é fornecida', () => {
-    const { rerender } = render(<NavbarComponent />, { wrapper: MemoryRouter })
+    const { rerender } = render(<NavbarComponent itens={ITENS_MAPA} />, { wrapper: MemoryRouter })
 
     expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument()
 
     // rerender reaplica o wrapper: repetir o MemoryRouter aqui aninharia dois routers.
-    rerender(<NavbarComponent acoes={<button type='button'>Entrar</button>} />)
+    rerender(<NavbarComponent itens={ITENS_MAPA} acoes={<button type='button'>Entrar</button>} />)
 
     expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument()
   })
