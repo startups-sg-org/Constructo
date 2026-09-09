@@ -1,7 +1,7 @@
 import { latLngBounds, type FitBoundsOptions, type Map as LeafletMap } from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LayersControl, MapContainer, Polygon, TileLayer, useMap } from 'react-leaflet'
-import type { Obra } from '../types/obra'
+import type { Obra } from '@shared/domain/obra'
 import './MapComponent.css'
 
 interface MapComponentProps {
