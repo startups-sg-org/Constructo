@@ -1,10 +1,17 @@
 import { createBrowserRouter } from 'react-router'
 import { MapaPage } from './pages/MapaPage'
-
+import { RootLayout } from './RootLayout'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <MapaPage/>,
+    // Rota de layout sem path: não casa com URL nenhuma, só envolve as filhas
+    // para que a navbar persista entre navegações em vez de remontar.
+    element: <RootLayout />,
+    children: [
+      {
+        path: '/',
+        element: <MapaPage />,
+      },
+    ],
   },
 ])
