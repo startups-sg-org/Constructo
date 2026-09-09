@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { obrasMock } from '../mocks/obras'
+import { obrasMock } from '@shared/mocks/obras'
 import { MapComponent } from './MapComponent'
 
 afterEach(() => {
@@ -11,7 +11,7 @@ afterEach(() => {
 
 describe('MapComponent', () => {
   it('renderiza todas as obras e permite ocultar e reexibir suas camadas', () => {
-    const { container } = render(<MapComponent />)
+    const { container } = render(<MapComponent obras={obrasMock} />)
     const poligonos = () => container.querySelectorAll('path.leaflet-interactive')
 
     expect(screen.getByRole('region', { name: 'Mapa de Obras' })).toBeInTheDocument()
@@ -32,7 +32,7 @@ describe('MapComponent', () => {
 
   it('notifica a obra clicada e destaca apenas a obra selecionada', () => {
     const onSelecionarObra = vi.fn()
-    const { container, rerender } = render(<MapComponent onSelecionarObra={onSelecionarObra} />)
+    const { container, rerender } = render(<MapComponent obras={obrasMock} onSelecionarObra={onSelecionarObra} />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
     fireEvent.click(poligonos[0])
@@ -40,17 +40,17 @@ describe('MapComponent', () => {
     // Sem seleção externa, nenhum polígono é destacado.
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
 
-    rerender(<MapComponent obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
+    rerender(<MapComponent obras={obrasMock} obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
     expect(poligonos[0]).toHaveAttribute('stroke', 'green')
 
-    rerender(<MapComponent obraSelecionadaId={obrasMock[1].id} onSelecionarObra={onSelecionarObra} />)
+    rerender(<MapComponent obras={obrasMock} obraSelecionadaId={obrasMock[1].id} onSelecionarObra={onSelecionarObra} />)
     expect(poligonos[1]).toHaveAttribute('stroke', 'green')
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
   })
 
   it('limpa a seleção pelo botão de visão geral', () => {
     const onSelecionarObra = vi.fn()
-    render(<MapComponent obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
+    render(<MapComponent obras={obrasMock} obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Ver todas as obras' }))
     expect(onSelecionarObra).toHaveBeenCalledWith(null)
