@@ -34,7 +34,7 @@ describe('SidebarComponent', () => {
     render(<SidebarComponent obra={obra} onFechar={vi.fn()} />)
 
     expect(screen.getByRole('complementary', { name: obra.nome })).toBeInTheDocument()
-    expect(screen.getByText('UFT — Palmas/TO')).toBeInTheDocument()
+    expect(screen.getByText('UFT · Palmas/TO')).toBeInTheDocument()
     expect(screen.getByText('OBR-001')).toBeInTheDocument()
     expect(screen.getByText('Em andamento')).toBeInTheDocument()
     expect(screen.getByText('58%')).toBeInTheDocument()
@@ -57,7 +57,7 @@ describe('SidebarComponent', () => {
     rerender(<SidebarComponent obra={detalhado} onFechar={vi.fn()} />)
 
     expect(screen.getByText('Contorno do câmpus.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Fonte do contorno' }))
+    expect(screen.getByRole('link', { name: /Consultar fonte do contorno/ }))
       .toHaveAttribute('href', detalhado.fonteCoordenadas)
   })
 
@@ -65,7 +65,7 @@ describe('SidebarComponent', () => {
     const onFechar = vi.fn()
     render(<SidebarComponent obra={obra} onFechar={onFechar} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar detalhes da obra' }))
     expect(onFechar).toHaveBeenCalledOnce()
   })
 })

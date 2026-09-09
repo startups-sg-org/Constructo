@@ -10,11 +10,11 @@ const ITENS_NAVEGACAO: ItemNavegacao[] = [
 
 export function RootLayout() {
   return (
-    <>
+    <div className='app-shell'>
       <NavbarComponent itens={ITENS_NAVEGACAO} />
       <main className='app-main'>
         <Outlet />
       </main>
-    </>
+    </div>
   )
 }

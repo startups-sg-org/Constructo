@@ -1,59 +1,104 @@
 .dominus-page {
-    display: flex;
-    align-items: stretch;
-    gap: 1rem;
-    padding: 1rem;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    isolation: isolate;
+    background: #172322;
 }
 
-/* A abertura anima a própria largura: é o que faz o painel "abrir espaço" e
-   empurrar o mapa progressivamente. Animar só opacity/transform deixa a caixa
-   surgir de uma vez — o conteúdo desliza dentro de um vão que já apareceu
-   instantaneamente.
+.dominus-page-mapa {
+    position: absolute;
+    inset: 0;
+    min-width: 0;
+    min-height: 0;
+}
 
-   O preço é que o container do mapa muda de tamanho a cada quadro, e o
-   Leaflet não detecta isso sozinho; MapComponent observa o próprio
-   container e chama invalidateSize durante a animação.
-
-   A curva é simétrica (ease-in-out) de propósito. Curvas adiantadas, como
-   cubic-bezier(.22, 1, .36, 1), concluem 90% do percurso no primeiro terço do
-   tempo: parecem instantâneas por mais que se aumente a duração. */
-@keyframes dominus-page-painel-entrada {
+@keyframes painel-entrar {
     from {
-        width: 0;
         opacity: 0;
+        transform: translateX(calc(-100% - 1.5rem));
     }
 
     to {
-        width: var(--sidebar-largura);
         opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes painel-sair {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(calc(-100% - 1.5rem));
     }
 }
 
 .dominus-page-painel {
-    /* --sidebar-largura é uma variável herdável: o conteúdo do painel (hoje,
-       SidebarComponent) a lê para manter largura fixa enquanto este wrapper
-       anima e recorta, sem precisar conhecer o layout que o compõe. */
-    --sidebar-largura: 320px;
-    /* Pareada com ATRASO_ENQUADRAMENTO_MS em DominusPage.tsx: o mapa espera essa
-       duração antes de reenquadrar a obra selecionada. */
-    --sidebar-duracao: 900ms;
-
-    animation: dominus-page-painel-entrada var(--sidebar-duracao) cubic-bezier(0.42, 0, 0.58, 1);
-    width: var(--sidebar-largura);
-    flex-shrink: 0;
-    /* Recorta o conteúdo de largura fixa enquanto a caixa cresce, em vez de
-       reposicioná-lo a cada quadro. */
-    overflow: hidden;
+    position: absolute;
+    z-index: 1050;
+    top: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: min(24rem, calc(100% - 2rem));
+    min-height: 0;
+    pointer-events: none;
+    animation: painel-sair var(--dominus-duracao) var(--curva-suave) both;
+    will-change: transform, opacity;
 }
 
-.dominus-page-mapa {
-    /* Ocupa o espaço restante ao lado do painel, quando ele existe. */
-    flex: 1;
-    min-width: 0;
+.dominus-page-painel-aberto {
+    pointer-events: auto;
+    animation-name: painel-entrar;
+}
+
+@media (max-width: 48rem) {
+    @keyframes painel-entrar-mobile {
+        from {
+            opacity: 0;
+            transform: translateY(calc(100% + 1rem));
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes painel-sair-mobile {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(calc(100% + 1rem));
+        }
+    }
+
+    .dominus-page-painel {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: min(76%, 38rem);
+        animation-name: painel-sair-mobile;
+    }
+
+    .dominus-page-painel-aberto {
+        animation-name: painel-entrar-mobile;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .dominus-page-painel {
-        animation: none;
+        animation-duration: 1ms;
     }
 }
