@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { Obra } from '@features/map'
+import type { Obra } from '@shared/domain/obra'
 import './SidebarComponent.css'
 
 interface SidebarComponentProps {
