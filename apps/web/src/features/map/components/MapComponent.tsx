@@ -7,30 +7,37 @@ import './MapComponent.css'
 interface MapComponentProps {
   obras: Obra[]
   obraSelecionadaId?: string | null
-  onSelecionarObra?: (obra: Obra | null) => void
+  /** Notifica o id da obra clicada, ou null ao limpar a seleção; quem compõe
+      o mapa já tem a coleção e resolve o id em dados completos se precisar. */
+  onSelecionarObra?: (id: string | null) => void
+  /** Atraso antes de reenquadrar numa obra recém-selecionada — dá tempo para
+      quem compõe o mapa terminar de mudar o espaço disponível ao redor dele
+      (por exemplo, abrir um painel lateral). Não afeta o retorno à visão
+      geral, que reenquadra de imediato. Padrão: 0. */
+  atrasoEnquadramentoMs?: number
 }
 
-type ObrasNoMapaProps = Pick<MapComponentProps, 'obras' | 'obraSelecionadaId' | 'onSelecionarObra'>
+type ObrasNoMapaProps = Pick<
+  MapComponentProps,
+  'obras' | 'obraSelecionadaId' | 'onSelecionarObra' | 'atrasoEnquadramentoMs'
+>
 
 const OPCOES_ENQUADRAMENTO: FitBoundsOptions = { padding: [24, 24] }
 
-/** Ritmo do enquadramento animado; pareado com --sidebar-duracao. */
 const OPCOES_VOO: FitBoundsOptions = {
   ...OPCOES_ENQUADRAMENTO,
   duration: 1.4,
-  // Abaixo do padrão (0.25): alonga a desaceleração final, acompanhando a
-  // curva de entrada do painel em vez de chegar antes dele.
+  // Abaixo do padrão (0.25): alonga a desaceleração final, para o voo
+  // terminar suave mesmo quando o espaço ao redor do mapa muda de forma
+  // gradual e animada (por exemplo, um painel lateral abrindo).
   easeLinearity: 0.15,
 }
-
-/** Espelha --sidebar-duracao: o voo espera o painel terminar de abrir. */
-const ABERTURA_PAINEL_MS = 900
 
 function limitesDe(obras: Obra[]) {
   return latLngBounds(obras.flatMap((obra) => obra.coordenadas))
 }
 
-function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapaProps) {
+function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra, atrasoEnquadramentoMs = 0 }: ObrasNoMapaProps) {
   const map = useMap()
   const idAnterior = useRef(obraSelecionadaId)
 
@@ -38,8 +45,9 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapa
     map.fitBounds(limitesDe(obras), OPCOES_ENQUADRAMENTO)
   }, [map, obras])
 
-  // O painel vizinho anima a própria largura, então o container encolhe quadro a
-  // quadro. O Leaflet só escuta resize de janela, não do próprio container.
+  // O espaço disponível para o mapa pode mudar por decisão de quem o compõe
+  // (por exemplo, um painel lateral abrindo), quadro a quadro. O Leaflet só
+  // escuta resize de janela, não do próprio container.
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') {
       return
@@ -59,19 +67,21 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapa
 
     const selecionada = obras.find((obra) => obra.id === obraSelecionadaId)
     if (!selecionada) {
-      // Fechar o painel devolve a largura de uma vez; nada a esperar.
+      // Ao limpar a seleção, o voo é imediato: atrasoEnquadramentoMs existe
+      // para dar espaço a uma obra específica, não para este caso.
       map.flyToBounds(limitesDe(obras), OPCOES_VOO)
       return
     }
 
-    // Enquadrar agora usaria uma largura que o container ainda vai perder para o
-    // painel, e a obra terminaria cortada. O voo entra quando a abertura acaba.
+    // Enquadrar agora poderia usar uma largura que o container ainda vai
+    // perder para quem o compõe, cortando a obra. atrasoEnquadramentoMs dá
+    // tempo para essa mudança de espaço terminar antes do voo.
     const temporizador = setTimeout(
       () => map.flyToBounds(latLngBounds(selecionada.coordenadas), OPCOES_VOO),
-      ABERTURA_PAINEL_MS,
+      atrasoEnquadramentoMs,
     )
     return () => clearTimeout(temporizador)
-  }, [map, obras, obraSelecionadaId])
+  }, [map, obras, obraSelecionadaId, atrasoEnquadramentoMs])
 
   return (
     <LayersControl position='topright'>
@@ -86,7 +96,7 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapa
             }}
             eventHandlers={{
               click() {
-                onSelecionarObra?.(obra)
+                onSelecionarObra?.(obra.id)
               },
             }}
           />
@@ -96,7 +106,7 @@ function ObrasNoMapa({ obras, obraSelecionadaId, onSelecionarObra }: ObrasNoMapa
   )
 }
 
-export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra }: MapComponentProps) {
+export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra, atrasoEnquadramentoMs }: MapComponentProps) {
   const tituloId = useId()
   const [mapa, setMapa] = useState<LeafletMap | null>(null)
   const limites = useMemo(() => obras.length > 0 ? limitesDe(obras) : null, [obras])
@@ -134,6 +144,7 @@ export function MapComponent({ obras, obraSelecionadaId, onSelecionarObra }: Map
               obras={obras}
               obraSelecionadaId={obraSelecionadaId}
               onSelecionarObra={onSelecionarObra}
+              atrasoEnquadramentoMs={atrasoEnquadramentoMs}
             />
           </MapContainer>
         </>

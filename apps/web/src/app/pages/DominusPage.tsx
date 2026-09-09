@@ -5,8 +5,18 @@ import type { Obra } from '@shared/domain/obra'
 import { obrasMock } from '@shared/mocks/obras'
 import './DominusPage.css'
 
+/** Pareado com --sidebar-duracao (DominusPage.css): o mapa só reenquadra a obra
+    selecionada depois que a sidebar termina de abrir espaço para si. */
+const ATRASO_ENQUADRAMENTO_MS = 900
+
 export function DominusPage() {
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null)
+
+  // O mapa não conhece Obra: devolve só o id clicado, e quem o compõe resolve
+  // para o registro completo (ou null) a partir da coleção que já tem.
+  function selecionarObra(id: string | null) {
+    setObraSelecionada(id ? obrasMock.find((obra) => obra.id === id) ?? null : null)
+  }
 
   return (
     <div className='dominus-page'>
@@ -21,7 +31,8 @@ export function DominusPage() {
         <MapComponent
           obras={obrasMock}
           obraSelecionadaId={obraSelecionada?.id ?? null}
-          onSelecionarObra={setObraSelecionada}
+          onSelecionarObra={selecionarObra}
+          atrasoEnquadramentoMs={ATRASO_ENQUADRAMENTO_MS}
         />
       </div>
     </div>
