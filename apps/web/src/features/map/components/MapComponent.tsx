@@ -150,7 +150,7 @@ export function MapComponent({
             className='map-container'
             bounds={limites}
             boundsOptions={OPCOES_ENQUADRAMENTO}
-            scrollWheelZoom={false}
+            scrollWheelZoom={true}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
