@@ -13,7 +13,7 @@ function getIndicatorStatus(status: Obra['status']): IndicatorStatus {
 }
 
 export function createIndicatorsFromWork(obra: Obra): WorkIndicators {
-  const physicalProgress = obra.progressoFisico ?? obra.progresso
+  const physicalProgress = obra.progresso 
   const plannedProgress = obra.progressoPlanejado ?? physicalProgress
   const difference = physicalProgress - plannedProgress
   const scheduleStatus: IndicatorStatus = difference >= 0 ? 'positive' : 'attention'
@@ -55,36 +55,3 @@ export function createIndicatorsFromWork(obra: Obra): WorkIndicators {
   }
 }
 
-export const indicatorsMock: WorkIndicators = {
-  workId: 'obra-001',
-  workName: 'Residencial Comodoro',
-  updatedAt: '04/09/2026',
-  physicalProgress: {
-    label: 'Progresso',
-    value: 68,
-    unit: '%',
-    description: 'Avanço executado da obra',
-    status: 'positive',
-    trend: '+4,2% no período',
-  },
-  plannedProgress: {
-    label: 'Prazo',
-    value: 72,
-    unit: '%',
-    description: 'Avanço previsto até a data',
-    status: 'attention',
-    trend: '-4,0 p.p. do planejado',
-  },
-  currentStage: {
-    label: 'Etapa atual',
-    value: 'Estrutura',
-    description: 'Execução de pilares e lajes',
-    status: 'neutral',
-  },
-  workStatus: {
-    label: 'Situação',
-    value: 'Em andamento',
-    description: 'Sem impedimentos registrados',
-    status: 'positive',
-  },
-}

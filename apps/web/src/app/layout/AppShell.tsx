@@ -13,7 +13,7 @@ import './AppShell.css'
 
 const navigationItems = [
   { label: 'Home', icon: HomeIcon, href: '/', current: true },
-  { label: 'Obras', icon: MapIcon, href: '#obras', current: false },
+  { label: 'Obras', icon: MapIcon, href: '/Dominus', current: true},
   { label: 'Indicadores', icon: IndicatorsIcon, href: '#indicadores', current: false },
 ]
 

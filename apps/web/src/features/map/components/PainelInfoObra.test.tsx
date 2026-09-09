@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { obrasMock } from '../mocks/obras'
+import { obrasMock } from '@shared/mocks/obras'
 import { PainelInfoObra } from './PainelInfoObra'
 
 afterEach(() => {

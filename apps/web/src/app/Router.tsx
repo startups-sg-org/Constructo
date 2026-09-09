@@ -10,6 +10,13 @@ export const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
+      {
+        path: '/Dominus',
+        lazy: async () => {
+          const { DominusPage } = await import('./pages/DominusPage')
+          return { Component: DominusPage }
+        },
+      },
     ],
   },
 ])

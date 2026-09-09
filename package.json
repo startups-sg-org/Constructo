@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.22"
+  },
+  "dependencies": {
+    "pnpm": "^12.3.4"
   }
 }

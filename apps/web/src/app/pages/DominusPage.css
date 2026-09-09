@@ -1,0 +1,110 @@
+.dominus-page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #172322;
+}
+
+.dominus-page-mapa {
+    position: absolute;
+    inset: 0;
+}
+
+@keyframes painel-entrar {
+    from {
+        opacity: 0;
+        transform: translateX(calc(-100% - 1.5rem));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes painel-sair {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(calc(-100% - 1.5rem));
+    }
+}
+
+.dominus-page-painel {
+    position: absolute;
+    z-index: 1050;
+    top: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: min(24rem, calc(100% - 2rem));
+    min-height: 0;
+    pointer-events: none;
+    animation: painel-sair var(--dominus-duracao) var(--curva-suave) both;
+    will-change: transform, opacity;
+}
+
+.dominus-page-painel-aberto {
+    pointer-events: auto;
+    animation-name: painel-entrar;
+}
+
+@media (max-width: 48rem) {
+    @keyframes painel-entrar-mobile {
+        from {
+            opacity: 0;
+            transform: translateY(calc(100% + 1rem));
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes painel-sair-mobile {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(calc(100% + 1rem));
+        }
+    }
+
+    .dominus-page-painel {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: min(76%, 38rem);
+        animation-name: painel-sair-mobile;
+    }
+
+    .dominus-page-painel-aberto {
+        animation-name: painel-entrar-mobile;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dominus-page-painel {
+        animation-duration: 1ms;
+    }
+}
+
+.map-wrapper,
+.map-section,
+.map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}

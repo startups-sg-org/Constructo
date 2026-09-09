@@ -1,3 +1,4 @@
+
 .map-wrapper {
     position: relative;
     width: 100%;
@@ -6,25 +7,108 @@
 
 .map-container {
     height: 800px;
+}
+
+.map-section {
+    position: relative;
     width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: #172322;
 }
 
-.obra-popup h2 {
-    font-size: 1rem;
-    line-height: 1.4;
+.map-container {
+    width: 100%;
+    height: 100%;
+    background: #172322;
 }
 
-.obra-popup dl {
+.map-poligono {
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-opacity: 0.88;
+    fill-opacity: 0.17;
+    transition:
+        stroke var(--movimento-padrao) ease,
+        fill-opacity var(--movimento-padrao) ease,
+        stroke-width var(--movimento-padrao) ease;
+}
+
+.map-poligono-em-andamento {
+    stroke: #31c4ae;
+    fill: #31c4ae;
+}
+
+.map-poligono-paralisada {
+    stroke: #ef766e;
+    fill: #ef766e;
+}
+
+.map-poligono-concluida {
+    stroke: #6fcf8d;
+    fill: #6fcf8d;
+}
+
+.map-poligono-selecionado {
+    stroke: #45d3be;
+    stroke-width: 5;
+    stroke-opacity: 1;
+    fill-opacity: 0.34;
+}
+
+.map-estado-vazio {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.4rem 0.75rem;
+    height: 100%;
+    place-items: center;
+    padding: 2rem;
+    background: var(--cor-fundo);
+    color: var(--cor-texto-suave);
+    text-align: center;
 }
 
-.obra-popup dt {
-    font-weight: 600;
+.map-section .leaflet-bar,
+.map-section .leaflet-control-layers {
+    overflow: hidden;
+    border: 1px solid rgb(217 227 224 / 90%);
+    border-radius: var(--raio-pequeno);
+    box-shadow: var(--sombra-suave);
 }
 
-.obra-popup dd {
-    margin: 0;
-    overflow-wrap: anywhere;
+.map-section .leaflet-bar a,
+.map-section .leaflet-control-layers {
+    background-color: var(--cor-superficie-translucida);
+    color: var(--cor-texto);
+    backdrop-filter: blur(0.75rem);
+}
+
+.map-section .leaflet-bar a {
+    border-color: var(--cor-borda);
+    transition: background-color var(--movimento-rapido) ease, color var(--movimento-rapido) ease;
+}
+
+.map-section .leaflet-bar a:hover,
+.map-section .leaflet-bar a:focus-visible {
+    background-color: var(--cor-destaque-suave);
+    color: var(--cor-primaria-forte);
+}
+
+.map-section .leaflet-control-layers-expanded {
+    padding: 0.75rem;
+    font-family: inherit;
+}
+
+.map-section .leaflet-control-layers-selector {
+    accent-color: var(--cor-destaque);
+}
+
+.map-section .leaflet-control-attribution {
+    background: rgb(255 255 255 / 82%);
+    color: #53615e;
+    backdrop-filter: blur(0.5rem);
+}
+
+.map-section .leaflet-control-attribution a {
+    color: var(--cor-primaria-forte);
 }
