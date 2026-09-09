@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { MapComponent, type Obra } from '@features/map'
+import { MapComponent } from '@features/map'
 import { SidebarComponent } from '@features/sidebar'
+import type { Obra } from '@shared/domain/obra'
+import { obrasMock } from '@shared/mocks/obras'
 import './MapaPage.css'
 
 export function MapaPage() {
@@ -10,6 +12,7 @@ export function MapaPage() {
     <div className='mapa-page'>
       <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
       <MapComponent
+        obras={obrasMock}
         obraSelecionadaId={obraSelecionada?.id ?? null}
         onSelecionarObra={setObraSelecionada}
       />
