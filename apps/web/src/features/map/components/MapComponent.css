@@ -1,24 +1,19 @@
+/* Ocupa o espaço restante quando composto ao lado de outro painel. */
+.map-section {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .map-container {
     height: 800px;
     width: 100%;
 }
 
-.obra-popup h2 {
-    font-size: 1rem;
-    line-height: 1.4;
-}
-
-.obra-popup dl {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.4rem 0.75rem;
-}
-
-.obra-popup dt {
-    font-weight: 600;
-}
-
-.obra-popup dd {
-    margin: 0;
-    overflow-wrap: anywhere;
+.map-visao-geral {
+    align-self: flex-start;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
 }

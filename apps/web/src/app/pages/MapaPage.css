@@ -1,0 +1,6 @@
+.mapa-page {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+}

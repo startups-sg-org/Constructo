@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { obrasMock } from '../mocks/obras'
 import { MapComponent } from './MapComponent'
@@ -30,28 +30,39 @@ describe('MapComponent', () => {
     expect(poligonos()).toHaveLength(1)
   })
 
-  it('abre os dados da obra selecionada e transfere o destaque entre polígonos', () => {
-    const { container } = render(<MapComponent />)
+  it('notifica a obra clicada e destaca apenas a obra selecionada', () => {
+    const onSelecionarObra = vi.fn()
+    const { container, rerender } = render(<MapComponent onSelecionarObra={onSelecionarObra} />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
     fireEvent.click(poligonos[0])
-    const popup = within(screen.getByRole('article'))
-    expect(popup.getByRole('heading', { name: 'Modernização dos espaços acadêmicos' })).toBeInTheDocument()
-    expect(popup.getByText('58%')).toBeInTheDocument()
-    expect(popup.getByText('Construtora Horizonte (fictícia)')).toBeInTheDocument()
-    expect(popup.getByText(/2\.800\.000,00/)).toBeInTheDocument()
-    expect(popup.getByText('02/03/2026')).toBeInTheDocument()
-    expect(popup.getByText('26/02/2027')).toBeInTheDocument()
-    expect(popup.getByText('Obra e informações fictícias para demonstração.')).toBeInTheDocument()
-    expect(poligonos[0]).toHaveAttribute('stroke', 'red')
+    expect(onSelecionarObra).toHaveBeenCalledWith(obrasMock[0])
+    // Sem seleção externa, nenhum polígono é destacado.
+    expect(poligonos[0]).toHaveAttribute('stroke', 'white')
 
-    fireEvent.click(poligonos[1])
-    expect(screen.getByRole('heading', { name: 'Revitalização dos passeios e da iluminação' })).toBeInTheDocument()
-    expect(poligonos[1]).toHaveAttribute('stroke', 'red')
+    rerender(<MapComponent obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
+    expect(poligonos[0]).toHaveAttribute('stroke', 'green')
+
+    rerender(<MapComponent obraSelecionadaId={obrasMock[1].id} onSelecionarObra={onSelecionarObra} />)
+    expect(poligonos[1]).toHaveAttribute('stroke', 'green')
     expect(poligonos[0]).toHaveAttribute('stroke', 'white')
   })
 
-  it('preserva os cinco pátios do HGP e apresenta o escopo e a fonte do contorno', () => {
+  it('limpa a seleção pelo botão de visão geral', () => {
+    const onSelecionarObra = vi.fn()
+    render(<MapComponent obraSelecionadaId={obrasMock[0].id} onSelecionarObra={onSelecionarObra} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver todas as obras' }))
+    expect(onSelecionarObra).toHaveBeenCalledWith(null)
+  })
+
+  it('não oferece a visão geral quando não existem obras', () => {
+    render(<MapComponent obras={[]} />)
+
+    expect(screen.queryByRole('button', { name: 'Ver todas as obras' })).not.toBeInTheDocument()
+  })
+
+  it('preserva os cinco pátios do HGP no polígono renderizado', () => {
     // JSDOM não calcula layout; fornecemos uma viewport para o recorte do Leaflet.
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1024)
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(768)
@@ -61,10 +72,6 @@ describe('MapComponent', () => {
 
     // Um subcaminho externo e cinco recortes no SVG renderizado pelo Leaflet.
     expect(poligono.getAttribute('d')?.match(/M/g)).toHaveLength(6)
-    fireEvent.click(poligono)
-    expect(screen.getByRole('heading', { name: hospital.nome })).toBeInTheDocument()
-    expect(screen.getByText(hospital.escopoCoordenadas!)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Fonte do contorno' })).toHaveAttribute('href', hospital.fonteCoordenadas)
   })
 
   it('recebe uma coleção externa e informa quando não existem obras', () => {
