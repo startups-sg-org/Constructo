@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import { MapComponent, obrasMock, PainelInfoObra } from '@features/map'
-import type { Obra } from '@features/map'
+import { MapComponent, PainelInfoObra } from '@features/map'
 import { createIndicatorsFromWork, IndicatorsPanel } from '@features/indicators'
+import type { Obra } from '@shared/domain/obra'
+import { obrasMock } from '@shared/mocks/obras'
 import './HomePage.css'
 
 export function HomePage() {
@@ -10,6 +11,10 @@ export function HomePage() {
     () => selectedWork ? createIndicatorsFromWork(selectedWork) : undefined,
     [selectedWork],
   )
+
+  function selectWork(id: string | null) {
+    setSelectedWork(id ? obrasMock.find((obra) => obra.id === id) ?? null : null)
+  }
 
   return (
     <section className='home-page' aria-labelledby='home-title'>
@@ -21,9 +26,10 @@ export function HomePage() {
       <div className='home-dashboard-grid'>
         <div className='integration-slot map-slot'>
           <MapComponent
+            obras={obrasMock}
+            rotulo='Mapa de Obras'
             obraSelecionadaId={selectedWork?.id ?? null}
-            onSelectObra={setSelectedWork}
-            showDetailsPanel={false}
+            onSelecionarObra={selectWork}
           />
         </div>
 
