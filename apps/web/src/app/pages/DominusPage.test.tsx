@@ -1,13 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { MapaPage } from './MapaPage'
+import { DominusPage } from './DominusPage'
 
 afterEach(cleanup)
 
-describe('MapaPage', () => {
+describe('DominusPage', () => {
   it('abre a sidebar com os indicadores da obra clicada e a fecha pelo botão', () => {
-    const { container } = render(<MapaPage />)
+    const { container } = render(<DominusPage />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
@@ -30,7 +30,7 @@ describe('MapaPage', () => {
   })
 
   it('volta à visão geral pelo botão, encerrando a seleção', () => {
-    const { container } = render(<MapaPage />)
+    const { container } = render(<DominusPage />)
     const poligonos = container.querySelectorAll('path.leaflet-interactive')
 
     fireEvent.click(poligonos[0])

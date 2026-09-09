@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { MapComponent, type Obra } from '@features/map'
 import { SidebarComponent } from '@features/sidebar'
-import './MapaPage.css'
+import './DominusPage.css'
 
-export function MapaPage() {
+export function DominusPage() {
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null)
 
   return (
-    <div className='mapa-page'>
+    <div className='dominus-page'>
       <SidebarComponent obra={obraSelecionada} onFechar={() => setObraSelecionada(null)} />
       <MapComponent
         obraSelecionadaId={obraSelecionada?.id ?? null}

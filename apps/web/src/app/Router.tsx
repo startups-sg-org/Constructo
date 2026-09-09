@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router'
-import { MapaPage } from './pages/MapaPage'
+import { DominusPage } from './pages/DominusPage'
 import { RootLayout } from './RootLayout'
 
 export const router = createBrowserRouter([
@@ -10,7 +10,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <MapaPage />,
+        element: <DominusPage />,
       },
     ],
   },
