@@ -10,10 +10,6 @@
   </p>
 </div>
 
-<br />
-
-<br />
-
 <div>
 
   <h2 align="center">🏗️ Constructo </h2>
@@ -46,8 +42,6 @@
   <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white">
 </p>
 
-
-
 ---
 
 ## 👥 Equipe
@@ -56,18 +50,6 @@
 - [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
 - [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
 - [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
-
----
-
-## 📚 Documentação
-
-Este repositório divide sua documentação nas seguintes partes:
-
-1. **README.md** — visão do produto e entregáveis da disciplina;
-2. **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — organização do monorepo e regras entre camadas;
-3. **[ORIENTACOES.md](docs/ORIENTACOES.md)** — convenções práticas de desenvolvimento;
-4. **[STACK_TECNOLOGICA.md](docs/STACK_TECNOLOGICA.md)** — tecnologias adotadas e papel de cada componente;
-5. **[EVOLUCAO_FUTURA.md](docs/EVOLUCAO_FUTURA.md)** — recursos planejados para depois da entrega acadêmica.
 
 ---
 
@@ -99,39 +81,6 @@ pnpm check
 ```
 
 Copie o `.env.example` de cada aplicativo para um arquivo `.env.local` quando precisar configurar a URL da API.
-
----
-
-## 🎓 Informações acadêmicas
-
-<div align="center">
-
-<table align="center">
-  <tbody>
-    <tr>
-      <th align="left">Instituição</th>
-      <td align="left">Universidade Federal do Tocantins (UFT)</td>
-    </tr>
-    <tr>
-      <th align="left">Curso</th>
-      <td align="left">Bacharelado em Ciência da Computação</td>
-    </tr>
-    <tr>
-      <th align="left">Disciplina</th>
-      <td align="left">Desenvolvimento Webmobile</td>
-    </tr>
-    <tr>
-      <th align="left">Professor</th>
-      <td align="left">Jackson Gomes de Souza</td>
-    </tr>
-    <tr>
-      <th align="left">Semestre</th>
-      <td align="left">2026.2</td>
-    </tr>
-  </tbody>
-</table>
-
-</div>
 
 ---
 
