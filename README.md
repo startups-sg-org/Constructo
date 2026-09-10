@@ -1,12 +1,62 @@
+<a id="readme-top"></a>
+
+<div align="center">
+  <img src="https://github.com/ricardolopestomaz/DriverLux/blob/main/public/assets/img/marcaUFT_vertical.png" width="100" />
+  <h3>Universidade Federal do Tocantins</h3>
+  <p>
+    <b>Curso:</b> Bacharelado em Ciência da Computação<br />
+    <b>Professores:</b> Jackson Souza e Edeilson Milhomem da Silva<br />
+    <b>Disciplinas:</b> Desenvolvimento Web/Mobile e Projeto de Sistemas<br />
+  </p>
+</div>
+
+<br />
+
 <div align="center">
 
-<img src="public/assets/img/logo-uft.png" width="120" alt="Logo da Universidade Federal do Tocantins" />
-
-<h1>Constructo</h1>
-
-<p><strong>Gestão e acompanhamento inteligente de obras com dados geoespaciais</strong></p>
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][star-shield]][star-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
 
 </div>
+
+<br />
+
+<div>
+
+  <h2 align="center">🏗️ Constructo </h2>
+
+  <p align="center">
+    <b>Definir</b>
+    <br />
+    <a href="./docs/"><strong>Explorar a documentação</strong></a>
+    <br />
+    <br />
+    <a href="#">Ver Demo</a>
+    .
+    <a href="https://github.com/startups-sg-org/Constructo/issues/new?labels=bug">Reportar Bug</a>
+    .
+    <a href="https://github.com/startups-sg-org/Constructo/issues/new?labels=enhancement">Solicitar Funcionalidade</a>
+  </p>
+</div>
+
+<!--Implementar o Sumário-->
+
+### 🛠️ Construído com
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black">
+  <img src="https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react&logoColor=black">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white"/>
+  <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi">
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white">
+</p>
+
+
 
 ---
 
