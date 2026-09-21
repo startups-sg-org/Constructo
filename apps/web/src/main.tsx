@@ -1,17 +1,29 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react"; 
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom"; 
 import './index.css'
-import App from '@app/App'
-import 'leaflet/dist/leaflet.css'
 
-const rootElement = document.getElementById('root')
+import Home from "./pages/Home/Home";
+import Formulario from "./components/formulario/Formulario";
 
-if (!rootElement) {
-  throw new Error('Elemento raiz #root não encontrado')
-}
+const root = document.getElementById("root")!;
 
-createRoot(rootElement).render(
+ReactDOM.createRoot(root).render(
+  
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
+
+    <BrowserRouter>
+
+      <Routes>
+
+        <Route path="/" element={<Home />} />
+
+        <Route path="/formulario" element={<Formulario />} />
+
+      </Routes>
+
+    </BrowserRouter>
+
+  </StrictMode>
+
+);

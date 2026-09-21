@@ -1,0 +1,44 @@
+import { z } from "zod"
+
+export const userSchema = z.object({
+    
+    cpf: z
+        .string()
+        .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/, 'O CPF deve estar no formato 000.000.000-00 ou conter apenas 11 números')
+    ,
+
+    nome: z
+        .string()
+        .trim()
+        .min(1, 'Nome obrigatório')
+        .min(3, 'Precisa ter pelo menos 3 caracteres')
+        .max(20, 'Pode ter no máximo 20 caracteres'),
+
+    sobrenome: z
+        .string()
+        .toLowerCase()
+        .trim()
+        .min(1, 'Sobrenome obrigatório')
+        .min(3, 'Precisa ter pelo menos 3 caracteres')
+        .max(50, 'Pode ter no máximo 50 caracteres'),
+
+    email: z
+        .email('Email obrigatório')
+        .toLowerCase()
+
+    ,
+    senha: z
+        .string()
+        .min(1, 'Senha obrigatória')
+        .min(8, 'A senha deve ter no mínimo 8 caracteres')
+        .max(16, 'Limite de caracteres excedido')
+    ,
+
+    confirmarSenha: z.
+        string()
+
+}).refine((data) => data.senha === data.confirmarSenha, { message: 'As senhas não coincidem', path: ['confirmarSenha'] })
+
+export type userFormData = z.infer<typeof userSchema>
+
+export type User = Omit<userFormData, "confirmarSenha">
