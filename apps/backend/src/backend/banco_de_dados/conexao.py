@@ -4,6 +4,7 @@ class GerenciadorDeUsuarios:
     def __init__(self, nome_do_banco="constructo.db"):
         self.conexao = sqlite3.connect(nome_do_banco, check_same_thread=False)
         self.cursor = self.conexao.cursor()
+        self.conexao.row_factory = sqlite3.Row # Transforma as linhas do banco em dicionários
         self.criar_tabela()
 
     def criar_tabela(self):
@@ -20,29 +21,29 @@ class GerenciadorDeUsuarios:
         self.conexao.commit()
 
     def inserir_usuario(self, cpf, nome, sobrenome, email, senha):
+
         self.cursor.execute("""
+
             INSERT INTO usuarios (cpf, nome, sobrenome, email, senha) 
             VALUES (?, ?, ?, ?, ?)
         """, (cpf, nome, sobrenome, email, senha))
+
         self.conexao.commit()
 
-    def listar_usuarios(self):
-        self.cursor.execute("SELECT * FROM usuarios")
-        return self.cursor.fetchall()
+        id_gerado = self.cursor.lastrowid
 
-    def buscar_usuario_por_email(self, email):
-        self.cursor.execute("SELECT *FROM usuarios WHERE email = ?", (email,))
-        return self.cursor.fetchone()
+        self.cursor.execute("SELECT * FROM usuarios WHERE id = ?", (id_gerado))
 
     def fechar(self):
         self.conexao.close()
 
-    def get_gerenciador():
-        db = GerenciadorDeUsuarios()
-        yield
 
-        try:
-            yield db
+def get_gerenciador():
 
-        finally:
-            db.fechar()
+    db = GerenciadorDeUsuarios()
+    
+    try:
+        yield db
+
+    finally:
+        db.fechar()

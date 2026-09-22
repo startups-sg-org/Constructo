@@ -42,3 +42,12 @@ export const userSchema = z.object({
 export type userFormData = z.infer<typeof userSchema>
 
 export type User = Omit<userFormData, "confirmarSenha">
+
+
+export type UserReponse = {
+    id: number,
+    cpf: string,
+    nome: string,
+    sobrenome: string,
+    email: string,
+}
