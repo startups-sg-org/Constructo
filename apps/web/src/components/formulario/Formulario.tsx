@@ -15,8 +15,29 @@ export default function Formulario() {
 
     })
 
-    function handleSubmitUser(data: User) {
-        createUser(data);
+    async function handleSubmitUser(data: User) {
+        try {
+            
+            const novoUsuario = await createUser(data);
+
+            alert(`Usuario criado com sucesso! Seja bem vindo ${novoUsuario.nome + novoUsuario.sobrenome}`)
+
+        } catch (error) {
+            
+            console.log("Ocorreu um erro no cadastro!");
+
+            if(error instanceof Error){
+
+                alert(error.message)
+
+            } else {
+
+                alert("Erro inesperado! Tente novamente mais tarde.")
+                
+            }
+
+        }
+        
     }
 
     return (
