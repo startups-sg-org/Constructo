@@ -10,7 +10,7 @@ export async function createUser(user: User): Promise<UserReponse> {
         senha: user.senha
     }
 
-    const response = await fetch("http://127.0.0.1:8000/api/usuarios", {
+    const response = await fetch("http://127.0.0.1:8000/usuarios/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
