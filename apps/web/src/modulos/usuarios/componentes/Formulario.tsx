@@ -13,7 +13,8 @@ export default function Formulario() {
         resolver: zodResolver(userSchema),
         defaultValues: {
             canal_preferido: "email",
-            receber_atualizacoes: true
+            receber_atualizacoes: true,
+            ativo: true
         }
     });
 
@@ -93,6 +94,13 @@ export default function Formulario() {
                     <label>
                         <input type="checkbox" {...register("receber_atualizacoes")} />
                         Receber atualizações da construção
+                    </label>
+                </div>
+
+                <div className="campo campo-checkbox">
+                    <label>
+                        <input type="checkbox" {...register("ativo")} />
+                        Usuário ativo
                     </label>
                 </div>
 

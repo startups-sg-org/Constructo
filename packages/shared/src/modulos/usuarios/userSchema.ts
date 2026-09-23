@@ -36,6 +36,8 @@ export const userSchema = z.object({
 
     receber_atualizacoes: z.boolean(),
 
+    ativo: z.boolean(),
+
     empreendimento: z
         .string()
         .trim()
@@ -87,4 +89,5 @@ export type UserReponse = {
     receber_atualizacoes: boolean,
     empreendimento: string,
     unidade: string,
+    ativo: boolean,
 }

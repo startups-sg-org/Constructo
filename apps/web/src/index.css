@@ -21,7 +21,6 @@ select {
   font: inherit;
 }
 
-.home,
 .pagina-usuarios {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -69,20 +68,6 @@ select {
   font-weight: 600;
 }
 
-.home {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 16px;
-}
-
-.home h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-}
-
-.home p,
 .cabecalho p {
   color: #6b7280;
 }
@@ -96,6 +81,18 @@ select {
 .cabecalho h1 {
   margin: 4px 0 8px;
   font-size: 2.25rem;
+}
+
+.cabecalho-logado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.verificando-sessao {
+  margin: 80px auto;
+  text-align: center;
 }
 
 .subtitulo {
@@ -171,11 +168,6 @@ select:focus {
   text-decoration: none;
 }
 
-.botao:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
 .campo-checkbox {
   align-self: center;
 }
@@ -217,12 +209,6 @@ select:focus {
   gap: 16px;
 }
 
-.titulo-lista span,
-.mensagem-vazia {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
 .tabela-container {
   overflow-x: auto;
 }
@@ -251,18 +237,6 @@ th {
 }
 
 .acoes .botao + .botao {
-  margin-left: 8px;
-}
-
-.nome-editavel {
-  min-width: 280px;
-}
-
-.nome-editavel input {
-  width: calc(50% - 6px);
-}
-
-.nome-editavel input + input {
   margin-left: 8px;
 }
 

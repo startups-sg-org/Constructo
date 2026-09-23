@@ -11,6 +11,7 @@ class CreateUser(BaseModel):
     receber_atualizacoes: bool = True
     empreendimento: str
     unidade: str
+    ativo: bool = True
 
 
 class UpdateUser(BaseModel):

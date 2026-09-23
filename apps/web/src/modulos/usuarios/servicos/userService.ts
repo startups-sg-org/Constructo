@@ -1,6 +1,6 @@
 import type { User, UserReponse } from "@constructo/shared";
 
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL = `http://${window.location.hostname}:8000`;
 
 export async function createUser(user: User): Promise<UserReponse> {
     const newUser: User = {
@@ -13,11 +13,13 @@ export async function createUser(user: User): Promise<UserReponse> {
         canal_preferido: user.canal_preferido,
         receber_atualizacoes: user.receber_atualizacoes,
         empreendimento: user.empreendimento,
-        unidade: user.unidade
+        unidade: user.unidade,
+        ativo: user.ativo
     };
 
     const response = await fetch(`${BACKEND_URL}/usuarios/`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json"
         },
@@ -25,7 +27,8 @@ export async function createUser(user: User): Promise<UserReponse> {
     });
 
     if (!response.ok) {
-        throw new Error("Erro ao criar o usuário");
+        const error = await response.json();
+        throw new Error(error.detail ?? "Erro ao criar o usuário");
     }
 
     const result: UserReponse = await response.json();
@@ -33,7 +36,9 @@ export async function createUser(user: User): Promise<UserReponse> {
 }
 
 export async function listUsers(): Promise<UserReponse[]> {
-    const response = await fetch(`${BACKEND_URL}/usuarios/`);
+    const response = await fetch(`${BACKEND_URL}/usuarios/`, {
+        credentials: "include"
+    });
 
     if (!response.ok) {
         throw new Error("Erro ao buscar os usuários");
@@ -53,11 +58,13 @@ export async function updateUser(user: UserReponse): Promise<UserReponse> {
         canal_preferido: user.canal_preferido,
         receber_atualizacoes: user.receber_atualizacoes,
         empreendimento: user.empreendimento,
-        unidade: user.unidade
+        unidade: user.unidade,
+        ativo: user.ativo
     };
 
     const response = await fetch(`${BACKEND_URL}/usuarios/${user.id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json"
         },
@@ -74,7 +81,8 @@ export async function updateUser(user: UserReponse): Promise<UserReponse> {
 
 export async function deleteUser(id: number): Promise<void> {
     const response = await fetch(`${BACKEND_URL}/usuarios/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
     });
 
     if (!response.ok) {
@@ -85,6 +93,7 @@ export async function deleteUser(id: number): Promise<void> {
 export async function loginUser(email: string, senha: string): Promise<string> {
     const response = await fetch(`${BACKEND_URL}/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json"
         },
@@ -98,4 +107,28 @@ export async function loginUser(email: string, senha: string): Promise<string> {
     }
 
     return result.mensagem;
+}
+
+export async function getAuthenticatedUser(): Promise<UserReponse> {
+    const response = await fetch(`${BACKEND_URL}/sessao`, {
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Usuário não autenticado");
+    }
+
+    const result: UserReponse = await response.json();
+    return result;
+}
+
+export async function logoutUser(): Promise<void> {
+    const response = await fetch(`${BACKEND_URL}/logout`, {
+        method: "POST",
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Erro ao sair");
+    }
 }

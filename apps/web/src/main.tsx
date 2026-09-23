@@ -1,9 +1,8 @@
 import { StrictMode } from "react"; 
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom"; 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import './index.css'
 
-import Home from "./pages/Home/Home";
 import Formulario from "./modulos/usuarios/componentes/Formulario";
 import Usuarios from "./pages/Usuarios/Usuarios";
 import Login from "./pages/Login/Login";
@@ -18,15 +17,15 @@ ReactDOM.createRoot(root).render(
 
       <Routes>
 
-        <Route path="/" element={<Home />} />
-
-        <Route path="/formulario" element={<Formulario />} />
+        <Route path="/" element={<Login />} />
 
         <Route path="/cadastro" element={<Formulario />} />
 
         <Route path="/usuarios" element={<Usuarios />} />
 
         <Route path="/login" element={<Login />} />
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
 
       </Routes>
 

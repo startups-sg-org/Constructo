@@ -3,25 +3,40 @@ import { Link } from "react-router-dom";
 import type { UserReponse } from "@constructo/shared";
 import {
     deleteUser,
+    getAuthenticatedUser,
     listUsers,
+    logoutUser,
     updateUser
 } from "../../modulos/usuarios/servicos/userService";
 
 export default function Usuarios() {
     const [usuarios, setUsuarios] = useState<UserReponse[]>([]);
+    const [usuarioAutenticado, setUsuarioAutenticado] = useState<UserReponse | null>(null);
 
     useEffect(() => {
         async function buscarUsuarios() {
             try {
+                const usuario = await getAuthenticatedUser();
                 const result = await listUsers();
+
+                setUsuarioAutenticado(usuario);
                 setUsuarios(result);
             } catch {
-                alert("Erro ao buscar os usuários");
+                window.location.assign("/login");
             }
         }
 
         buscarUsuarios();
     }, []);
+
+    async function sair() {
+        try {
+            await logoutUser();
+            window.location.assign("/login");
+        } catch {
+            alert("Erro ao sair");
+        }
+    }
 
     async function editarUsuario(usuario: UserReponse) {
         const nome = window.prompt("Nome:", usuario.nome);
@@ -96,6 +111,22 @@ export default function Usuarios() {
             return;
         }
 
+        const respostaAtivo = window.prompt(
+            "Usuário ativo? (sim ou não):",
+            usuario.ativo ? "sim" : "não"
+        );
+
+        if (respostaAtivo === null) {
+            return;
+        }
+
+        const ativo = respostaAtivo.toLowerCase();
+
+        if (ativo !== "sim" && ativo !== "não") {
+            alert("Informe sim ou não");
+            return;
+        }
+
         const usuarioEditado: UserReponse = {
             id: usuario.id,
             nome: nome,
@@ -106,7 +137,8 @@ export default function Usuarios() {
             empreendimento: empreendimento,
             unidade: unidade,
             canal_preferido: canal,
-            receber_atualizacoes: resposta === "sim"
+            receber_atualizacoes: resposta === "sim",
+            ativo: ativo === "sim"
         };
 
         try {
@@ -140,19 +172,29 @@ export default function Usuarios() {
         }
     }
 
+    if (!usuarioAutenticado) {
+        return <p className="verificando-sessao">Verificando sessão...</p>;
+    }
+
     return (
         <main className="pagina-usuarios">
-            <header className="cabecalho">
-                <span className="subtitulo">Constructo</span>
-                <h1>Usuários</h1>
-                <p>Consulte, edite e exclua os usuários cadastrados.</p>
+            <header className="cabecalho cabecalho-logado">
+                <div>
+                    <span className="subtitulo">Constructo</span>
+                    <h1>Usuários</h1>
+                    <p>Olá, {usuarioAutenticado.nome}.</p>
+                </div>
+
+                <button className="botao secundario" type="button" onClick={sair}>
+                    Sair
+                </button>
             </header>
 
             <section className="card">
                 <div className="titulo-lista">
                     <h2>Usuários cadastrados</h2>
 
-                    <Link className="botao primario" to="/formulario">
+                    <Link className="botao primario" to="/cadastro">
                         Novo usuário
                     </Link>
                 </div>
@@ -169,6 +211,7 @@ export default function Usuarios() {
                                     <th>Contato</th>
                                     <th>Imóvel</th>
                                     <th>Atualizações</th>
+                                    <th>Status</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -191,6 +234,7 @@ export default function Usuarios() {
                                                 ? `Sim, por ${usuario.canal_preferido}`
                                                 : "Não"}
                                         </td>
+                                        <td>{usuario.ativo ? "Ativo" : "Inativo"}</td>
                                         <td className="acoes">
                                             <button
                                                 className="botao pequeno secundario"

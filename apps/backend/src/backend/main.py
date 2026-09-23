@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.modulos.usuarios.rotas import router
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
 ]
 
 app = FastAPI()
