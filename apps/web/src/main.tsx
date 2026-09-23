@@ -45,6 +45,10 @@ ReactDOM.createRoot(root).render(
             path="medicoes"
             element={<PaginaPainel titulo="Medições" descricao="Registre e acompanhe as medições das obras." />}
           />
+          <Route
+            path="perfil"
+            element={<PaginaPainel titulo="Perfil" descricao="Consulte e atualize as informações da sua conta." />}
+          />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

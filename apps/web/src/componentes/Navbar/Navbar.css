@@ -1,0 +1,227 @@
+.navbar {
+    position: sticky;
+    z-index: 10;
+    top: 0;
+    display: flex;
+    min-height: 76px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 12px clamp(24px, 5vw, 72px);
+    border-bottom: 1px solid #e2e8e6;
+    background: rgb(255 255 255 / 94%);
+    box-shadow: 0 8px 24px rgb(15 42 39 / 4%);
+    backdrop-filter: blur(12px);
+}
+
+.navbar__acoes {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar__usuario {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.navbar__usuario-botao {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 12px;
+    color: #183e39;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 160ms ease;
+}
+
+.navbar__usuario-botao:hover,
+.navbar__usuario-botao[aria-expanded="true"] {
+    background: #f1f5f3;
+}
+
+.navbar__usuario-botao:focus-visible,
+.navbar__menu-item:focus-visible {
+    outline: 3px solid rgb(245 158 11 / 35%);
+    outline-offset: 2px;
+}
+
+.navbar__avatar {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    color: #ffffff;
+    background: linear-gradient(135deg, #286159, #153b36);
+    box-shadow: 0 0 0 2px #e1ebe8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.navbar__avatar svg,
+.navbar__menu-item svg {
+    width: 21px;
+    height: 21px;
+    flex: 0 0 auto;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.navbar__identificacao {
+    display: grid;
+    min-width: 120px;
+    gap: 1px;
+}
+
+.navbar__nome {
+    max-width: 220px;
+    overflow: hidden;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar__funcao {
+    color: #71817e;
+    font-size: 0.72rem;
+}
+
+.navbar__chevron {
+    width: 17px;
+    height: 17px;
+    color: #7a8986;
+    transition: transform 160ms ease;
+}
+
+.navbar__usuario-botao[aria-expanded="true"] .navbar__chevron {
+    transform: rotate(180deg);
+}
+
+.navbar__menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(280px, calc(100vw - 32px));
+    padding: 8px;
+    border: 1px solid #dfe7e5;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 18px 48px rgb(15 42 39 / 16%);
+}
+
+.navbar__menu-cabecalho {
+    display: grid;
+    gap: 2px;
+    margin: 2px 4px 7px;
+    padding: 7px 8px 12px;
+    border-bottom: 1px solid #edf1f0;
+}
+
+.navbar__menu-cabecalho strong,
+.navbar__menu-cabecalho span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar__menu-cabecalho strong {
+    color: #183e39;
+    font-size: 0.88rem;
+}
+
+.navbar__menu-cabecalho span {
+    color: #71817e;
+    font-size: 0.75rem;
+}
+
+.navbar__menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 11px;
+    border: 0;
+    border-radius: 9px;
+    color: #334b47;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.navbar__menu-item:hover {
+    color: #153b36;
+    background: #f1f5f3;
+}
+
+.navbar__menu-item--sair {
+    color: #b42318;
+}
+
+.navbar__menu-item--sair:hover {
+    color: #912018;
+    background: #fff2f0;
+}
+
+.navbar__menu-item:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.navbar__erro {
+    margin: 5px 8px 3px;
+    color: #b42318;
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+    .navbar {
+        min-height: 66px;
+        padding: 10px 16px;
+    }
+
+    .navbar__identificacao {
+        min-width: 0;
+    }
+
+    .navbar__nome {
+        max-width: 145px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar__acoes {
+        display: none;
+    }
+
+    .navbar {
+        justify-content: flex-end;
+    }
+
+    .navbar__funcao,
+    .navbar__chevron {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar,
+    .navbar * {
+        transition-duration: 0.01ms !important;
+    }
+}

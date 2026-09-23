@@ -10,9 +10,16 @@
     height: 100dvh;
 }
 
-.layout-admin__conteudo {
-    width: 100%;
+.layout-admin__principal {
+    display: flex;
     min-width: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.layout-admin__conteudo {
+    min-width: 0;
+    flex: 1;
     padding: 48px clamp(24px, 5vw, 72px);
 }
 
