@@ -15,7 +15,12 @@ def criar_usuario(usuario: CreateUser, db: GerenciadorDeUsuarios = Depends(get_g
             nome=usuario.nome,
             sobrenome=usuario.sobrenome,
             email=usuario.email,
-            senha=senha_segura
+            senha=senha_segura,
+            telefone=usuario.telefone,
+            canal_preferido=usuario.canal_preferido,
+            receber_atualizacoes=usuario.receber_atualizacoes,
+            empreendimento=usuario.empreendimento,
+            unidade=usuario.unidade
         )
 
         return usuario_criado

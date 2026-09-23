@@ -27,6 +27,25 @@ export const userSchema = z.object({
         .toLowerCase()
 
     ,
+    telefone: z
+        .string()
+        .min(10, 'Telefone inválido')
+        .max(15, 'Telefone inválido'),
+
+    canal_preferido: z.enum(['email', 'whatsapp']),
+
+    receber_atualizacoes: z.boolean(),
+
+    empreendimento: z
+        .string()
+        .trim()
+        .min(1, 'Empreendimento obrigatório'),
+
+    unidade: z
+        .string()
+        .trim()
+        .min(1, 'Unidade obrigatória'),
+
     senha: z
         .string()
         .min(1, 'Senha obrigatória')
@@ -50,4 +69,9 @@ export type UserReponse = {
     nome: string,
     sobrenome: string,
     email: string,
+    telefone: string,
+    canal_preferido: string,
+    receber_atualizacoes: boolean,
+    empreendimento: string,
+    unidade: string,
 }

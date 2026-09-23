@@ -15,17 +15,56 @@ class GerenciadorDeUsuarios:
                 nome VARCHAR(200) NOT NULL,
                 sobrenome VARCHAR(200) NOT NULL,
                 email VARCHAR(200) NOT NULL,
-                senha VARCHAR(200) NOT NULL
+                senha VARCHAR(200) NOT NULL,
+                telefone VARCHAR(20) NOT NULL,
+                canal_preferido VARCHAR(20) NOT NULL DEFAULT 'email',
+                receber_atualizacoes BOOLEAN NOT NULL DEFAULT TRUE,
+                empreendimento VARCHAR(200) NOT NULL,
+                unidade VARCHAR(50) NOT NULL
             )
         """)
         self.conexao.commit()
 
-    def inserir_usuario(self, cpf, nome, sobrenome, email, senha):
+    def inserir_usuario(
+        self,
+        cpf,
+        nome,
+        sobrenome,
+        email,
+        senha,
+        telefone,
+        canal_preferido,
+        receber_atualizacoes,
+        empreendimento,
+        unidade
+    ):
 
         self.cursor.execute("""
-            INSERT INTO usuarios (cpf, nome, sobrenome, email, senha) 
-            VALUES (?, ?, ?, ?, ?)
-        """, (cpf, nome, sobrenome, email, senha))
+            INSERT INTO usuarios (
+                cpf,
+                nome,
+                sobrenome,
+                email,
+                senha,
+                telefone,
+                canal_preferido,
+                receber_atualizacoes,
+                empreendimento,
+                unidade
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            cpf,
+            nome,
+            sobrenome,
+            email,
+            senha,
+            telefone,
+            canal_preferido,
+            receber_atualizacoes,
+            empreendimento,
+            unidade
+        ))
 
         self.conexao.commit()
 
@@ -53,7 +92,18 @@ class GerenciadorDeUsuarios:
         return dict(usuario) if usuario else None
 
     def atualizar_usuario(self, id_usuario, dados):
-        campos_permitidos = {"cpf", "nome", "sobrenome", "email", "senha"}
+        campos_permitidos = {
+            "cpf",
+            "nome",
+            "sobrenome",
+            "email",
+            "senha",
+            "telefone",
+            "canal_preferido",
+            "receber_atualizacoes",
+            "empreendimento",
+            "unidade"
+        }
         dados_validos = {
             campo: valor
             for campo, valor in dados.items()
