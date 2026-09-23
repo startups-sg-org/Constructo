@@ -8,6 +8,9 @@ class Base(DeclarativeBase):
 
 
 class PostgresConnectionHandler:
+    '''PostGresConnectionHandler
+    AsyncSession: SqlAlchemy faz o meio de campo com o banco de dados e os repositórios / models por meio da dependencia AsyncSession
+    '''
     def __init__(self):
         self.__engine = create_async_engine(settings.URL_POSTGRES)
         self.__session_factory = async_sessionmaker(
@@ -24,7 +27,7 @@ class PostgresConnectionHandler:
 postgres = PostgresConnectionHandler()       
 
 
-# dependência do FastAPI
+# dependência do FastAPI, essa depencência é usada para criar uma sessão de banco de dados para cada requisição, e garantir que a sessão seja fechada corretamente após o uso.
 async def get_db():
     async with postgres.get_session() as session:
         try:
