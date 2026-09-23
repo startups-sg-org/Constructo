@@ -1,6 +1,4 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from backend.modulos.usuarios.rotas import router
+from datetime import UTC, datetime
 
 origins = [
     "http://localhost:5173",

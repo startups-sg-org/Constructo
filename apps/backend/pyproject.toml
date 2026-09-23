@@ -1,17 +1,26 @@
 [project]
 name = "backend"
-version = "0.1.0"
-description = "Add your description here"
+version ="0.0.1"
+description = "This is an enbiroment python with uv and docker"
+requires-python = ">=3.12.3,<3.13"
 readme = "README.md"
-authors = [
-    { name = "jcarlos721", email = "jc721254@gmail.com" }
-]
-requires-python = ">=3.14"
+license = "MIT"
+authors = [{name = "Samuel Andrade Luz Carneiro"}]
+
 dependencies = [
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.141.1",
     "pwdlib[argon2]>=0.3.1",
     "pydantic[email]>=2.13.5",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "python-dotenv>=1.0.0",
+    "uvicorn",
+    "asyncpg",
+    "httpx",
+    "rich>=15.0.0",
 ]
 
 [project.scripts]

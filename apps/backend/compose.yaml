@@ -1,0 +1,56 @@
+services:
+  backend:
+    pull_policy: never
+    container_name: backend
+    hostname: backend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: multistage.dockerfile
+      target: development
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - constructo-network
+    develop:
+      watch:
+        - action: sync+restart
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+            - __pycache__/
+        # rebuild para instalar dentro do container as atualizações do projeto
+        - action: rebuild
+          path: ./uv.lock
+#################################################################################################
+
+  db:
+    container_name: db
+    image: postgres:18
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/18/docker
+    ports:
+      - "5432:5432"
+    networks:
+      - constructo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  pgdata:
+
+networks:
+  constructo-network:
+    driver: bridge
