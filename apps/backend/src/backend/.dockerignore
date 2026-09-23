@@ -1,0 +1,53 @@
+# Ambientes virtuais e dependências locais
+.venv/
+venv/
+env/
+ENV/
+
+# Variáveis de ambiente e credenciais locais
+.env
+.env.*
+!.env.example
+
+# Bytecode e cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Caches de testes, linters e cobertura
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Controle de versão (Git)
+.git/
+.gitignore
+.gitattributes
+
+# Arquivos de build e composição do Docker
+Dockerfile*
+multistage.dockerfile
+docker-compose*.yml
+docker-compose*.yaml
+.dockerignore
+
+# Configurações de editores e IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Arquivos de log e temporários
+*.log
+*.tmp
+*.temp
+
+# Documentação local e notas
+comandos_de_gerenciamento.md

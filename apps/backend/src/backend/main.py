@@ -1,20 +1,15 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from backend.modulos.usuarios.rotas import router
+from datetime import UTC, datetime
 
-origins = [
-    "http://localhost:5173"
-]
+from fastapi import FastAPI
 
 app = FastAPI()
+counter = 0
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-app.include_router(router)
+@app.get("/")
+def home():
+    return{
+        "message" : "helo World",
+        "now": datetime.now(tz=UTC).isoformat(),
+        "counter": 3,
+    }
+    
