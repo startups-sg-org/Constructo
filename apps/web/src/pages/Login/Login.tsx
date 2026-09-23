@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { loginSchema, type loginFormData } from "@constructo/shared";
-import { loginUser } from "../../modulos/usuarios/servicos/userService";
+import {
+    loginSchema,
+    type loginFormData,
+    type UserReponse
+} from "@constructo/shared";
+import {
+    getAuthenticatedUser,
+    loginUser,
+    logoutUser
+} from "../../modulos/usuarios/servicos/userService";
 
 export default function Login() {
     const [erro, setErro] = useState("");
+    const [usuario, setUsuario] = useState<UserReponse | null>(null);
 
     const {
         register,
@@ -16,14 +25,25 @@ export default function Login() {
         resolver: zodResolver(loginSchema)
     });
 
+    useEffect(() => {
+        async function verificarSessao() {
+            try {
+                const usuarioAutenticado = await getAuthenticatedUser();
+                setUsuario(usuarioAutenticado);
+            } catch {
+                setUsuario(null);
+            }
+        }
+
+        verificarSessao();
+    }, []);
+
     async function handleLogin(data: loginFormData) {
         try {
             setErro("");
 
-            const mensagem = await loginUser(data.email, data.senha);
-
-            alert(mensagem);
-            window.location.assign("/usuarios");
+            const usuarioAutenticado = await loginUser(data.email, data.senha);
+            setUsuario(usuarioAutenticado);
         } catch (error) {
             if (error instanceof Error) {
                 setErro(error.message);
@@ -31,6 +51,30 @@ export default function Login() {
                 setErro("Não foi possível realizar o login");
             }
         }
+    }
+
+    async function sair() {
+        await logoutUser();
+        setUsuario(null);
+    }
+
+    if (usuario) {
+        return (
+            <main className="pagina-login">
+                <section className="card">
+                    <span className="subtitulo">Constructo</span>
+                    <h1>Login realizado</h1>
+                    <p className="mensagem-sucesso">
+                        Olá, {usuario.nome}! Sua autenticação foi concluída com sucesso.
+                    </p>
+                    <p>O próximo painel será criado posteriormente.</p>
+
+                    <button className="botao secundario" type="button" onClick={sair}>
+                        Sair
+                    </button>
+                </section>
+            </main>
+        );
     }
 
     return (

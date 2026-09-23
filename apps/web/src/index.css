@@ -21,11 +21,6 @@ select {
   font: inherit;
 }
 
-.pagina-usuarios {
-  width: min(1120px, calc(100% - 32px));
-  margin: 0 auto;
-}
-
 .pagina-login {
   width: min(420px, calc(100% - 32px));
   margin: 80px auto;
@@ -58,6 +53,15 @@ select {
   color: #b91c1c;
 }
 
+.mensagem-sucesso {
+  margin: 20px 0 8px;
+  color: #15803d !important;
+}
+
+.pagina-login .botao {
+  margin-top: 24px;
+}
+
 .link-conta {
   margin-top: 20px;
   font-size: 0.875rem;
@@ -66,33 +70,6 @@ select {
 .link-conta a {
   color: #2563eb;
   font-weight: 600;
-}
-
-.cabecalho p {
-  color: #6b7280;
-}
-
-.pagina-usuarios {
-  padding: 48px 0;
-  display: grid;
-  gap: 24px;
-}
-
-.cabecalho h1 {
-  margin: 4px 0 8px;
-  font-size: 2.25rem;
-}
-
-.cabecalho-logado {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.verificando-sessao {
-  margin: 80px auto;
-  text-align: center;
 }
 
 .subtitulo {
@@ -192,54 +169,6 @@ select:focus {
   background: #e5e7eb;
 }
 
-.perigo {
-  color: #b91c1c;
-  background: #fee2e2;
-}
-
-.pequeno {
-  padding: 7px 10px;
-  font-size: 0.8rem;
-}
-
-.titulo-lista {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.tabela-container {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: left;
-  vertical-align: middle;
-}
-
-th {
-  color: #6b7280;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-}
-
-.acoes {
-  white-space: nowrap;
-}
-
-.acoes .botao + .botao {
-  margin-left: 8px;
-}
-
 @media (max-width: 760px) {
   .usuario-form {
     grid-template-columns: 1fr;
@@ -247,9 +176,5 @@ th {
 
   .card {
     padding: 18px;
-  }
-
-  .pagina-usuarios {
-    padding: 28px 0;
   }
 }

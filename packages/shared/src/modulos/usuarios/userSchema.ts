@@ -36,8 +36,6 @@ export const userSchema = z.object({
 
     receber_atualizacoes: z.boolean(),
 
-    ativo: z.boolean(),
-
     empreendimento: z
         .string()
         .trim()

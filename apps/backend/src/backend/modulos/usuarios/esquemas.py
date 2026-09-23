@@ -14,20 +14,6 @@ class CreateUser(BaseModel):
     ativo: bool = True
 
 
-class UpdateUser(BaseModel):
-    cpf: str | None = None
-    nome: str | None = None
-    sobrenome: str | None = None
-    email: EmailStr | None = None
-    senha: str | None = None
-    telefone: str | None = None
-    canal_preferido: str | None = None
-    receber_atualizacoes: bool | None = None
-    empreendimento: str | None = None
-    unidade: str | None = None
-    ativo: bool | None = None
-
-
 class LoginUser(BaseModel):
     email: EmailStr
     senha: str

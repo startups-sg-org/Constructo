@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
 from backend.modulos.usuarios.conexao import GerenciadorDeUsuarios, get_gerenciador
 from backend.modulos.usuarios.esquemas import (
     CreateUser,
-    UpdateUser,
     UserReturn,
     LoginUser,
     LoginReturn
@@ -101,67 +100,3 @@ def criar_usuario(usuario: CreateUser, db: GerenciadorDeUsuarios = Depends(get_g
 
     except Exception as erro:
         raise HTTPException(status_code=400, detail=str(erro))
-
-
-@router.get(
-    "/usuarios/",
-    response_model=list[UserReturn],
-    dependencies=[Depends(get_usuario_autenticado)]
-)
-def listar_usuarios(db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
-    return db.listar_usuarios()
-
-
-@router.get(
-    "/usuarios/{id_usuario}",
-    response_model=UserReturn,
-    dependencies=[Depends(get_usuario_autenticado)]
-)
-def buscar_usuario(id_usuario: int, db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
-    usuario = db.buscar_usuario(id_usuario)
-
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    return usuario
-
-
-@router.patch(
-    "/usuarios/{id_usuario}",
-    response_model=UserReturn,
-    dependencies=[Depends(get_usuario_autenticado)]
-)
-def atualizar_usuario(
-    id_usuario: int,
-    usuario: UpdateUser,
-    db: GerenciadorDeUsuarios = Depends(get_gerenciador)
-):
-    if not db.buscar_usuario(id_usuario):
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    dados = usuario.model_dump(exclude_unset=True, exclude_none=True)
-
-    if not dados:
-        raise HTTPException(status_code=400, detail="Informe ao menos um campo para atualizar")
-
-    if "email" in dados:
-        usuario_com_email = db.buscar_usuario_por_email(dados["email"])
-
-        if usuario_com_email and usuario_com_email["id"] != id_usuario:
-            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
-
-    if "senha" in dados:
-        dados["senha"] = gerar_senha_hash(dados["senha"])
-
-    return db.atualizar_usuario(id_usuario, dados)
-
-
-@router.delete(
-    "/usuarios/{id_usuario}",
-    dependencies=[Depends(get_usuario_autenticado)]
-)
-def excluir_usuario(id_usuario: int, db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
-    if not db.excluir_usuario(id_usuario):
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    return {"mensagem": "Usuário excluído com sucesso"}

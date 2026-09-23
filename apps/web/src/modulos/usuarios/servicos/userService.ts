@@ -13,8 +13,7 @@ export async function createUser(user: User): Promise<UserReponse> {
         canal_preferido: user.canal_preferido,
         receber_atualizacoes: user.receber_atualizacoes,
         empreendimento: user.empreendimento,
-        unidade: user.unidade,
-        ativo: user.ativo
+        unidade: user.unidade
     };
 
     const response = await fetch(`${BACKEND_URL}/usuarios/`, {
@@ -35,62 +34,7 @@ export async function createUser(user: User): Promise<UserReponse> {
     return result;
 }
 
-export async function listUsers(): Promise<UserReponse[]> {
-    const response = await fetch(`${BACKEND_URL}/usuarios/`, {
-        credentials: "include"
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao buscar os usuários");
-    }
-
-    const result: UserReponse[] = await response.json();
-    return result;
-}
-
-export async function updateUser(user: UserReponse): Promise<UserReponse> {
-    const updatedUser = {
-        cpf: user.cpf,
-        nome: user.nome,
-        sobrenome: user.sobrenome,
-        email: user.email,
-        telefone: user.telefone,
-        canal_preferido: user.canal_preferido,
-        receber_atualizacoes: user.receber_atualizacoes,
-        empreendimento: user.empreendimento,
-        unidade: user.unidade,
-        ativo: user.ativo
-    };
-
-    const response = await fetch(`${BACKEND_URL}/usuarios/${user.id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(updatedUser)
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao atualizar o usuário");
-    }
-
-    const result: UserReponse = await response.json();
-    return result;
-}
-
-export async function deleteUser(id: number): Promise<void> {
-    const response = await fetch(`${BACKEND_URL}/usuarios/${id}`, {
-        method: "DELETE",
-        credentials: "include"
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao excluir o usuário");
-    }
-}
-
-export async function loginUser(email: string, senha: string): Promise<string> {
+export async function loginUser(email: string, senha: string): Promise<UserReponse> {
     const response = await fetch(`${BACKEND_URL}/login`, {
         method: "POST",
         credentials: "include",
@@ -106,7 +50,7 @@ export async function loginUser(email: string, senha: string): Promise<string> {
         throw new Error(result.detail);
     }
 
-    return result.mensagem;
+    return result.usuario;
 }
 
 export async function getAuthenticatedUser(): Promise<UserReponse> {
