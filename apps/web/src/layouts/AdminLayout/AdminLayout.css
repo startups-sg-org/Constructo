@@ -6,6 +6,7 @@
 
 .layout-admin > .sidebar {
     position: sticky;
+    z-index: 20;
     top: 0;
     height: 100dvh;
 }
@@ -30,6 +31,7 @@
 
     .layout-admin > .sidebar {
         position: static;
+        z-index: auto;
         height: auto;
     }
 
