@@ -27,6 +27,48 @@ select {
   margin: 0 auto;
 }
 
+.pagina-login {
+  width: min(420px, calc(100% - 32px));
+  margin: 80px auto;
+}
+
+.pagina-cadastro {
+  width: min(900px, calc(100% - 32px));
+  margin: 48px auto;
+}
+
+.pagina-cadastro h1 {
+  margin: 4px 0 24px;
+}
+
+.pagina-login h1 {
+  margin: 4px 0 8px;
+}
+
+.pagina-login p {
+  color: #6b7280;
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.login-form .mensagem-erro {
+  color: #b91c1c;
+}
+
+.link-conta {
+  margin-top: 20px;
+  font-size: 0.875rem;
+}
+
+.link-conta a {
+  color: #2563eb;
+  font-weight: 600;
+}
+
 .home {
   min-height: 100vh;
   display: flex;

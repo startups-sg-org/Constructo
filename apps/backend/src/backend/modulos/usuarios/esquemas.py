@@ -24,6 +24,12 @@ class UpdateUser(BaseModel):
     receber_atualizacoes: bool | None = None
     empreendimento: str | None = None
     unidade: str | None = None
+    ativo: bool | None = None
+
+
+class LoginUser(BaseModel):
+    email: EmailStr
+    senha: str
 
 
 class UserReturn(BaseModel):
@@ -37,3 +43,9 @@ class UserReturn(BaseModel):
     receber_atualizacoes: bool
     empreendimento: str
     unidade: str
+    ativo: bool
+
+
+class LoginReturn(BaseModel):
+    mensagem: str
+    usuario: UserReturn

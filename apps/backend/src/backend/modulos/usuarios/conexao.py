@@ -20,7 +20,8 @@ class GerenciadorDeUsuarios:
                 canal_preferido VARCHAR(20) NOT NULL DEFAULT 'email',
                 receber_atualizacoes BOOLEAN NOT NULL DEFAULT TRUE,
                 empreendimento VARCHAR(200) NOT NULL,
-                unidade VARCHAR(50) NOT NULL
+                unidade VARCHAR(50) NOT NULL,
+                ativo BOOLEAN NOT NULL DEFAULT TRUE
             )
         """)
         self.conexao.commit()
@@ -91,6 +92,15 @@ class GerenciadorDeUsuarios:
 
         return dict(usuario) if usuario else None
 
+    def buscar_usuario_por_email(self, email):
+        self.cursor.execute(
+            "SELECT * FROM usuarios WHERE email = ?",
+            (email, )
+        )
+        usuario = self.cursor.fetchone()
+
+        return dict(usuario) if usuario else None
+
     def atualizar_usuario(self, id_usuario, dados):
         campos_permitidos = {
             "cpf",
@@ -102,7 +112,8 @@ class GerenciadorDeUsuarios:
             "canal_preferido",
             "receber_atualizacoes",
             "empreendimento",
-            "unidade"
+            "unidade",
+            "ativo"
         }
         dados_validos = {
             campo: valor

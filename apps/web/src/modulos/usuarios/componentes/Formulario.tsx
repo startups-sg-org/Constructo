@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { userSchema, type User, type userFormData } from "@constructo/shared";
 import { createUser } from "../servicos/userService";
 
@@ -21,7 +22,7 @@ export default function Formulario() {
             const novoUsuario = await createUser(data);
 
             alert(`Usuário criado com sucesso! Seja bem-vindo, ${novoUsuario.nome}.`);
-            window.location.assign("/usuarios");
+            window.location.assign("/login");
         } catch (error) {
             if (error instanceof Error) {
                 alert(error.message);
@@ -32,10 +33,12 @@ export default function Formulario() {
     }
 
     return (
-        <section className="card">
-            <h2>Novo usuário</h2>
+        <main className="pagina-cadastro">
+            <section className="card">
+                <span className="subtitulo">Constructo</span>
+                <h1>Criar conta</h1>
 
-            <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
+                <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
                 <div className="campo">
                     <label htmlFor="cpf">CPF</label>
                     <input id="cpf" type="text" {...register("cpf")} />
@@ -105,10 +108,15 @@ export default function Formulario() {
                     {errors.confirmarSenha && <span>{errors.confirmarSenha.message}</span>}
                 </div>
 
-                <button className="botao primario" type="submit">
-                    Criar usuário
-                </button>
-            </form>
-        </section>
+                    <button className="botao primario" type="submit">
+                        Criar conta
+                    </button>
+                </form>
+
+                <p className="link-conta">
+                    Já tem uma conta? <Link to="/login">Entre</Link>
+                </p>
+            </section>
+        </main>
     );
 }

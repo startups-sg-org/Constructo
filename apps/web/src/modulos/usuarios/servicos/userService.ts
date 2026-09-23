@@ -1,6 +1,6 @@
 import type { User, UserReponse } from "@constructo/shared";
 
-const BACKEND_URL = "http://127.0.0.1:8000/usuarios";
+const BACKEND_URL = "http://127.0.0.1:8000";
 
 export async function createUser(user: User): Promise<UserReponse> {
     const newUser: User = {
@@ -16,7 +16,7 @@ export async function createUser(user: User): Promise<UserReponse> {
         unidade: user.unidade
     };
 
-    const response = await fetch(`${BACKEND_URL}/`, {
+    const response = await fetch(`${BACKEND_URL}/usuarios/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -33,7 +33,7 @@ export async function createUser(user: User): Promise<UserReponse> {
 }
 
 export async function listUsers(): Promise<UserReponse[]> {
-    const response = await fetch(`${BACKEND_URL}/`);
+    const response = await fetch(`${BACKEND_URL}/usuarios/`);
 
     if (!response.ok) {
         throw new Error("Erro ao buscar os usuários");
@@ -56,7 +56,7 @@ export async function updateUser(user: UserReponse): Promise<UserReponse> {
         unidade: user.unidade
     };
 
-    const response = await fetch(`${BACKEND_URL}/${user.id}`, {
+    const response = await fetch(`${BACKEND_URL}/usuarios/${user.id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json"
@@ -73,11 +73,29 @@ export async function updateUser(user: UserReponse): Promise<UserReponse> {
 }
 
 export async function deleteUser(id: number): Promise<void> {
-    const response = await fetch(`${BACKEND_URL}/${id}`, {
+    const response = await fetch(`${BACKEND_URL}/usuarios/${id}`, {
         method: "DELETE"
     });
 
     if (!response.ok) {
         throw new Error("Erro ao excluir o usuário");
     }
+}
+
+export async function loginUser(email: string, senha: string): Promise<string> {
+    const response = await fetch(`${BACKEND_URL}/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, senha })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.detail);
+    }
+
+    return result.mensagem;
 }

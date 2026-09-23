@@ -1,9 +1,31 @@
 from fastapi import APIRouter, HTTPException, Depends
 from backend.modulos.usuarios.conexao import GerenciadorDeUsuarios, get_gerenciador
-from backend.modulos.usuarios.esquemas import CreateUser, UpdateUser, UserReturn
-from backend.modulos.usuarios.senhas import gerar_senha_hash
+from backend.modulos.usuarios.esquemas import (
+    CreateUser,
+    UpdateUser,
+    UserReturn,
+    LoginUser,
+    LoginReturn
+)
+from backend.modulos.usuarios.senhas import gerar_senha_hash, verificar_senha
 
 router = APIRouter()
+
+
+@router.post("/login", response_model=LoginReturn)
+def login(usuario_login: LoginUser, db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
+    usuario = db.buscar_usuario_por_email(usuario_login.email)
+
+    if not usuario or not verificar_senha(usuario_login.senha, usuario["senha"]):
+        raise HTTPException(status_code=401, detail="E-mail ou senha inválidos")
+
+    if not usuario["ativo"]:
+        raise HTTPException(status_code=403, detail="Usuário inativo")
+
+    return {
+        "mensagem": "Login realizado com sucesso",
+        "usuario": usuario
+    }
 
 @router.post("/usuarios/", response_model=UserReturn, status_code=201)
 def criar_usuario(usuario: CreateUser, db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
