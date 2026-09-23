@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { userSchema, type User, type userFormData} from "@constructo/shared";
-import { createUser } from "./service/userService";
+import { createUser } from "../servicos/userService";
 
 export default function Formulario() {
 

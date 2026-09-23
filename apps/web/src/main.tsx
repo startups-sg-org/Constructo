@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css'
 
 import Home from "./pages/Home/Home";
-import Formulario from "./components/formulario/Formulario";
+import Formulario from "./modulos/usuarios/componentes/Formulario";
 
 const root = document.getElementById("root")!;
 
