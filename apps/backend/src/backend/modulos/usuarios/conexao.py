@@ -3,8 +3,8 @@ import sqlite3
 class GerenciadorDeUsuarios:
     def __init__(self, nome_do_banco="constructo.db"):
         self.conexao = sqlite3.connect(nome_do_banco, check_same_thread=False)
+        self.conexao.row_factory = sqlite3.Row
         self.cursor = self.conexao.cursor()
-        self.conexao.row_factory = sqlite3.Row # Transforma as linhas do banco em dicionários
         self.criar_tabela()
 
     def criar_tabela(self):
@@ -23,16 +23,19 @@ class GerenciadorDeUsuarios:
     def inserir_usuario(self, cpf, nome, sobrenome, email, senha):
 
         self.cursor.execute("""
-
             INSERT INTO usuarios (cpf, nome, sobrenome, email, senha) 
             VALUES (?, ?, ?, ?, ?)
         """, (cpf, nome, sobrenome, email, senha))
 
         self.conexao.commit()
 
-        id_gerado = self.cursor.lastrowid
+        id_usuario = self.cursor.lastrowid
 
-        self.cursor.execute("SELECT * FROM usuarios WHERE id = ?", (id_gerado))
+        self.cursor.execute("SELECT * FROM usuarios WHERE id = ?", (id_usuario, ))
+
+        usuario = self.cursor.fetchone()
+
+        return dict(usuario)
 
     def fechar(self):
         self.conexao.close()
@@ -41,7 +44,7 @@ class GerenciadorDeUsuarios:
 def get_gerenciador():
 
     db = GerenciadorDeUsuarios()
-    
+
     try:
         yield db
 
