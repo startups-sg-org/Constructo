@@ -37,6 +37,53 @@ class GerenciadorDeUsuarios:
 
         return dict(usuario)
 
+    def listar_usuarios(self):
+        self.cursor.execute("SELECT * FROM usuarios ORDER BY id")
+        usuarios = self.cursor.fetchall()
+
+        return [dict(usuario) for usuario in usuarios]
+
+    def buscar_usuario(self, id_usuario):
+        self.cursor.execute(
+            "SELECT * FROM usuarios WHERE id = ?",
+            (id_usuario, )
+        )
+        usuario = self.cursor.fetchone()
+
+        return dict(usuario) if usuario else None
+
+    def atualizar_usuario(self, id_usuario, dados):
+        campos_permitidos = {"cpf", "nome", "sobrenome", "email", "senha"}
+        dados_validos = {
+            campo: valor
+            for campo, valor in dados.items()
+            if campo in campos_permitidos
+        }
+
+        if not dados_validos:
+            return self.buscar_usuario(id_usuario)
+
+        campos_sql = ", ".join(f"{campo} = ?" for campo in dados_validos)
+        valores = list(dados_validos.values())
+        valores.append(id_usuario)
+
+        self.cursor.execute(
+            f"UPDATE usuarios SET {campos_sql} WHERE id = ?",
+            valores
+        )
+        self.conexao.commit()
+
+        return self.buscar_usuario(id_usuario)
+
+    def excluir_usuario(self, id_usuario):
+        self.cursor.execute(
+            "DELETE FROM usuarios WHERE id = ?",
+            (id_usuario, )
+        )
+        self.conexao.commit()
+
+        return self.cursor.rowcount > 0
+
     def fechar(self):
         self.conexao.close()
 
