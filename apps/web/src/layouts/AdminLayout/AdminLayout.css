@@ -1,0 +1,32 @@
+.layout-admin {
+    display: flex;
+    min-height: 100dvh;
+    background: #f5f7f6;
+}
+
+.layout-admin > .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+}
+
+.layout-admin__conteudo {
+    width: 100%;
+    min-width: 0;
+    padding: 48px clamp(24px, 5vw, 72px);
+}
+
+@media (max-width: 760px) {
+    .layout-admin {
+        flex-direction: column;
+    }
+
+    .layout-admin > .sidebar {
+        position: static;
+        height: auto;
+    }
+
+    .layout-admin__conteudo {
+        padding: 30px 20px;
+    }
+}

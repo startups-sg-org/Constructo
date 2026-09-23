@@ -15,6 +15,10 @@ body {
   min-height: 100vh;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 button,
 input,
 select {
@@ -60,6 +64,10 @@ select {
 
 .pagina-login .botao {
   margin-top: 24px;
+}
+
+.pagina-login .botao + .botao {
+  margin-left: 10px;
 }
 
 .link-conta {
@@ -167,6 +175,32 @@ select:focus {
 .secundario {
   color: #374151;
   background: #e5e7eb;
+}
+
+.pagina-painel {
+  max-width: 860px;
+}
+
+.pagina-painel__contexto {
+  color: #bb7600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pagina-painel h1 {
+  margin-top: 6px;
+  color: #153b36;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.pagina-painel p {
+  max-width: 560px;
+  margin-top: 12px;
+  color: #62706d;
+  line-height: 1.65;
 }
 
 @media (max-width: 760px) {

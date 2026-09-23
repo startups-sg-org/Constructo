@@ -67,7 +67,11 @@ export default function Login() {
                     <p className="mensagem-sucesso">
                         Olá, {usuario.nome}! Sua autenticação foi concluída com sucesso.
                     </p>
-                    <p>O próximo painel será criado posteriormente.</p>
+                    <p>Seu painel administrativo está pronto para acesso.</p>
+
+                    <Link className="botao primario" to="/admin">
+                        Acessar painel
+                    </Link>
 
                     <button className="botao secundario" type="button" onClick={sair}>
                         Sair
