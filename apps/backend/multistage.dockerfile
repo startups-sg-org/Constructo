@@ -4,21 +4,21 @@
 ########## ESTÁGIO 1:
 
 # Nossa imagem builder. Ela é a base para todas as outras imagens. Ela contém todas as dependências necessárias para construir o projeto.
-FROM ghcr.io/astral-sh/uv:0.12.18-trixie-slim AS builder 
+FROM ghcr.io/astral-sh/uv:0.12.18-trixie-slim AS builder
 
 # ---------------------------------------------------------------------------------------------- #
 # AMBIENTE- gerar variáveis de ambiente para o build::
 
 # UV_COMPILE_BYTECODE: Compila o bytecode do Python para melhorar a performance no cache da build.
-ENV UV_COMPILE_BYTECODE=1 
+ENV UV_COMPILE_BYTECODE=1
 # UV_LINK_MODE: Define o modo de linkagem do UV. O modo "copy" copia os arquivos necessários para a imagem final, enquanto o modo "symlink" cria links simbólicos para os arquivos na imagem final.
-ENV UV_LINK_MODE=copy 
-# UV_PYTHON_PREFFERENCE: Define a preferência de instalação do Python. O valor "only-managed" indica que apenas pacotes gerenciados pelo UV serão instalados, evitando conflitos com pacotes do sistema.
-ENV UV_PYTHON_PREFFERENCE=only-managed 
+ENV UV_LINK_MODE=copy
+# UV_PYTHON_PREFERENCE: Define a preferência de instalação do Python. O valor "only-managed" indica que apenas pacotes gerenciados pelo UV serão instalados, evitando conflitos com pacotes do sistema.
+ENV UV_PYTHON_PREFERENCE=only-managed
 # UV_ON_DEV: Define se o ambiente é de desenvolvimento. O valor "1" indica que estamos em um ambiente de desenvolvimento, o que pode ativar recursos adicionais para facilitar o desenvolvimento e depuração.
-ENV UV_ON_DEV=1 
+ENV UV_ON_DEV=1
 # UV_PYTHON_INSTALL_DIR: Define o diretório de instalação do Python dentro da imagem. O valor "/python" indica que o Python será instalado nesse diretório.
-ENV UV_PYTHON_INSTALL_DIR=/python 
+ENV UV_PYTHON_INSTALL_DIR=/python
 # ---------------------------------------------------------------------------------------------- #
 
  # Instalação de dependências essenciais para a construção do projeto, incluindo compiladores e ferramentas de desenvolvimento.
@@ -26,9 +26,9 @@ ENV UV_PYTHON_INSTALL_DIR=/python
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* 
+    && rm -rf /var/lib/apt/lists/*
 
-RUN uv python install 3.12.2 
+RUN uv python install 3.12
 
 # criar pasta para a aplicação (projeto) e entrar nela.
 WORKDIR /app
@@ -45,14 +45,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY . /app
 # Ou seja, eu posso alterar meu código que não vai invalidar o cache do uv, porque o uv vai olhar para o arquivo uv.lock e pyproject.toml e ver que não houve alterações nas dependencias do projeto. Então ele vai reutilizar a pasta de cache em /root/.cache/uv e não vai precisar baixar as dependencias novamente.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked 
+    uv sync --locked
 ##################################################################################################################
 # STAGE 2 - ESTÁGIO FINAL:
 ## PARA DEIXAR A IMAGEM FINAL MAIS LEVE, VAMOS USAR UMA IMAGEM BASE MAIS LEVE, COMO ALPINE OU DEBIAN SLIM.
 ## OU SEJA, VAMOS UTILIZAR NESSE ESTÀGIO APENAS O "RESULTADO DO ESTÁGIO ANTERIOR"
 FROM debian:trixie-slim AS development
 
-ENV PYTHONNUNBUFFERS=1
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -83,6 +83,6 @@ USER python
 ENTRYPOINT []
 
 # COMANDO PARA RODAR O SERVIDOR UVICORN DO PROJEO
-CMD ["uvicorn","--host","0.0.0.0","--port","8000","backend.main:app"]
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn --host 0.0.0.0 --port 8000 backend.main:app"]
 
 ##################################################################################################################

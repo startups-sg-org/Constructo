@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 
 class CreateUser(BaseModel):
-    cpf: str 
-    nome: str  
+    cpf: str
+    nome: str
     sobrenome: str
     email: EmailStr
     senha: str
@@ -20,9 +21,11 @@ class LoginUser(BaseModel):
 
 
 class UserReturn(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    cpf: str 
-    nome: str  
+    cpf: str
+    nome: str
     sobrenome: str
     email: EmailStr
     telefone: str

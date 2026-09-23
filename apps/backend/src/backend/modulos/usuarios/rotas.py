@@ -1,102 +1,108 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
-from backend.modulos.usuarios.conexao import GerenciadorDeUsuarios, get_gerenciador
+from typing import Annotated
+
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from sqlalchemy.exc import IntegrityError
+
 from backend.modulos.usuarios.esquemas import (
     CreateUser,
-    UserReturn,
+    LoginReturn,
     LoginUser,
-    LoginReturn
+    UserReturn,
+)
+from backend.modulos.usuarios.modelos import Usuario
+from backend.modulos.usuarios.repositorio import (
+    RepositorioDeUsuarios,
+    get_repositorio_de_usuarios,
 )
 from backend.modulos.usuarios.senhas import gerar_senha_hash, verificar_senha
 
 router = APIRouter()
 
 
-def get_usuario_autenticado(
-    session_token: str | None = Cookie(default=None),
-    db: GerenciadorDeUsuarios = Depends(get_gerenciador)
-):
+async def get_usuario_autenticado(
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    session_token: Annotated[str | None, Cookie()] = None,
+) -> Usuario:
     if not session_token:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
 
-    usuario = db.buscar_usuario_por_sessao(session_token)
+    usuario = await repositorio.buscar_usuario_por_sessao(session_token)
 
-    if not usuario or not usuario["ativo"]:
+    if not usuario or not usuario.ativo:
         raise HTTPException(status_code=401, detail="Sessão inválida")
 
     return usuario
 
 
 @router.post("/login", response_model=LoginReturn)
-def login(
+async def login(
     usuario_login: LoginUser,
     response: Response,
-    db: GerenciadorDeUsuarios = Depends(get_gerenciador)
-):
-    usuario = db.buscar_usuario_por_email(usuario_login.email)
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+) -> LoginReturn:
+    usuario = await repositorio.buscar_usuario_por_email(str(usuario_login.email))
 
-    if not usuario or not verificar_senha(usuario_login.senha, usuario["senha"]):
+    if not usuario or not verificar_senha(usuario_login.senha, usuario.senha):
         raise HTTPException(status_code=401, detail="E-mail ou senha inválidos")
 
-    if not usuario["ativo"]:
+    if not usuario.ativo:
         raise HTTPException(status_code=403, detail="Usuário inativo")
 
-    token = db.criar_sessao(usuario["id"])
+    token = await repositorio.criar_sessao(usuario.id)
 
     response.set_cookie(
         key="session_token",
         value=token,
         httponly=True,
         samesite="lax",
-        max_age=60 * 60 * 24 * 7
+        max_age=60 * 60 * 24 * 7,
     )
 
-    return {
-        "mensagem": "Login realizado com sucesso",
-        "usuario": usuario
-    }
+    return LoginReturn(mensagem="Login realizado com sucesso", usuario=usuario)
 
 
 @router.get("/sessao", response_model=UserReturn)
-def consultar_sessao(usuario=Depends(get_usuario_autenticado)):
+async def consultar_sessao(
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Usuario:
     return usuario
 
 
 @router.post("/logout")
-def logout(
+async def logout(
     response: Response,
-    session_token: str | None = Cookie(default=None),
-    db: GerenciadorDeUsuarios = Depends(get_gerenciador)
-):
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    session_token: Annotated[str | None, Cookie()] = None,
+) -> dict[str, str]:
     if session_token:
-        db.excluir_sessao(session_token)
+        await repositorio.excluir_sessao(session_token)
 
     response.delete_cookie("session_token")
-
     return {"mensagem": "Logout realizado com sucesso"}
 
+
 @router.post("/usuarios/", response_model=UserReturn, status_code=201)
-def criar_usuario(usuario: CreateUser, db: GerenciadorDeUsuarios = Depends(get_gerenciador)):
-    if db.buscar_usuario_por_email(usuario.email):
+async def criar_usuario(
+    usuario: CreateUser,
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+) -> Usuario:
+    if await repositorio.buscar_usuario_por_email(str(usuario.email)):
         raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
     try:
-        senha_segura = gerar_senha_hash(usuario.senha)
-
-        usuario_criado = db.inserir_usuario(
+        return await repositorio.inserir_usuario(
             cpf=usuario.cpf,
             nome=usuario.nome,
             sobrenome=usuario.sobrenome,
-            email=usuario.email,
-            senha=senha_segura,
+            email=str(usuario.email),
+            senha=gerar_senha_hash(usuario.senha),
             telefone=usuario.telefone,
             canal_preferido=usuario.canal_preferido,
             receber_atualizacoes=usuario.receber_atualizacoes,
             empreendimento=usuario.empreendimento,
             unidade=usuario.unidade,
-            ativo=usuario.ativo
+            ativo=usuario.ativo,
         )
-
-        return usuario_criado
-
-    except Exception as erro:
-        raise HTTPException(status_code=400, detail=str(erro))
+    except IntegrityError as erro:
+        await repositorio.session.rollback()
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado") from erro

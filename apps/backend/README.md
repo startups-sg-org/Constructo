@@ -42,21 +42,24 @@ Backend da plataforma **Constructo**, desenvolvido com **FastAPI** assíncrono, 
 
 ```text
 apps/backend/
-├── compose.yaml                # Orquestração dos serviços (backend + postgres) com Watch
-├── multistage.dockerfile       # Dockerfile multi-estágio otimizado (builder + runtime seguro)
-├── .dockerignore               # Filtro de arquivos ignorados no contexto de build
-├── .env                        # Variáveis de ambiente locais
-├── pyproject.toml              # Metadados do projeto e dependências (PEP 621)
-├── uv.lock                     # Lockfile determinístico gerado pelo uv
-├── comandos_de_gerenciamento.md# Guia de comandos rápidos e anotações operacionais
-├── README.md                   # Esta documentação
-└── src/
-    └── backend/                # Pacote principal da aplicação
-        ├── main.py             # Instância do FastAPI, middlewares (CORS) e rotas
-        ├── banco_de_dados/     # Conexões e sessões assíncronas do SQLAlchemy
-        ├── esquemas/           # Modelos Pydantic (validação de I/O)
-        ├── rotas/              # Endpoints da API
-        └── seguranca/          # Hashing de senhas e utilitários criptográficos
+├── alembic/                    # Histórico e configuração das migrations
+├── scripts/                    # Ferramentas operacionais e migração de dados
+├── tests/                      # Testes do contrato HTTP
+├── compose.yaml                # Backend + PostgreSQL com healthchecks e Watch
+├── multistage.dockerfile       # Build multi-estágio e execução das migrations
+├── .env.example                # Modelo das variáveis locais
+├── pyproject.toml              # Dependências e configuração das ferramentas
+├── uv.lock                     # Lockfile determinístico do uv
+└── src/backend/
+    ├── main.py                 # FastAPI, CORS, rotas e healthcheck
+    ├── banco_de_dados/
+    │   └── connections/        # Settings, engine e AsyncSession
+    └── modulos/usuarios/
+        ├── modelos.py          # Modelos SQLAlchemy
+        ├── repositorio.py      # Consultas assíncronas
+        ├── esquemas.py         # Contratos Pydantic
+        ├── rotas.py            # Endpoints
+        └── senhas.py           # Hash e verificação de senha
 ```
 
 ---
@@ -66,25 +69,17 @@ apps/backend/
 Crie ou verifique o arquivo `.env` na raiz de `apps/backend/`. As variáveis configuradas são:
 
 ```env
-# URL de conexão assíncrona para o SQLAlchemy
-URL_POSTGRES=postgresql+asyncpg://postgres:123456@db:5432/constructo
-
-# Credenciais e parâmetros do PostgreSQL
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=123456
+POSTGRES_PASSWORD=change_me
 POSTGRES_DB=constructo
-
-# Host do banco:
-# - Use 'db' para comunicação interna entre containers Docker
-# - Use 'localhost' caso execute o backend fora do Docker
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
 
-# Diretório interno de dados persistentes do PostgreSQL
-PGDATA=/var/lib/postgresql/18/docker
+# Opcional: substitui as cinco variáveis acima quando definida.
+# URL_POSTGRES=postgresql+asyncpg://postgres:change_me@db:5432/constructo
 ```
 
-> **Atenção:** O `.dockerignore` está configurado para **nunca** incluir o arquivo `.env` dentro da imagem Docker por motivos de segurança. No Compose, as variáveis são injetadas em tempo de execução via `env_file: .env`.
+> **Atenção:** copie `.env.example` para `.env` antes da primeira execução. O arquivo `.env` não é versionado nem incluído na imagem; o Compose injeta seus valores em tempo de execução. Use `db` como host dentro do Compose e `localhost` ao executar o backend diretamente no host.
 
 ---
 
@@ -247,3 +242,47 @@ O arquivo [`multistage.dockerfile`](multistage.dockerfile) adota uma arquitetura
 * **Cache em Duas Fases:** Suas alterações de código não forçam o Docker a baixar novamente nenhuma biblioteca externa.
 * **Segurança:** A imagem de produção não roda como `root`, mitigando vulnerabilidades de *container breakout*.
 * **Tamanho Reduzido:** Todo o ferramental de compilação (`gcc`, `make`, caches do `apt`) é descartado no estágio `builder`.
+
+
+## 🗃️ Banco de dados e migrations
+
+O PostgreSQL é a única persistência usada pela API. O container do backend executa
+`alembic upgrade head` antes de iniciar o Uvicorn, portanto um banco vazio recebe o
+schema automaticamente.
+
+Comandos manuais, executados em `apps/backend/`:
+
+```bash
+# Aplicar todas as migrations
+uv run alembic upgrade head
+
+# Criar uma migration depois de alterar os modelos
+uv run alembic revision --autogenerate -m "descricao da alteracao"
+
+# Verificar a revision aplicada
+uv run alembic current
+```
+
+Os modelos ficam em `src/backend/modulos/<modulo>/modelos.py`, os repositórios
+assíncronos no mesmo módulo e a sessão compartilhada em
+`src/backend/banco_de_dados/connections/`.
+
+### Migrar o SQLite legado
+
+Depois de subir o PostgreSQL e aplicar o Alembic, os dados existentes podem ser
+copiados de forma idempotente:
+
+```bash
+uv run python scripts/migrar_sqlite_para_postgres.py --sqlite constructo.db
+```
+
+Usuários já presentes no PostgreSQL são identificados pelo e-mail e não são
+duplicados. Os hashes de senha são preservados. Sessões legadas recebem validade de
+sete dias a partir da migração.
+
+## ✅ Testes e qualidade
+
+```bash
+uv run pytest
+uv run ruff check src tests scripts
+```
