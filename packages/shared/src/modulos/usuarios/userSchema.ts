@@ -27,6 +27,25 @@ export const userSchema = z.object({
         .toLowerCase()
 
     ,
+    telefone: z
+        .string()
+        .min(10, 'Telefone inválido')
+        .max(15, 'Telefone inválido'),
+
+    canal_preferido: z.enum(['email', 'whatsapp']),
+
+    receber_atualizacoes: z.boolean(),
+
+    empreendimento: z
+        .string()
+        .trim()
+        .min(1, 'Empreendimento obrigatório'),
+
+    unidade: z
+        .string()
+        .trim()
+        .min(1, 'Unidade obrigatória'),
+
     senha: z
         .string()
         .min(1, 'Senha obrigatória')
@@ -44,10 +63,29 @@ export type userFormData = z.infer<typeof userSchema>
 export type User = Omit<userFormData, "confirmarSenha">
 
 
+export const loginSchema = z.object({
+    email: z
+        .email('E-mail obrigatório')
+        .toLowerCase(),
+
+    senha: z
+        .string()
+        .min(1, 'Senha obrigatória')
+})
+
+export type loginFormData = z.infer<typeof loginSchema>
+
+
 export type UserReponse = {
     id: number,
     cpf: string,
     nome: string,
     sobrenome: string,
     email: string,
+    telefone: string,
+    canal_preferido: string,
+    receber_atualizacoes: boolean,
+    empreendimento: string,
+    unidade: string,
+    ativo: boolean,
 }

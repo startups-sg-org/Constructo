@@ -1,7 +1,37 @@
+# Dependências e builds
 node_modules/
 dist/
+dist-ssr/
+build/
+
+# Variáveis de ambiente
 .env
-.env.local
-.venv
-__pycache__
-*.pyc
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Bancos locais
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs e arquivos locais
+*.log
+*.local
+.DS_Store
+
+# Editores
+.idea/
+.vscode/*
+!.vscode/extensions.json
