@@ -9,7 +9,7 @@ class Base(DeclarativeBase):
 
 class PostgresConnectionHandler:
     '''PostGresConnectionHandler
-    AsyncSession: SqlAlchemy faz o meio de campo com o banco de dados e os repositórios / models por meio da dependencia AsyncSession
+    AsyncSession: SqlAlchemy faz o meio de campo com o banco de dados e os repositórios ou models por meio da dependencia AsyncSession
     '''
     def __init__(self):
         self.__engine = create_async_engine(settings.URL_POSTGRES)
