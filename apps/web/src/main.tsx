@@ -5,6 +5,7 @@ import './index.css'
 
 import Formulario from "./modulos/usuarios/componentes/Formulario";
 import AdminLayout from "./layouts/AdminLayout/AdminLayout";
+import AuthLayout from "./layouts/AuthLayout/AuthLayout";
 import PublicLayout from "./layouts/PublicLayout/PublicLayout";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
@@ -25,6 +26,9 @@ ReactDOM.createRoot(root).render(
 
         <Route element={<PublicLayout />}>
           <Route index element={<Home />} />
+        </Route>
+
+        <Route element={<AuthLayout />}>
           <Route path="cadastro" element={<Formulario />} />
           <Route path="login" element={<Login />} />
         </Route>
