@@ -18,12 +18,6 @@
     flex-direction: column;
 }
 
-.layout-admin__conteudo {
-    min-width: 0;
-    flex: 1;
-    padding: 48px clamp(24px, 5vw, 72px);
-}
-
 @media (max-width: 760px) {
     .layout-admin {
         flex-direction: column;
@@ -33,9 +27,5 @@
         position: static;
         z-index: auto;
         height: auto;
-    }
-
-    .layout-admin__conteudo {
-        padding: 30px 20px;
     }
 }
