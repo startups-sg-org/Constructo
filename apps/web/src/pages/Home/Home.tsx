@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import FeatureCard from "../../componentes/FeatureCard/FeatureCard";
 import "./Home.css";
 
 export default function Home() {
@@ -37,8 +38,32 @@ export default function Home() {
                 </div>
             </section>
 
-            <section id="recursos" aria-labelledby="titulo-recursos">
-                <h2 id="titulo-recursos">Recursos</h2>
+            <section className="recursos" id="recursos" aria-labelledby="titulo-recursos">
+                <div className="recursos__cabecalho">
+                    <p>Gestão integrada</p>
+                    <h2 id="titulo-recursos">Tudo o que sua obra precisa em um só lugar.</h2>
+                    <span>
+                        Recursos pensados para simplificar a rotina e dar mais segurança às suas decisões.
+                    </span>
+                </div>
+
+                <div className="recursos__lista">
+                    <FeatureCard
+                        icone={<IconeObra />}
+                        titulo="Obras organizadas"
+                        descricao="Centralize informações, prazos e responsáveis para acompanhar cada etapa da execução."
+                    />
+                    <FeatureCard
+                        icone={<IconeDocumento />}
+                        titulo="Contratos sob controle"
+                        descricao="Consulte contratos e dados importantes com agilidade, sem informações espalhadas."
+                    />
+                    <FeatureCard
+                        icone={<IconeMedicao />}
+                        titulo="Medições transparentes"
+                        descricao="Registre o avanço da obra e acompanhe o progresso com dados claros e atualizados."
+                    />
+                </div>
             </section>
             <section id="como-funciona" aria-labelledby="titulo-como-funciona">
                 <h2 id="titulo-como-funciona">Como funciona</h2>
