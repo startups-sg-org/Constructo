@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import Footer from "../../componentes/Footer/Footer";
 import NavbarPublica from "../../componentes/NavbarPublica/NavbarPublica";
 
 export default function PublicLayout() {
@@ -6,6 +7,7 @@ export default function PublicLayout() {
         <div className="layout-publico">
             <NavbarPublica />
             <Outlet />
+            <Footer />
         </div>
     );
 }
