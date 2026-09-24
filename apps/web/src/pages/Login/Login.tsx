@@ -32,7 +32,7 @@ export default function Login() {
     const {
         register,
         handleSubmit,
-        formState: { errors }
+        formState: { errors, isSubmitting }
     } = useForm<loginFormData>({
         resolver: zodResolver(loginSchema)
     });
@@ -73,23 +73,49 @@ export default function Login() {
             compacto
             acoes={<>Não tem uma conta? <Link to="/cadastro">Crie uma</Link></>}
         >
-            <form className="login-form" onSubmit={handleSubmit(handleLogin)}>
+            <form className="login-form" aria-busy={isSubmitting} onSubmit={handleSubmit(handleLogin)}>
                 <div className="campo">
                     <label htmlFor="email">E-mail</label>
-                    <input id="email" type="email" {...register("email")} />
-                    {errors.email && <span>{errors.email.message}</span>}
+                    <input
+                        id="email"
+                        type="email"
+                        placeholder="seuemail@exemplo.com"
+                        autoComplete="email"
+                        {...register("email")}
+                        disabled={isSubmitting}
+                        aria-invalid={Boolean(errors.email)}
+                        aria-describedby={errors.email ? "email-erro" : undefined}
+                    />
+                    {errors.email && (
+                        <span id="email-erro" className="campo__erro" role="alert">
+                            {errors.email.message}
+                        </span>
+                    )}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="senha">Senha</label>
-                    <input id="senha" type="password" {...register("senha")} />
-                    {errors.senha && <span>{errors.senha.message}</span>}
+                    <input
+                        id="senha"
+                        type="password"
+                        placeholder="Digite sua senha"
+                        autoComplete="current-password"
+                        {...register("senha")}
+                        disabled={isSubmitting}
+                        aria-invalid={Boolean(errors.senha)}
+                        aria-describedby={errors.senha ? "senha-erro" : undefined}
+                    />
+                    {errors.senha && (
+                        <span id="senha-erro" className="campo__erro" role="alert">
+                            {errors.senha.message}
+                        </span>
+                    )}
                 </div>
 
-                {erro && <p className="mensagem-erro">{erro}</p>}
+                {erro && <p className="mensagem-erro" role="alert">{erro}</p>}
 
-                <button className="botao primario" type="submit">
-                    Entrar
+                <button className="botao primario" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Entrando..." : "Entrar"}
                 </button>
             </form>
         </AuthCard>

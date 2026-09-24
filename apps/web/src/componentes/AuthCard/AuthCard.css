@@ -56,26 +56,71 @@
 }
 
 .auth-card .campo {
+    min-width: 0;
     gap: 7px;
 }
 
 .auth-card .campo label {
     color: #294b45;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.4;
 }
 
-.auth-card input,
-.auth-card select {
-    min-height: 46px;
-    border-color: #cad8d4;
+.auth-card .campo > input,
+.auth-card .campo > select {
+    min-width: 0;
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1px solid #b9cdc7;
+    border-radius: 10px;
     color: #173f39;
     background: #fff;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    box-shadow: 0 1px 2px rgb(21 59 54 / 4%);
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
-.auth-card input:focus,
-.auth-card select:focus {
+.auth-card .campo > input::placeholder {
+    color: #82948f;
+    opacity: 1;
+}
+
+.auth-card .campo > input:hover:not(:disabled),
+.auth-card .campo > select:hover:not(:disabled) {
+    border-color: #7fa59b;
+}
+
+.auth-card .campo > input:focus,
+.auth-card .campo > select:focus {
     border-color: #2f7668;
-    outline: 3px solid rgb(47 118 104 / 13%);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgb(47 118 104 / 16%);
+}
+
+.auth-card .campo > input[aria-invalid="true"],
+.auth-card .campo > select[aria-invalid="true"] {
+    border-color: #c45b50;
+}
+
+.auth-card .campo > input[aria-invalid="true"]:focus,
+.auth-card .campo > select[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px rgb(180 67 56 / 15%);
+}
+
+.auth-card .campo > input:disabled,
+.auth-card .campo > select:disabled {
+    border-color: #d8e1de;
+    color: #788984;
+    background: #eef2f0;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+    -webkit-text-fill-color: #788984;
+}
+
+.auth-card .campo > input:disabled::placeholder {
+    color: #9ba9a5;
+    -webkit-text-fill-color: #9ba9a5;
 }
 
 .auth-card .campo-checkbox {
@@ -84,11 +129,42 @@
 }
 
 .auth-card .campo-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     line-height: 1.45;
 }
 
+.auth-card .campo-checkbox input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    accent-color: #2f7668;
+}
+
+.auth-card .campo-checkbox input:focus-visible {
+    outline: 3px solid rgb(47 118 104 / 18%);
+    outline-offset: 2px;
+}
+
+.auth-card .campo-checkbox input:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
+.auth-card .campo__erro,
 .auth-card .mensagem-erro {
     color: #b44338;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.auth-card .mensagem-erro {
+    padding: 10px 12px;
+    border: 1px solid #efd0cc;
+    border-radius: 8px;
+    background: #fff5f3;
 }
 
 .auth-card .botao.primario {
@@ -101,10 +177,17 @@
     transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
-.auth-card .botao.primario:hover {
+.auth-card .botao.primario:hover:not(:disabled) {
     background: #21534c;
     box-shadow: 0 13px 26px rgb(21 59 54 / 21%);
     transform: translateY(-1px);
+}
+
+.auth-card .botao.primario:disabled {
+    background: #6f8882;
+    box-shadow: none;
+    cursor: wait;
+    opacity: 0.8;
 }
 
 .auth-card .botao.primario:focus-visible,
@@ -142,6 +225,7 @@
 
     .auth-card .usuario-form {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .auth-card:not(.auth-card--compacto) .usuario-form .botao.primario {
