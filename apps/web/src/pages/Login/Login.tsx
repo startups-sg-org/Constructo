@@ -65,11 +65,12 @@ export default function Login() {
     }
 
     return (
-        <main className="pagina-login">
-            <section className="card">
-                <span className="subtitulo">Constructo</span>
-                <h1>Entrar</h1>
-                <p>Informe seu e-mail e sua senha.</p>
+        <section className="auth-form auth-form--login" aria-labelledby="titulo-login">
+                <p className="auth-form__chamada">Acesse sua conta</p>
+                <h1 id="titulo-login">Bem-vindo de volta</h1>
+                <p className="auth-form__descricao">
+                    Informe seu e-mail e sua senha para continuar.
+                </p>
 
                 <form className="login-form" onSubmit={handleSubmit(handleLogin)}>
                     <div className="campo">
@@ -94,7 +95,6 @@ export default function Login() {
                 <p className="link-conta">
                     Não tem uma conta? <Link to="/cadastro">Crie uma</Link>
                 </p>
-            </section>
-        </main>
+        </section>
     );
 }

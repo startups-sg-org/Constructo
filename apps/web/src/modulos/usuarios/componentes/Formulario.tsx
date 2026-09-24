@@ -33,10 +33,12 @@ export default function Formulario() {
     }
 
     return (
-        <main className="pagina-cadastro">
-            <section className="card">
-                <span className="subtitulo">Constructo</span>
-                <h1>Criar conta</h1>
+        <section className="auth-form auth-form--cadastro" aria-labelledby="titulo-cadastro">
+                <p className="auth-form__chamada">Comece agora</p>
+                <h1 id="titulo-cadastro">Crie sua conta</h1>
+                <p className="auth-form__descricao">
+                    Preencha seus dados para acompanhar sua obra com clareza e segurança.
+                </p>
 
                 <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
                 <div className="campo">
@@ -116,7 +118,6 @@ export default function Formulario() {
                 <p className="link-conta">
                     Já tem uma conta? <Link to="/login">Entre</Link>
                 </p>
-            </section>
-        </main>
+        </section>
     );
 }
