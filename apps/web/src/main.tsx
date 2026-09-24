@@ -24,11 +24,9 @@ ReactDOM.createRoot(root).render(
 
         <Route element={<PublicLayout />}>
           <Route index element={<Home />} />
+          <Route path="cadastro" element={<Formulario />} />
+          <Route path="login" element={<Login />} />
         </Route>
-
-        <Route path="/cadastro" element={<Formulario />} />
-
-        <Route path="/login" element={<Login />} />
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route
