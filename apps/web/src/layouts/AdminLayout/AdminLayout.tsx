@@ -1,3 +1,4 @@
+import { Outlet } from "react-router-dom";
 import AdminContent from "../../componentes/AdminContent/AdminContent";
 import Navbar from "../../componentes/Navbar/Navbar";
 import Sidebar from "../../componentes/Sidebar/Sidebar";
@@ -9,7 +10,9 @@ export default function AdminLayout() {
             <Sidebar />
             <div className="layout-admin__principal">
                 <Navbar />
-                <AdminContent />
+                <AdminContent>
+                    <Outlet />
+                </AdminContent>
             </div>
         </div>
     );

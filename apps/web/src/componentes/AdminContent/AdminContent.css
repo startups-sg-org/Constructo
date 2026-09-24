@@ -1,11 +1,24 @@
 .admin-content {
     min-width: 0;
     flex: 1;
-    padding: 48px clamp(24px, 5vw, 72px);
+    width: 100%;
+    padding: clamp(30px, 4vw, 48px) clamp(24px, 5vw, 72px);
+}
+
+.admin-content__container {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
 }
 
 @media (max-width: 760px) {
     .admin-content {
         padding: 30px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-content {
+        padding: 24px 16px;
     }
 }

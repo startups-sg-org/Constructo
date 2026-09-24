@@ -1,14 +1,16 @@
-import { Outlet } from "react-router-dom";
+import type { ReactNode } from "react";
 import "./AdminContent.css";
 
-/**
- * Região do layout em que o React Router renderiza a rota administrativa ativa.
- * O Outlet troca somente o conteúdo da página e mantém Sidebar e Navbar montadas.
- */
-export default function AdminContent() {
+type AdminContentProps = {
+    children: ReactNode;
+};
+
+export default function AdminContent({ children }: AdminContentProps) {
     return (
         <main className="admin-content" id="conteudo-principal">
-            <Outlet />
+            <div className="admin-content__container">
+                {children}
+            </div>
         </main>
     );
 }
