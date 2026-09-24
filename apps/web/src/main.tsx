@@ -7,6 +7,7 @@ import Formulario from "./modulos/usuarios/componentes/Formulario";
 import AdminLayout from "./layouts/AdminLayout/AdminLayout";
 import Login from "./pages/Login/Login";
 import PaginaPainel from "./pages/Painel/PaginaPainel";
+import ResumoPainel from "./pages/Painel/ResumoPainel";
 
 const root = document.getElementById("root")!;
 
@@ -27,7 +28,11 @@ ReactDOM.createRoot(root).render(
         <Route path="/admin" element={<AdminLayout />}>
           <Route
             index
-            element={<PaginaPainel titulo="Home" descricao="Visão geral do seu painel Constructo." />}
+            element={
+              <PaginaPainel titulo="Home" descricao="Visão geral do seu painel Constructo.">
+                <ResumoPainel />
+              </PaginaPainel>
+            }
           />
           <Route
             path="usuarios"
