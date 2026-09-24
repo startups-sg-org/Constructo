@@ -1,0 +1,202 @@
+.navbar-publica {
+    position: sticky;
+    z-index: 50;
+    top: 0;
+    border-bottom: 1px solid rgb(21 59 54 / 9%);
+    background: rgb(250 252 250 / 92%);
+    box-shadow: 0 8px 28px rgb(15 42 39 / 5%);
+    backdrop-filter: blur(16px);
+}
+
+.navbar-publica__conteudo {
+    display: flex;
+    width: min(1180px, calc(100% - 48px));
+    min-height: 76px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin: 0 auto;
+}
+
+.navbar-publica__marca {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 11px;
+    color: #153b36;
+    font-size: 1.26rem;
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    text-decoration: none;
+}
+
+.navbar-publica__logo {
+    width: 36px;
+    height: 36px;
+    color: #f59e0b;
+}
+
+.navbar-publica__menu {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(24px, 4vw, 52px);
+}
+
+.navbar-publica__links {
+    display: flex;
+    align-items: center;
+    gap: clamp(18px, 2.5vw, 34px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.navbar-publica__links a,
+.navbar-publica__entrar {
+    color: #49635f;
+    font-size: 0.9rem;
+    font-weight: 550;
+    text-decoration: none;
+    transition: color 160ms ease;
+}
+
+.navbar-publica__links a:hover,
+.navbar-publica__entrar:hover {
+    color: #153b36;
+}
+
+.navbar-publica__acoes {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar-publica__entrar,
+.navbar-publica__destaque {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border-radius: 10px;
+}
+
+.navbar-publica__entrar {
+    border: 1px solid #cad8d5;
+    background: #ffffff;
+}
+
+.navbar-publica__destaque {
+    color: #ffffff;
+    background: #153b36;
+    box-shadow: 0 8px 18px rgb(21 59 54 / 16%);
+    font-size: 0.88rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.navbar-publica__destaque:hover {
+    background: #21534c;
+    transform: translateY(-1px);
+}
+
+.navbar-publica__alternar {
+    display: none;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #d9e4e1;
+    border-radius: 10px;
+    color: #153b36;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.navbar-publica__alternar svg {
+    width: 23px;
+    height: 23px;
+    stroke-linecap: round;
+}
+
+.navbar-publica a:focus-visible,
+.navbar-publica button:focus-visible {
+    outline: 3px solid rgb(245 158 11 / 42%);
+    outline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+    .navbar-publica__conteudo {
+        position: relative;
+        width: min(100% - 32px, 1180px);
+        min-height: 68px;
+    }
+
+    .navbar-publica__alternar {
+        display: grid;
+    }
+
+    .navbar-publica__menu {
+        position: absolute;
+        top: calc(100% + 1px);
+        right: -16px;
+        left: -16px;
+        display: grid;
+        gap: 24px;
+        padding: 12px 16px 20px;
+        border-bottom: 1px solid #dce6e3;
+        background: #fafcfa;
+        box-shadow: 0 18px 30px rgb(15 42 39 / 10%);
+        opacity: 0;
+        transform: translateY(-8px);
+        visibility: hidden;
+        transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+    }
+
+    .navbar-publica__menu--aberto {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+        transition-delay: 0s;
+    }
+
+    .navbar-publica__links {
+        display: grid;
+        gap: 2px;
+    }
+
+    .navbar-publica__links a {
+        display: block;
+        padding: 12px 10px;
+        border-radius: 8px;
+    }
+
+    .navbar-publica__links a:hover {
+        background: #edf3f1;
+    }
+
+    .navbar-publica__acoes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 430px) {
+    .navbar-publica__acoes {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar-publica,
+    .navbar-publica * {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
