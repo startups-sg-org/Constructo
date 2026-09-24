@@ -1,0 +1,11 @@
+.admin-content {
+    min-width: 0;
+    flex: 1;
+    padding: 48px clamp(24px, 5vw, 72px);
+}
+
+@media (max-width: 760px) {
+    .admin-content {
+        padding: 30px 20px;
+    }
+}
