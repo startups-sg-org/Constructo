@@ -30,7 +30,7 @@ ReactDOM.createRoot(root).render(
           <Route
             index
             element={
-              <PaginaPainel titulo="Home" descricao="Visão geral do seu painel Constructo.">
+              <PaginaPainel titulo="Painel Administrativo" subtitulo="Visão geral do seu painel Constructo.">
                 <ResumoPainel />
               </PaginaPainel>
             }
@@ -38,26 +38,26 @@ ReactDOM.createRoot(root).render(
           <Route
             path="usuarios"
             element={
-              <PaginaPainel titulo="Usuários" descricao="Visualize os usuários cadastrados e seus status de acesso.">
+              <PaginaPainel titulo="Usuários" subtitulo="Gerencie os usuários cadastrados no sistema.">
                 <ListaUsuarios />
               </PaginaPainel>
             }
           />
           <Route
             path="obras"
-            element={<PaginaPainel titulo="Obras" descricao="Acompanhe suas obras em um só lugar." />}
+            element={<PaginaPainel titulo="Obras" subtitulo="Gerencie as obras cadastradas." />}
           />
           <Route
             path="contratos"
-            element={<PaginaPainel titulo="Contratos" descricao="Consulte e administre os contratos." />}
+            element={<PaginaPainel titulo="Contratos" subtitulo="Consulte e administre os contratos." />}
           />
           <Route
             path="medicoes"
-            element={<PaginaPainel titulo="Medições" descricao="Registre e acompanhe as medições das obras." />}
+            element={<PaginaPainel titulo="Medições" subtitulo="Registre e acompanhe as medições das obras." />}
           />
           <Route
             path="perfil"
-            element={<PaginaPainel titulo="Perfil" descricao="Consulte e atualize as informações da sua conta." />}
+            element={<PaginaPainel titulo="Perfil" subtitulo="Consulte e atualize as informações da sua conta." />}
           />
         </Route>
 
