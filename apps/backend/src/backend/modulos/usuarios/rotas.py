@@ -115,3 +115,11 @@ async def consultar_quantidade_de_usuarios(
     _: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> UserCount:
     return UserCount(total=await repositorio.contar_usuarios())
+
+
+@router.get("/usuarios/", response_model=list[UserReturn])
+async def listar_usuarios(
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> list[Usuario]:
+    return await repositorio.listar_usuarios()

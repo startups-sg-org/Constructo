@@ -8,6 +8,7 @@ import AdminLayout from "./layouts/AdminLayout/AdminLayout";
 import Login from "./pages/Login/Login";
 import PaginaPainel from "./pages/Painel/PaginaPainel";
 import ResumoPainel from "./pages/Painel/ResumoPainel";
+import ListaUsuarios from "./modulos/usuarios/componentes/ListaUsuarios";
 
 const root = document.getElementById("root")!;
 
@@ -36,7 +37,11 @@ ReactDOM.createRoot(root).render(
           />
           <Route
             path="usuarios"
-            element={<PaginaPainel titulo="Usuários" descricao="Gerencie os usuários e seus acessos." />}
+            element={
+              <PaginaPainel titulo="Usuários" descricao="Visualize os usuários cadastrados e seus status de acesso.">
+                <ListaUsuarios />
+              </PaginaPainel>
+            }
           />
           <Route
             path="obras"

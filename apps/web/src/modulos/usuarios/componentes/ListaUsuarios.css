@@ -1,0 +1,151 @@
+.lista-usuarios,
+.lista-usuarios__estado {
+    margin-top: 32px;
+}
+
+.lista-usuarios__resumo {
+    margin-bottom: 12px;
+    color: #62706d;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.lista-usuarios__tabela-container {
+    overflow-x: auto;
+    border: 1px solid #dfe5e3;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+}
+
+.lista-usuarios__tabela {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.lista-usuarios__tabela th,
+.lista-usuarios__tabela td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #edf0ef;
+    vertical-align: middle;
+}
+
+.lista-usuarios__tabela th {
+    color: #52605d;
+    background: #f8faf9;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.lista-usuarios__tabela td {
+    color: #263b37;
+    font-size: 0.9rem;
+}
+
+.lista-usuarios__tabela tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.lista-usuarios__status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.lista-usuarios__status--ativo {
+    color: #147a55;
+    background: #e8f7f0;
+}
+
+.lista-usuarios__status--inativo {
+    color: #a0443b;
+    background: #fcecea;
+}
+
+.lista-usuarios__estado {
+    display: flex;
+    min-height: 132px;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid #dfe5e3;
+    border-radius: 14px;
+    color: #62706d;
+    background: #ffffff;
+}
+
+.lista-usuarios__estado--erro {
+    flex-direction: column;
+    color: #a0443b;
+}
+
+@media (max-width: 760px) {
+    .lista-usuarios__tabela-container {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .lista-usuarios__tabela,
+    .lista-usuarios__tabela tbody,
+    .lista-usuarios__tabela tr,
+    .lista-usuarios__tabela td {
+        display: block;
+        width: 100%;
+    }
+
+    .lista-usuarios__tabela thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .lista-usuarios__tabela tr {
+        margin-bottom: 14px;
+        padding: 8px 16px;
+        border: 1px solid #dfe5e3;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 6px 18px rgb(15 23 42 / 4%);
+    }
+
+    .lista-usuarios__tabela td,
+    .lista-usuarios__tabela tbody tr:last-child td {
+        display: grid;
+        grid-template-columns: minmax(92px, 0.7fr) minmax(0, 1.3fr);
+        gap: 12px;
+        padding: 10px 0;
+        overflow-wrap: anywhere;
+        border-bottom: 1px solid #edf0ef;
+    }
+
+    .lista-usuarios__tabela td:last-child,
+    .lista-usuarios__tabela tbody tr:last-child td:last-child {
+        border-bottom: 0;
+    }
+
+    .lista-usuarios__tabela td::before {
+        color: #66736f;
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .lista-usuarios__status {
+        width: fit-content;
+    }
+}

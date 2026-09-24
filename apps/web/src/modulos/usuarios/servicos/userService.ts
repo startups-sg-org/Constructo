@@ -79,6 +79,19 @@ export async function getUsersCount(): Promise<number> {
     return result.total;
 }
 
+export async function getUsers(): Promise<UserReponse[]> {
+    const response = await fetch(`${BACKEND_URL}/usuarios/`, {
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Não foi possível carregar os usuários");
+    }
+
+    const result: UserReponse[] = await response.json();
+    return result;
+}
+
 export async function logoutUser(): Promise<void> {
     const response = await fetch(`${BACKEND_URL}/logout`, {
         method: "POST",

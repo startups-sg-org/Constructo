@@ -24,6 +24,12 @@ class RepositorioEmMemoria:
     async def contar_usuarios(self) -> int:
         return len(self.usuarios)
 
+    async def listar_usuarios(self) -> list[SimpleNamespace]:
+        return sorted(
+            self.usuarios.values(),
+            key=lambda usuario: (usuario.nome, usuario.sobrenome, usuario.id),
+        )
+
     async def criar_sessao(self, id_usuario: int) -> str:
         usuario = next(usuario for usuario in self.usuarios.values() if usuario.id == id_usuario)
         token = f"token-{id_usuario}"
@@ -124,6 +130,43 @@ def test_rejeita_consulta_de_quantidade_sem_autenticacao():
     cliente, _ = criar_cliente()
     with cliente:
         resposta = cliente.get("/usuarios/quantidade")
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 401
+
+
+def test_lista_usuarios_cadastrados_com_status():
+    cliente, _ = criar_cliente()
+    usuario_inativo = {
+        **USUARIO,
+        "nome": "Ana",
+        "email": "ana@example.com",
+        "ativo": False,
+    }
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post("/usuarios/", json=usuario_inativo)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        resposta = cliente.get("/usuarios/")
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 200
+    assert [usuario["email"] for usuario in resposta.json()] == [
+        "ana@example.com",
+        "maria@example.com",
+    ]
+    assert [usuario["ativo"] for usuario in resposta.json()] == [False, True]
+    assert all("senha" not in usuario for usuario in resposta.json())
+
+
+def test_rejeita_listagem_de_usuarios_sem_autenticacao():
+    cliente, _ = criar_cliente()
+    with cliente:
+        resposta = cliente.get("/usuarios/")
 
     app.dependency_overrides.clear()
     assert resposta.status_code == 401

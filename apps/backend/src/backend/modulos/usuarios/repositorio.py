@@ -56,6 +56,11 @@ class RepositorioDeUsuarios:
         consulta = select(func.count()).select_from(Usuario)
         return await self.session.scalar(consulta) or 0
 
+    async def listar_usuarios(self) -> list[Usuario]:
+        consulta = select(Usuario).order_by(Usuario.nome, Usuario.sobrenome, Usuario.id)
+        resultado = await self.session.scalars(consulta)
+        return list(resultado.all())
+
     async def criar_sessao(self, id_usuario: int) -> str:
         token = secrets.token_urlsafe(32)
         self.session.add(
