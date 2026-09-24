@@ -66,6 +66,19 @@ export async function getAuthenticatedUser(): Promise<UserReponse> {
     return result;
 }
 
+export async function getUsersCount(): Promise<number> {
+    const response = await fetch(`${BACKEND_URL}/usuarios/quantidade`, {
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Erro ao consultar a quantidade de usuários");
+    }
+
+    const result: { total: number } = await response.json();
+    return result.total;
+}
+
 export async function logoutUser(): Promise<void> {
     const response = await fetch(`${BACKEND_URL}/logout`, {
         method: "POST",

@@ -7,6 +7,7 @@ from backend.modulos.usuarios.esquemas import (
     CreateUser,
     LoginReturn,
     LoginUser,
+    UserCount,
     UserReturn,
 )
 from backend.modulos.usuarios.modelos import Usuario
@@ -106,3 +107,11 @@ async def criar_usuario(
     except IntegrityError as erro:
         await repositorio.session.rollback()
         raise HTTPException(status_code=400, detail="E-mail já cadastrado") from erro
+
+
+@router.get("/usuarios/quantidade", response_model=UserCount)
+async def consultar_quantidade_de_usuarios(
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> UserCount:
+    return UserCount(total=await repositorio.contar_usuarios())

@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-
 class CreateUser(BaseModel):
     cpf: str
     nome: str
@@ -14,11 +13,9 @@ class CreateUser(BaseModel):
     unidade: str
     ativo: bool = True
 
-
 class LoginUser(BaseModel):
     email: EmailStr
     senha: str
-
 
 class UserReturn(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -35,6 +32,8 @@ class UserReturn(BaseModel):
     unidade: str
     ativo: bool
 
+class UserCount(BaseModel):
+    total: int
 
 class LoginReturn(BaseModel):
     mensagem: str

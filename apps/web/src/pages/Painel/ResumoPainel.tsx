@@ -1,36 +1,55 @@
-import type { SVGProps } from "react";
+import { useEffect, useState, type SVGProps } from "react";
 import CardIndicador from "../../componentes/CardIndicador/CardIndicador";
+import { getUsersCount } from "../../modulos/usuarios/servicos/userService";
 import "./ResumoPainel.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
 
-const indicadores = [
-    {
-        titulo: "Obras",
-        valor: 12,
-        descricao: "Obras cadastradas",
-        icone: <IconeObras />
-    },
-    {
-        titulo: "Usuários",
-        valor: 24,
-        descricao: "Usuários com acesso",
-        icone: <IconeUsuarios />
-    },
-    {
-        titulo: "Contratos",
-        valor: 8,
-        icone: <IconeContratos />
-    },
-    {
-        titulo: "Medições",
-        valor: 38,
-        descricao: "Medições registradas",
-        icone: <IconeMedicoes />
-    }
-];
-
 export default function ResumoPainel() {
+    const [quantidadeDeUsuarios, setQuantidadeDeUsuarios] = useState<number | null>(null);
+
+    useEffect(() => {
+        let ativo = true;
+
+        getUsersCount()
+            .then((total) => {
+                if (ativo) setQuantidadeDeUsuarios(total);
+            })
+            .catch(() => {
+                if (ativo) setQuantidadeDeUsuarios(null);
+            });
+
+        return () => {
+            ativo = false;
+        };
+    }, []);
+
+    const indicadores = [
+        {
+            titulo: "Obras",
+            valor: 12,
+            descricao: "Obras cadastradas",
+            icone: <IconeObras />
+        },
+        {
+            titulo: "Usuários",
+            valor: quantidadeDeUsuarios ?? "—",
+            descricao: "Usuários com acesso",
+            icone: <IconeUsuarios />
+        },
+        {
+            titulo: "Contratos",
+            valor: 8,
+            icone: <IconeContratos />
+        },
+        {
+            titulo: "Medições",
+            valor: 38,
+            descricao: "Medições registradas",
+            icone: <IconeMedicoes />
+        }
+    ];
+
     return (
         <section className="resumo-painel" aria-label="Resumo dos indicadores">
             {indicadores.map((indicador) => (
