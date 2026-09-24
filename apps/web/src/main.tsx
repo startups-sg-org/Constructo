@@ -5,9 +5,11 @@ import './index.css'
 
 import Formulario from "./modulos/usuarios/componentes/Formulario";
 import AdminLayout from "./layouts/AdminLayout/AdminLayout";
+import PublicLayout from "./layouts/PublicLayout/PublicLayout";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import PaginaPainel from "./pages/Painel/PaginaPainel";
+import ResumoPainel from "./pages/Painel/ResumoPainel";
 import ListaUsuarios from "./modulos/usuarios/componentes/ListaUsuarios";
 
 const root = document.getElementById("root")!;
@@ -20,14 +22,26 @@ ReactDOM.createRoot(root).render(
 
       <Routes>
 
-        <Route path="/" element={<Login />} />
+        <Route element={<PublicLayout />}>
+          <Route index element={<Home />} />
+        </Route>
 
         <Route path="/cadastro" element={<Formulario />} />
 
         <Route path="/login" element={<Login />} />
 
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Home />} />
+          <Route
+            index
+            element={
+              <PaginaPainel
+                titulo="Painel Administrativo"
+                subtitulo="Visão geral do seu painel Constructo."
+              >
+                <ResumoPainel />
+              </PaginaPainel>
+            }
+          />
           <Route
             path="usuarios"
             element={
