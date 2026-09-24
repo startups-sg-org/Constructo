@@ -21,6 +21,20 @@ class RepositorioEmMemoria:
     async def buscar_usuario_por_email(self, email: str):
         return self.usuarios.get(email.lower())
 
+    async def buscar_usuario_por_id(self, usuario_id: int):
+        return next(
+            (usuario for usuario in self.usuarios.values() if usuario.id == usuario_id),
+            None,
+        )
+
+    async def atualizar_usuario(self, usuario: SimpleNamespace, **dados) -> SimpleNamespace:
+        self.usuarios.pop(usuario.email.lower())
+        for campo, valor in dados.items():
+            setattr(usuario, campo, valor)
+        usuario.email = usuario.email.lower()
+        self.usuarios[usuario.email] = usuario
+        return usuario
+
     async def contar_usuarios(self) -> int:
         return len(self.usuarios)
 
@@ -183,3 +197,112 @@ def test_rejeita_senha_incorreta():
 
     app.dependency_overrides.clear()
     assert resposta.status_code == 401
+
+
+def test_carrega_e_atualiza_usuario_e_reflete_na_listagem():
+    cliente, _ = criar_cliente()
+    usuario_editado = {
+        **USUARIO,
+        "nome": "Ana",
+        "email": "ana@example.com",
+        "ativo": True,
+    }
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post("/usuarios/", json=usuario_editado)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+
+        consulta = cliente.get("/usuarios/2")
+        assert consulta.status_code == 200
+        assert consulta.json()["nome"] == "Ana"
+
+        novos_dados = {
+            key: value
+            for key, value in consulta.json().items()
+            if key != "id"
+        }
+        novos_dados.update(
+            {
+                "nome": "Beatriz",
+                "email": "beatriz@example.com",
+                "ativo": False,
+            }
+        )
+        atualizacao = cliente.put("/usuarios/2", json=novos_dados)
+        listagem = cliente.get("/usuarios/")
+
+    app.dependency_overrides.clear()
+    assert atualizacao.status_code == 200
+    assert atualizacao.json()["nome"] == "Beatriz"
+    assert atualizacao.json()["ativo"] is False
+    assert listagem.status_code == 200
+    usuario_na_lista = next(
+        usuario for usuario in listagem.json() if usuario["id"] == 2
+    )
+    assert usuario_na_lista["email"] == "beatriz@example.com"
+    assert usuario_na_lista["ativo"] is False
+
+
+def test_rejeita_email_duplicado_na_edicao():
+    cliente, _ = criar_cliente()
+    outro_usuario = {
+        **USUARIO,
+        "nome": "Ana",
+        "email": "ana@example.com",
+    }
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post("/usuarios/", json=outro_usuario)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        dados = {
+            key: value
+            for key, value in cliente.get("/usuarios/2").json().items()
+            if key != "id"
+        }
+        dados["email"] = USUARIO["email"]
+        resposta = cliente.put("/usuarios/2", json=dados)
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 400
+    assert resposta.json() == {"detail": "E-mail já cadastrado"}
+
+
+def test_rejeita_edicao_com_dados_invalidos():
+    cliente, _ = criar_cliente()
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        dados = {
+            key: value
+            for key, value in cliente.get("/usuarios/1").json().items()
+            if key != "id"
+        }
+        dados["canal_preferido"] = "sms"
+        resposta = cliente.put("/usuarios/1", json=dados)
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 422
+
+
+def test_rejeita_consulta_e_edicao_sem_autenticacao():
+    cliente, _ = criar_cliente()
+
+    with cliente:
+        consulta = cliente.get("/usuarios/1")
+        edicao = cliente.put("/usuarios/1", json={})
+
+    app.dependency_overrides.clear()
+    assert consulta.status_code == 401
+    assert edicao.status_code == 401

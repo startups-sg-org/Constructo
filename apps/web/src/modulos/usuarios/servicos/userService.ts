@@ -1,4 +1,4 @@
-import type { User, UserReponse } from "@constructo/shared";
+import type { EditUserData, User, UserReponse } from "@constructo/shared";
 
 const BACKEND_URL = `http://${window.location.hostname}:8000`;
 
@@ -89,6 +89,40 @@ export async function getUsers(): Promise<UserReponse[]> {
     }
 
     const result: UserReponse[] = await response.json();
+    return result;
+}
+
+export async function getUser(userId: number): Promise<UserReponse> {
+    const response = await fetch(`${BACKEND_URL}/usuarios/${userId}`, {
+        credentials: "include"
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.detail ?? "Não foi possível carregar o usuário");
+    }
+
+    return result;
+}
+
+export async function updateUser(
+    userId: number,
+    user: EditUserData
+): Promise<UserReponse> {
+    const response = await fetch(`${BACKEND_URL}/usuarios/${userId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(user)
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.detail ?? "Não foi possível atualizar o usuário");
+    }
+
     return result;
 }
 

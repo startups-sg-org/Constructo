@@ -52,6 +52,22 @@ class RepositorioDeUsuarios:
         consulta = select(Usuario).where(func.lower(Usuario.email) == email.lower())
         return await self.session.scalar(consulta)
 
+    async def buscar_usuario_por_id(self, usuario_id: int) -> Usuario | None:
+        return await self.session.get(Usuario, usuario_id)
+
+    async def atualizar_usuario(
+        self,
+        usuario: Usuario,
+        **dados: str | bool,
+    ) -> Usuario:
+        for campo, valor in dados.items():
+            setattr(usuario, campo, valor)
+
+        usuario.email = usuario.email.lower()
+        await self.session.flush()
+        await self.session.refresh(usuario)
+        return usuario
+
     async def contar_usuarios(self) -> int:
         consulta = select(func.count()).select_from(Usuario)
         return await self.session.scalar(consulta) or 0

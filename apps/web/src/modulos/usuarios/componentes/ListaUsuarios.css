@@ -149,3 +149,120 @@
         width: fit-content;
     }
 }
+
+.lista-usuarios__editar {
+    padding: 7px 12px;
+    font-size: 0.82rem;
+}
+
+.editar-usuario__fundo {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    overflow-y: auto;
+    background: rgb(15 23 42 / 55%);
+}
+
+.editar-usuario {
+    width: min(760px, 100%);
+    max-height: calc(100vh - 48px);
+    padding: 24px;
+    overflow-y: auto;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 24px 64px rgb(15 23 42 / 24%);
+}
+
+.editar-usuario__cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.editar-usuario__cabecalho h2 {
+    margin-top: 4px;
+    color: #153b36;
+}
+
+.editar-usuario__fechar {
+    border: 0;
+    color: #52605d;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.editar-usuario__form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.editar-usuario__opcoes {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.editar-usuario__opcoes label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.editar-usuario__opcoes input {
+    width: auto;
+}
+
+.editar-usuario__acoes,
+.editar-usuario__erro,
+.editar-usuario__estado {
+    grid-column: 1 / -1;
+}
+
+.editar-usuario__acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.editar-usuario__erro {
+    color: #b91c1c;
+    font-size: 0.875rem;
+}
+
+.editar-usuario__estado {
+    padding: 32px 0;
+    color: #62706d;
+    text-align: center;
+}
+
+.botao:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (max-width: 600px) {
+    .editar-usuario__fundo {
+        padding: 12px;
+    }
+
+    .editar-usuario {
+        max-height: calc(100vh - 24px);
+        padding: 18px;
+    }
+
+    .editar-usuario__form {
+        grid-template-columns: 1fr;
+    }
+}

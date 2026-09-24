@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { UserReponse } from "@constructo/shared";
 import { getUsers } from "../servicos/userService";
+import EditarUsuario from "./EditarUsuario";
 import "./ListaUsuarios.css";
 
 export default function ListaUsuarios() {
@@ -8,6 +9,7 @@ export default function ListaUsuarios() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [tentativa, setTentativa] = useState(0);
+    const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<number | null>(null);
 
     useEffect(() => {
         let ativo = true;
@@ -77,6 +79,7 @@ export default function ListaUsuarios() {
                             <th>Telefone</th>
                             <th>E-mail</th>
                             <th>Status</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,11 +98,34 @@ export default function ListaUsuarios() {
                                         {usuario.ativo ? "Ativo" : "Inativo"}
                                     </span>
                                 </td>
+                                <td data-label="Ações">
+                                    <button
+                                        className="botao secundario lista-usuarios__editar"
+                                        onClick={() => setUsuarioEmEdicao(usuario.id)}
+                                        type="button"
+                                    >
+                                        Editar
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            {usuarioEmEdicao !== null && (
+                <EditarUsuario
+                    usuarioId={usuarioEmEdicao}
+                    aoCancelar={() => setUsuarioEmEdicao(null)}
+                    aoSalvar={(usuarioAtualizado) => {
+                        setUsuarios((atuais) =>
+                            atuais.map((usuario) =>
+                                usuario.id === usuarioAtualizado.id ? usuarioAtualizado : usuario
+                            )
+                        );
+                        setUsuarioEmEdicao(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

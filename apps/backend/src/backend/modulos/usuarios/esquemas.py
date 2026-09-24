@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class CreateUser(BaseModel):
@@ -18,6 +20,19 @@ class CreateUser(BaseModel):
 class LoginUser(BaseModel):
     email: EmailStr
     senha: str
+
+
+class UpdateUser(BaseModel):
+    cpf: str = Field(pattern=r"^(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})$")
+    nome: str = Field(min_length=3, max_length=200)
+    sobrenome: str = Field(min_length=3, max_length=200)
+    email: EmailStr
+    telefone: str = Field(min_length=10, max_length=20)
+    canal_preferido: Literal["email", "whatsapp"]
+    receber_atualizacoes: bool
+    empreendimento: str = Field(min_length=1, max_length=200)
+    unidade: str = Field(min_length=1, max_length=50)
+    ativo: bool
 
 
 class UserReturn(BaseModel):

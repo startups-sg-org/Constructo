@@ -62,6 +62,15 @@ export type userFormData = z.infer<typeof userSchema>
 
 export type User = Omit<userFormData, "confirmarSenha">
 
+export const editUserSchema = userSchema.omit({
+    senha: true,
+    confirmarSenha: true
+}).extend({
+    ativo: z.boolean()
+})
+
+export type EditUserData = z.infer<typeof editUserSchema>
+
 
 export const loginSchema = z.object({
     email: z

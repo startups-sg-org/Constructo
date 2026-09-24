@@ -7,6 +7,7 @@ from backend.modulos.usuarios.esquemas import (
     CreateUser,
     LoginReturn,
     LoginUser,
+    UpdateUser,
     UserCount,
     UserReturn,
 )
@@ -123,3 +124,49 @@ async def listar_usuarios(
     _: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> list[Usuario]:
     return await repositorio.listar_usuarios()
+
+
+@router.get("/usuarios/{usuario_id}", response_model=UserReturn)
+async def consultar_usuario(
+    usuario_id: int,
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Usuario:
+    usuario = await repositorio.buscar_usuario_por_id(usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return usuario
+
+
+@router.put("/usuarios/{usuario_id}", response_model=UserReturn)
+async def atualizar_usuario(
+    usuario_id: int,
+    dados: UpdateUser,
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Usuario:
+    usuario = await repositorio.buscar_usuario_por_id(usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    usuario_com_email = await repositorio.buscar_usuario_por_email(str(dados.email))
+    if usuario_com_email and usuario_com_email.id != usuario_id:
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+
+    try:
+        return await repositorio.atualizar_usuario(
+            usuario,
+            cpf=dados.cpf,
+            nome=dados.nome,
+            sobrenome=dados.sobrenome,
+            email=str(dados.email),
+            telefone=dados.telefone,
+            canal_preferido=dados.canal_preferido,
+            receber_atualizacoes=dados.receber_atualizacoes,
+            empreendimento=dados.empreendimento,
+            unidade=dados.unidade,
+            ativo=dados.ativo,
+        )
+    except IntegrityError as erro:
+        await repositorio.session.rollback()
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado") from erro
