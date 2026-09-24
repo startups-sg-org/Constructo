@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
     loginSchema,
-    type loginFormData,
-    type UserReponse
+    type loginFormData
 } from "@constructo/shared";
 import {
     getAuthenticatedUser,
-    loginUser,
-    logoutUser
+    loginUser
 } from "../../modulos/usuarios/servicos/userService";
+
+type EstadoNavegacao = {
+    origem?: {
+        pathname?: string;
+        search?: string;
+        hash?: string;
+    };
+};
 
 export default function Login() {
     const [erro, setErro] = useState("");
-    const [usuario, setUsuario] = useState<UserReponse | null>(null);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const origem = (location.state as EstadoNavegacao | null)?.origem;
+    const destinoAposLogin = origem?.pathname?.startsWith("/admin")
+        ? `${origem.pathname}${origem.search ?? ""}${origem.hash ?? ""}`
+        : "/admin";
 
     const {
         register,
@@ -28,22 +39,22 @@ export default function Login() {
     useEffect(() => {
         async function verificarSessao() {
             try {
-                const usuarioAutenticado = await getAuthenticatedUser();
-                setUsuario(usuarioAutenticado);
+                await getAuthenticatedUser();
+                navigate(destinoAposLogin, { replace: true });
             } catch {
-                setUsuario(null);
+                // Sem sessão ativa: o formulário de login permanece disponível.
             }
         }
 
         verificarSessao();
-    }, []);
+    }, [destinoAposLogin, navigate]);
 
     async function handleLogin(data: loginFormData) {
         try {
             setErro("");
 
-            const usuarioAutenticado = await loginUser(data.email, data.senha);
-            setUsuario(usuarioAutenticado);
+            await loginUser(data.email, data.senha);
+            navigate(destinoAposLogin, { replace: true });
         } catch (error) {
             if (error instanceof Error) {
                 setErro(error.message);
@@ -51,34 +62,6 @@ export default function Login() {
                 setErro("Não foi possível realizar o login");
             }
         }
-    }
-
-    async function sair() {
-        await logoutUser();
-        setUsuario(null);
-    }
-
-    if (usuario) {
-        return (
-            <main className="pagina-login">
-                <section className="card">
-                    <span className="subtitulo">Constructo</span>
-                    <h1>Login realizado</h1>
-                    <p className="mensagem-sucesso">
-                        Olá, {usuario.nome}! Sua autenticação foi concluída com sucesso.
-                    </p>
-                    <p>Seu painel administrativo está pronto para acesso.</p>
-
-                    <Link className="botao primario" to="/admin">
-                        Acessar painel
-                    </Link>
-
-                    <button className="botao secundario" type="button" onClick={sair}>
-                        Sair
-                    </button>
-                </section>
-            </main>
-        );
     }
 
     return (
