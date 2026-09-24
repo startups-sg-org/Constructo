@@ -542,6 +542,95 @@
     margin-top: 48px;
 }
 
+.como-funciona {
+    display: grid;
+    align-content: center;
+}
+
+.como-funciona__cabecalho {
+    max-width: 760px;
+    margin-inline: auto;
+    text-align: center;
+}
+
+.como-funciona__cabecalho > p {
+    color: #b97200;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.como-funciona__cabecalho h2 {
+    margin-top: 14px;
+    line-height: 1.12;
+}
+
+.como-funciona__cabecalho > span {
+    display: block;
+    max-width: 620px;
+    margin: 20px auto 0;
+    color: #687c77;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.como-funciona__etapas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 42px);
+    margin-top: clamp(48px, 6vw, 72px);
+    padding: 0;
+    list-style: none;
+}
+
+.como-funciona__etapa {
+    position: relative;
+    min-width: 0;
+}
+
+.como-funciona__etapa:not(:last-child)::after {
+    position: absolute;
+    z-index: 0;
+    top: 27px;
+    left: 66px;
+    width: calc(100% - 24px);
+    height: 1px;
+    background: #cadbd5;
+    content: "";
+}
+
+.como-funciona__numero {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 56px;
+    height: 56px;
+    place-items: center;
+    border: 1px solid #d6e3de;
+    border-radius: 16px;
+    color: #fff;
+    background: #153b36;
+    box-shadow: 0 10px 24px rgb(21 59 54 / 14%);
+    font-size: 0.85rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+}
+
+.como-funciona__etapa h3 {
+    margin-top: 24px;
+    color: #153b36;
+    font-size: 1.08rem;
+    line-height: 1.35;
+}
+
+.como-funciona__etapa p {
+    margin-top: 11px;
+    color: #687c77;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
 @media (max-width: 1040px) {
     .hero__conteudo {
         grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
@@ -597,6 +686,26 @@
 
     .recursos__lista {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .como-funciona__etapas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .como-funciona__etapa {
+        padding: 26px;
+        border: 1px solid #dfe9e5;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 12px 30px rgb(21 59 54 / 5%);
+    }
+
+    .como-funciona__etapa:not(:last-child)::after {
+        display: none;
+    }
+
+    .como-funciona__etapa h3 {
+        margin-top: 20px;
     }
 }
 
@@ -678,6 +787,30 @@
     .recursos__lista {
         grid-template-columns: 1fr;
         margin-top: 36px;
+    }
+
+    .como-funciona__etapas {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 36px;
+    }
+
+    .como-funciona__etapa {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 18px;
+        padding: 22px;
+    }
+
+    .como-funciona__numero {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        font-size: 0.78rem;
+    }
+
+    .como-funciona__etapa h3 {
+        margin-top: 0;
     }
 }
 

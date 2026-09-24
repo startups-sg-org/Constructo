@@ -80,8 +80,45 @@ export default function Home() {
                     />
                 </div>
             </section>
-            <section id="como-funciona" aria-labelledby="titulo-como-funciona">
-                <h2 id="titulo-como-funciona">Como funciona</h2>
+            <section className="como-funciona" id="como-funciona" aria-labelledby="titulo-como-funciona">
+                <div className="como-funciona__cabecalho">
+                    <p>Passo a passo</p>
+                    <h2 id="titulo-como-funciona">Da organização ao acompanhamento da obra.</h2>
+                    <span>
+                        Um fluxo simples para manter informações, medições e progresso sempre sob controle.
+                    </span>
+                </div>
+
+                <ol className="como-funciona__etapas">
+                    <li className="como-funciona__etapa">
+                        <span className="como-funciona__numero" aria-hidden="true">01</span>
+                        <div>
+                            <h3>Cadastre a obra</h3>
+                            <p>Adicione os dados principais do projeto e reúna as informações iniciais em um só lugar.</p>
+                        </div>
+                    </li>
+                    <li className="como-funciona__etapa">
+                        <span className="como-funciona__numero" aria-hidden="true">02</span>
+                        <div>
+                            <h3>Vincule contratos e informações</h3>
+                            <p>Organize contratos, valores, responsáveis e documentos relacionados à execução.</p>
+                        </div>
+                    </li>
+                    <li className="como-funciona__etapa">
+                        <span className="como-funciona__numero" aria-hidden="true">03</span>
+                        <div>
+                            <h3>Registre as medições</h3>
+                            <p>Atualize os serviços realizados para manter os dados da obra claros e confiáveis.</p>
+                        </div>
+                    </li>
+                    <li className="como-funciona__etapa">
+                        <span className="como-funciona__numero" aria-hidden="true">04</span>
+                        <div>
+                            <h3>Acompanhe o andamento</h3>
+                            <p>Visualize a evolução do projeto e identifique rapidamente os próximos passos.</p>
+                        </div>
+                    </li>
+                </ol>
             </section>
             <section id="sobre" aria-labelledby="titulo-sobre">
                 <h2 id="titulo-sobre">Sobre o Constructo</h2>
