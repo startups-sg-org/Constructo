@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const userSchema = z.object({
+const userBaseSchema = z.object({
     
     cpf: z
         .string()
@@ -56,13 +56,18 @@ export const userSchema = z.object({
     confirmarSenha: z.
         string()
 
-}).refine((data) => data.senha === data.confirmarSenha, { message: 'As senhas não coincidem', path: ['confirmarSenha'] })
+})
+
+export const userSchema = userBaseSchema.refine(
+    (data) => data.senha === data.confirmarSenha,
+    { message: 'As senhas não coincidem', path: ['confirmarSenha'] }
+)
 
 export type userFormData = z.infer<typeof userSchema>
 
 export type User = Omit<userFormData, "confirmarSenha">
 
-export const editUserSchema = userSchema.omit({
+export const editUserSchema = userBaseSchema.omit({
     senha: true,
     confirmarSenha: true
 }).extend({
