@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { userSchema, type User, type userFormData } from "@constructo/shared";
 import AuthCard from "../../../componentes/AuthCard/AuthCard";
+import CampoSenha from "../../../componentes/CampoSenha/CampoSenha";
 import { createUser } from "../servicos/userService";
 
 export default function Formulario() {
@@ -98,17 +99,23 @@ export default function Formulario() {
                     </label>
                 </div>
 
-                <div className="campo">
-                    <label htmlFor="senha">Senha</label>
-                    <input id="senha" type="password" placeholder="Crie uma senha segura" autoComplete="new-password" {...register("senha")} disabled={isSubmitting} aria-invalid={Boolean(errors.senha)} aria-describedby={errors.senha ? "senha-erro" : undefined} />
-                    {errors.senha && <span id="senha-erro" className="campo__erro" role="alert">{errors.senha.message}</span>}
-                </div>
+                <CampoSenha
+                    label="Senha"
+                    placeholder="Crie uma senha segura"
+                    autoComplete="new-password"
+                    {...register("senha")}
+                    disabled={isSubmitting}
+                    mensagemErro={errors.senha?.message}
+                />
 
-                <div className="campo">
-                    <label htmlFor="confirmarSenha">Confirme a senha</label>
-                    <input id="confirmarSenha" type="password" placeholder="Digite a senha novamente" autoComplete="new-password" {...register("confirmarSenha")} disabled={isSubmitting} aria-invalid={Boolean(errors.confirmarSenha)} aria-describedby={errors.confirmarSenha ? "confirmar-senha-erro" : undefined} />
-                    {errors.confirmarSenha && <span id="confirmar-senha-erro" className="campo__erro" role="alert">{errors.confirmarSenha.message}</span>}
-                </div>
+                <CampoSenha
+                    label="Confirme a senha"
+                    placeholder="Digite a senha novamente"
+                    autoComplete="new-password"
+                    {...register("confirmarSenha")}
+                    disabled={isSubmitting}
+                    mensagemErro={errors.confirmarSenha?.message}
+                />
 
                 <button className="botao primario" type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Criando conta..." : "Criar conta"}
