@@ -50,18 +50,33 @@ export default function Home() {
                 <div className="recursos__lista">
                     <FeatureCard
                         icone={<IconeObra />}
-                        titulo="Obras organizadas"
-                        descricao="Centralize informações, prazos e responsáveis para acompanhar cada etapa da execução."
-                    />
-                    <FeatureCard
-                        icone={<IconeDocumento />}
-                        titulo="Contratos sob controle"
-                        descricao="Consulte contratos e dados importantes com agilidade, sem informações espalhadas."
+                        titulo="Gestão de obras"
+                        descricao="Organize prazos, responsáveis e etapas para conduzir cada obra com mais clareza."
                     />
                     <FeatureCard
                         icone={<IconeMedicao />}
-                        titulo="Medições transparentes"
-                        descricao="Registre o avanço da obra e acompanhe o progresso com dados claros e atualizados."
+                        titulo="Acompanhamento de medições"
+                        descricao="Registre e consulte as medições da obra com dados claros, acessíveis e atualizados."
+                    />
+                    <FeatureCard
+                        icone={<IconeDocumento />}
+                        titulo="Gestão de contratos"
+                        descricao="Mantenha contratos, valores e informações importantes sempre organizados e à mão."
+                    />
+                    <FeatureCard
+                        icone={<IconeLocalizacao />}
+                        titulo="Localização das obras"
+                        descricao="Visualize onde cada projeto está e encontre rapidamente as obras sob sua gestão."
+                    />
+                    <FeatureCard
+                        icone={<IconeProgresso />}
+                        titulo="Acompanhamento do progresso"
+                        descricao="Veja a evolução das etapas e identifique com facilidade o que precisa de atenção."
+                    />
+                    <FeatureCard
+                        icone={<IconeCentralizacao />}
+                        titulo="Informações centralizadas"
+                        descricao="Reúna os dados da operação em um só lugar e tome decisões com mais segurança."
                     />
                 </div>
             </section>
@@ -197,6 +212,18 @@ function IconeDocumento() {
 
 function IconeMedicao() {
     return <svg viewBox="0 0 20 20"><path d="M3 16.5h14M5 14V9M10 14V4M15 14V7" /></svg>;
+}
+
+function IconeLocalizacao() {
+    return <svg viewBox="0 0 20 20"><path d="M10 17s5-4.6 5-9a5 5 0 0 0-10 0c0 4.4 5 9 5 9Z" /><circle cx="10" cy="8" r="1.7" /></svg>;
+}
+
+function IconeProgresso() {
+    return <svg viewBox="0 0 20 20"><path d="M3 16.5h14M4.5 13l3.2-3.2 2.6 2.2 5.2-6M12.5 6h3v3" /></svg>;
+}
+
+function IconeCentralizacao() {
+    return <svg viewBox="0 0 20 20"><rect x="3" y="3" width="5" height="5" rx="1" /><rect x="12" y="3" width="5" height="5" rx="1" /><rect x="7.5" y="12" width="5" height="5" rx="1" /><path d="M5.5 8v2h9V8M10 10v2" /></svg>;
 }
 
 function IconeTendencia() {
