@@ -9,7 +9,7 @@ export default function Formulario() {
     const {
         register,
         handleSubmit,
-        formState: { errors }
+        formState: { errors, isSubmitting }
     } = useForm<userFormData>({
         resolver: zodResolver(userSchema),
         defaultValues: {
@@ -40,52 +40,52 @@ export default function Formulario() {
             chamada="Comece agora"
             acoes={<>Já tem uma conta? <Link to="/login">Entre</Link></>}
         >
-            <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
+            <form className="usuario-form" aria-busy={isSubmitting} onSubmit={handleSubmit(handleSubmitUser)}>
                 <div className="campo">
                     <label htmlFor="cpf">CPF</label>
-                    <input id="cpf" type="text" {...register("cpf")} />
-                    {errors.cpf && <span>{errors.cpf.message}</span>}
+                    <input id="cpf" type="text" placeholder="000.000.000-00" inputMode="numeric" autoComplete="off" {...register("cpf")} disabled={isSubmitting} aria-invalid={Boolean(errors.cpf)} aria-describedby={errors.cpf ? "cpf-erro" : undefined} />
+                    {errors.cpf && <span id="cpf-erro" className="campo__erro" role="alert">{errors.cpf.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="nome">Nome</label>
-                    <input id="nome" type="text" {...register("nome")} />
-                    {errors.nome && <span>{errors.nome.message}</span>}
+                    <input id="nome" type="text" placeholder="Seu nome" autoComplete="given-name" {...register("nome")} disabled={isSubmitting} aria-invalid={Boolean(errors.nome)} aria-describedby={errors.nome ? "nome-erro" : undefined} />
+                    {errors.nome && <span id="nome-erro" className="campo__erro" role="alert">{errors.nome.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="sobrenome">Sobrenome</label>
-                    <input id="sobrenome" type="text" {...register("sobrenome")} />
-                    {errors.sobrenome && <span>{errors.sobrenome.message}</span>}
+                    <input id="sobrenome" type="text" placeholder="Seu sobrenome" autoComplete="family-name" {...register("sobrenome")} disabled={isSubmitting} aria-invalid={Boolean(errors.sobrenome)} aria-describedby={errors.sobrenome ? "sobrenome-erro" : undefined} />
+                    {errors.sobrenome && <span id="sobrenome-erro" className="campo__erro" role="alert">{errors.sobrenome.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="email">E-mail</label>
-                    <input id="email" type="email" {...register("email")} />
-                    {errors.email && <span>{errors.email.message}</span>}
+                    <input id="email" type="email" placeholder="seuemail@exemplo.com" autoComplete="email" {...register("email")} disabled={isSubmitting} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-erro" : undefined} />
+                    {errors.email && <span id="email-erro" className="campo__erro" role="alert">{errors.email.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="telefone">Telefone</label>
-                    <input id="telefone" type="tel" {...register("telefone")} />
-                    {errors.telefone && <span>{errors.telefone.message}</span>}
+                    <input id="telefone" type="tel" placeholder="(00) 00000-0000" inputMode="tel" autoComplete="tel" {...register("telefone")} disabled={isSubmitting} aria-invalid={Boolean(errors.telefone)} aria-describedby={errors.telefone ? "telefone-erro" : undefined} />
+                    {errors.telefone && <span id="telefone-erro" className="campo__erro" role="alert">{errors.telefone.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="empreendimento">Empreendimento</label>
-                    <input id="empreendimento" type="text" {...register("empreendimento")} />
-                    {errors.empreendimento && <span>{errors.empreendimento.message}</span>}
+                    <input id="empreendimento" type="text" placeholder="Nome do empreendimento" {...register("empreendimento")} disabled={isSubmitting} aria-invalid={Boolean(errors.empreendimento)} aria-describedby={errors.empreendimento ? "empreendimento-erro" : undefined} />
+                    {errors.empreendimento && <span id="empreendimento-erro" className="campo__erro" role="alert">{errors.empreendimento.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="unidade">Unidade</label>
-                    <input id="unidade" type="text" {...register("unidade")} />
-                    {errors.unidade && <span>{errors.unidade.message}</span>}
+                    <input id="unidade" type="text" placeholder="Ex.: Bloco A, apto. 101" {...register("unidade")} disabled={isSubmitting} aria-invalid={Boolean(errors.unidade)} aria-describedby={errors.unidade ? "unidade-erro" : undefined} />
+                    {errors.unidade && <span id="unidade-erro" className="campo__erro" role="alert">{errors.unidade.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="canal_preferido">Canal preferido</label>
-                    <select id="canal_preferido" {...register("canal_preferido")}>
+                    <select id="canal_preferido" {...register("canal_preferido")} disabled={isSubmitting}>
                         <option value="email">E-mail</option>
                         <option value="whatsapp">WhatsApp</option>
                     </select>
@@ -93,25 +93,25 @@ export default function Formulario() {
 
                 <div className="campo campo-checkbox">
                     <label>
-                        <input type="checkbox" {...register("receber_atualizacoes")} />
+                        <input type="checkbox" {...register("receber_atualizacoes")} disabled={isSubmitting} />
                         Receber atualizações da construção
                     </label>
                 </div>
 
                 <div className="campo">
                     <label htmlFor="senha">Senha</label>
-                    <input id="senha" type="password" {...register("senha")} />
-                    {errors.senha && <span>{errors.senha.message}</span>}
+                    <input id="senha" type="password" placeholder="Crie uma senha segura" autoComplete="new-password" {...register("senha")} disabled={isSubmitting} aria-invalid={Boolean(errors.senha)} aria-describedby={errors.senha ? "senha-erro" : undefined} />
+                    {errors.senha && <span id="senha-erro" className="campo__erro" role="alert">{errors.senha.message}</span>}
                 </div>
 
                 <div className="campo">
                     <label htmlFor="confirmarSenha">Confirme a senha</label>
-                    <input id="confirmarSenha" type="password" {...register("confirmarSenha")} />
-                    {errors.confirmarSenha && <span>{errors.confirmarSenha.message}</span>}
+                    <input id="confirmarSenha" type="password" placeholder="Digite a senha novamente" autoComplete="new-password" {...register("confirmarSenha")} disabled={isSubmitting} aria-invalid={Boolean(errors.confirmarSenha)} aria-describedby={errors.confirmarSenha ? "confirmar-senha-erro" : undefined} />
+                    {errors.confirmarSenha && <span id="confirmar-senha-erro" className="campo__erro" role="alert">{errors.confirmarSenha.message}</span>}
                 </div>
 
-                <button className="botao primario" type="submit">
-                    Criar conta
+                <button className="botao primario" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Criando conta..." : "Criar conta"}
                 </button>
             </form>
         </AuthCard>
