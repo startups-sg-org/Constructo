@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { userSchema, type User, type userFormData } from "@constructo/shared";
+import AuthCard from "../../../componentes/AuthCard/AuthCard";
 import { createUser } from "../servicos/userService";
 
 export default function Formulario() {
@@ -33,14 +34,13 @@ export default function Formulario() {
     }
 
     return (
-        <section className="auth-form auth-form--cadastro" aria-labelledby="titulo-cadastro">
-                <p className="auth-form__chamada">Comece agora</p>
-                <h1 id="titulo-cadastro">Crie sua conta</h1>
-                <p className="auth-form__descricao">
-                    Preencha seus dados para acompanhar sua obra com clareza e segurança.
-                </p>
-
-                <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
+        <AuthCard
+            titulo="Crie sua conta"
+            descricao="Preencha seus dados para acompanhar sua obra com clareza e segurança."
+            chamada="Comece agora"
+            acoes={<>Já tem uma conta? <Link to="/login">Entre</Link></>}
+        >
+            <form className="usuario-form" onSubmit={handleSubmit(handleSubmitUser)}>
                 <div className="campo">
                     <label htmlFor="cpf">CPF</label>
                     <input id="cpf" type="text" {...register("cpf")} />
@@ -110,14 +110,10 @@ export default function Formulario() {
                     {errors.confirmarSenha && <span>{errors.confirmarSenha.message}</span>}
                 </div>
 
-                    <button className="botao primario" type="submit">
-                        Criar conta
-                    </button>
-                </form>
-
-                <p className="link-conta">
-                    Já tem uma conta? <Link to="/login">Entre</Link>
-                </p>
-        </section>
+                <button className="botao primario" type="submit">
+                    Criar conta
+                </button>
+            </form>
+        </AuthCard>
     );
 }
