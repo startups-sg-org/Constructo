@@ -189,9 +189,6 @@ export default function Home() {
                     </Link>
                 </div>
             </section>
-            <section id="sobre" aria-labelledby="titulo-sobre">
-                <h2 id="titulo-sobre">Sobre o Constructo</h2>
-            </section>
         </main>
     );
 }
