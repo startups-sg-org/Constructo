@@ -1,0 +1,52 @@
+.campo-senha__controle {
+    position: relative;
+    min-width: 0;
+}
+
+.campo .campo-senha__controle .campo-senha__input {
+    padding-right: 52px;
+}
+
+.campo-senha__alternar {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    color: #52716a;
+    background: transparent;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.campo-senha__alternar:hover:not(:disabled) {
+    color: #236557;
+    background: #edf5f2;
+}
+
+.campo-senha__alternar:focus-visible {
+    outline: 3px solid rgb(47 118 104 / 20%);
+    outline-offset: 1px;
+}
+
+.campo-senha__alternar:disabled {
+    color: #91a19d;
+    cursor: not-allowed;
+}
+
+.campo-senha__alternar svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

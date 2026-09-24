@@ -68,6 +68,7 @@
 }
 
 .auth-card .campo > input,
+.auth-card .campo-senha__controle > input,
 .auth-card .campo > select {
     min-width: 0;
     min-height: 48px;
@@ -80,17 +81,20 @@
     transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
-.auth-card .campo > input::placeholder {
+.auth-card .campo > input::placeholder,
+.auth-card .campo-senha__controle > input::placeholder {
     color: #82948f;
     opacity: 1;
 }
 
 .auth-card .campo > input:hover:not(:disabled),
+.auth-card .campo-senha__controle > input:hover:not(:disabled),
 .auth-card .campo > select:hover:not(:disabled) {
     border-color: #7fa59b;
 }
 
 .auth-card .campo > input:focus,
+.auth-card .campo-senha__controle > input:focus,
 .auth-card .campo > select:focus {
     border-color: #2f7668;
     outline: 0;
@@ -98,16 +102,19 @@
 }
 
 .auth-card .campo > input[aria-invalid="true"],
+.auth-card .campo-senha__controle > input[aria-invalid="true"],
 .auth-card .campo > select[aria-invalid="true"] {
     border-color: #c45b50;
 }
 
 .auth-card .campo > input[aria-invalid="true"]:focus,
+.auth-card .campo-senha__controle > input[aria-invalid="true"]:focus,
 .auth-card .campo > select[aria-invalid="true"]:focus {
     box-shadow: 0 0 0 3px rgb(180 67 56 / 15%);
 }
 
 .auth-card .campo > input:disabled,
+.auth-card .campo-senha__controle > input:disabled,
 .auth-card .campo > select:disabled {
     border-color: #d8e1de;
     color: #788984;
@@ -118,7 +125,8 @@
     -webkit-text-fill-color: #788984;
 }
 
-.auth-card .campo > input:disabled::placeholder {
+.auth-card .campo > input:disabled::placeholder,
+.auth-card .campo-senha__controle > input:disabled::placeholder {
     color: #9ba9a5;
     -webkit-text-fill-color: #9ba9a5;
 }

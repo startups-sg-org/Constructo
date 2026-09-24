@@ -11,6 +11,7 @@ import {
     loginUser
 } from "../../modulos/usuarios/servicos/userService";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
+import CampoSenha from "../../componentes/CampoSenha/CampoSenha";
 
 type EstadoNavegacao = {
     origem?: {
@@ -93,24 +94,14 @@ export default function Login() {
                     )}
                 </div>
 
-                <div className="campo">
-                    <label htmlFor="senha">Senha</label>
-                    <input
-                        id="senha"
-                        type="password"
-                        placeholder="Digite sua senha"
-                        autoComplete="current-password"
-                        {...register("senha")}
-                        disabled={isSubmitting}
-                        aria-invalid={Boolean(errors.senha)}
-                        aria-describedby={errors.senha ? "senha-erro" : undefined}
-                    />
-                    {errors.senha && (
-                        <span id="senha-erro" className="campo__erro" role="alert">
-                            {errors.senha.message}
-                        </span>
-                    )}
-                </div>
+                <CampoSenha
+                    label="Senha"
+                    placeholder="Digite sua senha"
+                    autoComplete="current-password"
+                    {...register("senha")}
+                    disabled={isSubmitting}
+                    mensagemErro={errors.senha?.message}
+                />
 
                 {erro && <p className="mensagem-erro" role="alert">{erro}</p>}
 
