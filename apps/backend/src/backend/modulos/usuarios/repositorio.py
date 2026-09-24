@@ -11,7 +11,6 @@ from backend.modulos.usuarios.modelos import Sessao, Usuario
 
 SESSAO_DURACAO = timedelta(days=7)
 
-
 class RepositorioDeUsuarios:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -52,6 +51,10 @@ class RepositorioDeUsuarios:
     async def buscar_usuario_por_email(self, email: str) -> Usuario | None:
         consulta = select(Usuario).where(func.lower(Usuario.email) == email.lower())
         return await self.session.scalar(consulta)
+
+    async def contar_usuarios(self) -> int:
+        consulta = select(func.count()).select_from(Usuario)
+        return await self.session.scalar(consulta) or 0
 
     async def criar_sessao(self, id_usuario: int) -> str:
         token = secrets.token_urlsafe(32)

@@ -21,6 +21,9 @@ class RepositorioEmMemoria:
     async def buscar_usuario_por_email(self, email: str):
         return self.usuarios.get(email.lower())
 
+    async def contar_usuarios(self) -> int:
+        return len(self.usuarios)
+
     async def criar_sessao(self, id_usuario: int) -> str:
         usuario = next(usuario for usuario in self.usuarios.values() if usuario.id == id_usuario)
         token = f"token-{id_usuario}"
@@ -100,6 +103,30 @@ def test_rejeita_email_duplicado():
     app.dependency_overrides.clear()
     assert duplicado.status_code == 400
     assert duplicado.json() == {"detail": "E-mail já cadastrado"}
+
+
+def test_consulta_quantidade_de_usuarios_autenticado():
+    cliente, _ = criar_cliente()
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        resposta = cliente.get("/usuarios/quantidade")
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 200
+    assert resposta.json() == {"total": 1}
+
+
+def test_rejeita_consulta_de_quantidade_sem_autenticacao():
+    cliente, _ = criar_cliente()
+    with cliente:
+        resposta = cliente.get("/usuarios/quantidade")
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 401
 
 
 def test_rejeita_senha_incorreta():
