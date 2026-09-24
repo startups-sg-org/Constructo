@@ -631,6 +631,150 @@
     line-height: 1.7;
 }
 
+.pagina-inicial .beneficios {
+    display: grid;
+    min-height: auto;
+    grid-template-columns: minmax(280px, 0.76fr) minmax(0, 1.24fr);
+    align-items: start;
+    gap: clamp(48px, 7vw, 96px);
+    color: #ffffff;
+    background:
+        radial-gradient(circle at 8% 16%, rgb(74 139 123 / 38%), transparent 28%),
+        linear-gradient(145deg, #102f2b 0%, #153b36 52%, #1d4a43 100%);
+}
+
+.beneficios__introducao {
+    position: sticky;
+    top: 120px;
+}
+
+.beneficios__chamada {
+    color: #f3b84f;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.beneficios__introducao h2 {
+    max-width: 520px;
+    margin-top: 14px;
+    color: #ffffff;
+    line-height: 1.1;
+}
+
+.beneficios__descricao {
+    max-width: 520px;
+    margin-top: 22px;
+    color: #c4d8d3;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.beneficios__destaque {
+    display: flex;
+    max-width: 500px;
+    align-items: flex-start;
+    gap: 16px;
+    margin-top: 38px;
+    padding: 20px;
+    border: 1px solid rgb(255 255 255 / 13%);
+    border-radius: 16px;
+    background: rgb(255 255 255 / 7%);
+}
+
+.beneficios__destaque > span {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    place-items: center;
+    border-radius: 12px;
+    color: #ffc55c;
+    background: rgb(245 158 11 / 14%);
+}
+
+.beneficios__destaque svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+.beneficios__destaque strong {
+    font-size: 0.98rem;
+}
+
+.beneficios__destaque p {
+    margin-top: 5px;
+    color: #b8cec8;
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.beneficios__lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.beneficio {
+    display: flex;
+    min-width: 0;
+    min-height: 190px;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 26px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 17px;
+    background: rgb(255 255 255 / 7%);
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.beneficio:hover {
+    border-color: rgb(255 197 92 / 35%);
+    background: rgb(255 255 255 / 10%);
+    transform: translateY(-3px);
+}
+
+.beneficio__icone {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    place-items: center;
+    border-radius: 13px;
+    color: #ffc55c;
+    background: rgb(245 158 11 / 13%);
+}
+
+.beneficio__icone svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+.beneficio h3 {
+    color: #ffffff;
+    font-size: 1rem;
+    letter-spacing: -0.015em;
+    line-height: 1.4;
+}
+
+.beneficio p {
+    margin-top: 9px;
+    color: #b8cec8;
+    font-size: 0.84rem;
+    line-height: 1.65;
+}
+
 @media (max-width: 1040px) {
     .hero__conteudo {
         grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
@@ -686,6 +830,14 @@
 
     .recursos__lista {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pagina-inicial .beneficios {
+        grid-template-columns: 1fr;
+    }
+
+    .beneficios__introducao {
+        position: static;
     }
 
     .como-funciona__etapas {
@@ -789,6 +941,19 @@
         margin-top: 36px;
     }
 
+    .beneficios__lista {
+        grid-template-columns: 1fr;
+    }
+
+    .beneficios__destaque {
+        margin-top: 30px;
+    }
+
+    .beneficio {
+        min-height: 0;
+        padding: 22px;
+    }
+
     .como-funciona__etapas {
         grid-template-columns: 1fr;
         gap: 14px;
@@ -815,7 +980,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero__botao {
+    .hero__botao,
+    .beneficio {
         transition: none;
     }
 }
