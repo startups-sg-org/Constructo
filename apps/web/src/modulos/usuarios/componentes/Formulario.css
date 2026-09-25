@@ -31,6 +31,12 @@
     font-weight: 800;
 }
 
+.cadastro-form__secao-cabecalho > div,
+.auth-card .cadastro-form__atualizacoes label span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .cadastro-form__secao-cabecalho h2 {
     color: #20453f;
     font-size: 1rem;

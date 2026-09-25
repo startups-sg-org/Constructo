@@ -11,11 +11,12 @@
 }
 
 body {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
 }
 
 html {
+  min-width: 0;
   scroll-behavior: smooth;
 }
 
