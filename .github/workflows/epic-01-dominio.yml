@@ -1,0 +1,42 @@
+name: Epic 1 - domínio
+
+on:
+  pull_request:
+    paths:
+      - "apps/backend/**"
+      - ".github/workflows/epic-01-dominio.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar-dominio:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: teste_epic01
+          POSTGRES_DB: constructo_epic01
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d constructo_epic01"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      URL_POSTGRES: postgresql+asyncpg://postgres:teste_epic01@localhost:5432/constructo_epic01
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: uv sync --locked --group dev
+      - run: uv run --locked ruff check src/backend/modulos/dominio tests alembic/env.py alembic/versions scripts/verificar_epic01_postgres.py
+      - run: uv run --locked pytest -q
+      - run: uv run --locked python scripts/verificar_epic01_postgres.py

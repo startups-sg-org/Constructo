@@ -20,7 +20,7 @@ Este documento orienta as issues #1–#12. A V1 demonstra o caminho **gestor →
 
 ## Estados e progresso (#7, #8)
 
-`NAO_INICIADO → EM_ANDAMENTO → CONCLUIDO`; a V1 admite reabertura `CONCLUIDO → EM_ANDAMENTO`. O registro da justificativa fica para a evolução com histórico de alterações. Não há salto direto de não iniciado a concluído. Início e conclusão são datas da ocorrência, não da definição de marco. Ao reabrir, limpar `concluido_em`; ao concluir, exigir `iniciado_em` e definir `concluido_em >= iniciado_em`. O futuro serviço validará estado e datas em uma transação.
+`NAO_INICIADO → EM_ANDAMENTO → CONCLUIDO`; a V1 admite reabertura `CONCLUIDO → EM_ANDAMENTO`. O registro da justificativa fica para a evolução com histórico de alterações. Não há salto direto de não iniciado a concluído. Início e conclusão são datas da ocorrência, não da definição de marco. Ao reabrir, limpar `concluido_em`; ao concluir, exigir `iniciado_em` e definir `concluido_em >= iniciado_em`. `alterar_estado` bloqueia a linha durante a transição e executa a mudança na transação da sessão.
 
 O progresso de uma unidade é `marcos concluídos aplicáveis / marcos aplicáveis × 100`, arredondado ao inteiro; sem marcos, 0%. Marcos sem linha em `progressos_marco` contam como não iniciados. Só contam os marcos da taxonomia do mesmo empreendimento. O progresso de etapa usa seus marcos e os de suas subetapas. A agregação do empreendimento é a razão entre todos os pares unidade × marco aplicáveis, não a média de percentuais previamente arredondados. Não representa percentual financeiro da obra. Mudanças na taxonomia alteram o denominador: congelar/versar taxonomia ficará para uma fase posterior.
 
@@ -47,7 +47,13 @@ erDiagram
     LOCAIS_OBRA ||--o{ USUARIOS_UNIDADES : pertence
 ```
 
-Chaves e atributos estão em `modulos/dominio/modelos.py`; o banco impõe FKs, unicidades e estados válidos. Restrições que atravessam várias tabelas (tipo `UNIDADE`, taxonomia do empreendimento, evidência da publicação, papel do usuário, ciclos) exigem validação transacional nos serviços das próximas fases. Nenhuma rota administrativa ou do comprador foi exposta nesta etapa.
+Chaves e atributos estão em `modulos/dominio/modelos.py`; o banco impõe FKs, unicidades, estados/datas válidos e a integridade de publicação (autor/data juntos). As validações que atravessam tabelas estão em `modulos/dominio/servicos.py`: árvore de locais e etapas, papel e vínculo do usuário, unidade/marco do mesmo empreendimento, evidência do mesmo progresso, seleção explícita de fotos e visibilidade de publicações. Essas funções usam a sessão recebida: o chamador deve confirmar ou desfazer toda a operação; `get_db` já faz isso na API existente. Na V1 a seleção exige ao menos uma evidência. Não há endpoints novos nesta etapa.
+
+`calcular_progresso_unidade` busca todos os marcos da taxonomia, incluindo os sem linha de progresso; pode filtrar etapa e suas subetapas. `calcular_progresso_empreendimento` usa pares unidade × marco e só arredonda no final. Para um conjunto vazio, retorna 0. Leituras do comprador devem usar `pode_ler_unidade` / `publicacoes_da_unidade`; não se deve servir `arquivo_url` como arquivo público sem autorização.
+
+## Verificação do Epic 1
+
+`tests/test_dominio.py` cobre enums e contratos; `tests/test_dominio_integracao.py` cobre serviços em SQLite com FKs ligadas. O workflow `.github/workflows/epic-01-dominio.yml` executa a suíte e o script `scripts/verificar_epic01_postgres.py` em um PostgreSQL temporário: upgrade com usuário legado, downgrade/upgrade das invariantes, comparação de metadata via `alembic check` e duas transições simultâneas do mesmo marco. O teste PostgreSQL deve passar antes de fechar o Epic. Endpoints futuros devem manter o mesmo bloqueio e limite de transação dos serviços.
 
 ## Entidades anteriores (#12) e transição de dados
 
@@ -59,4 +65,4 @@ Neste checkout, o backend possui somente `usuarios` e `sessoes`; `contrato`, `ob
 2. O serviço cria progresso somente para unidade e marco do mesmo empreendimento.
 3. Fotos privadas continuam inacessíveis ao comprador até a publicação com seleção explícita.
 4. Comprador vê apenas suas unidades e publicações divulgadas.
-5. API rejeita relações entre empreendimentos e transições inválidas, inclusive sob concorrência.
+5. Os serviços rejeitam relações entre empreendimentos e transições inválidas; as futuras rotas devem chamá-los na mesma transação.

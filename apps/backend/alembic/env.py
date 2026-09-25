@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from backend.banco_de_dados.connections.database_clients import settings
 from backend.banco_de_dados.connections.database_postgres import Base
-from backend.modulos.usuarios import modelos  # noqa: F401
 from backend.modulos.dominio import modelos as modelos_dominio  # noqa: F401
+from backend.modulos.usuarios import modelos  # noqa: F401
 
 config = context.config
 

@@ -124,6 +124,12 @@ class ProgressoMarco(Base):
         CheckConstraint(
             "concluido_em IS NULL OR concluido_em >= iniciado_em", name="ck_progressos_datas"
         ),
+        CheckConstraint(
+            "(status = 'NAO_INICIADO' AND iniciado_em IS NULL AND concluido_em IS NULL) OR "
+            "(status = 'EM_ANDAMENTO' AND iniciado_em IS NOT NULL AND concluido_em IS NULL) OR "
+            "(status = 'CONCLUIDO' AND iniciado_em IS NOT NULL AND concluido_em IS NOT NULL)",
+            name="ck_progressos_estado_datas",
+        ),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     local_obra_id: Mapped[int] = mapped_column(
@@ -153,6 +159,12 @@ class Evidencia(Base):
 
 class Publicacao(Base):
     __tablename__ = "publicacoes"
+    __table_args__ = (
+        CheckConstraint(
+            "(publicado_em IS NULL) = (publicado_por IS NULL)",
+            name="ck_publicacoes_autor_e_data",
+        ),
+    )
     id: Mapped[int] = mapped_column(primary_key=True)
     progresso_marco_id: Mapped[int] = mapped_column(
         ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
