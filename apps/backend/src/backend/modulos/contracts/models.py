@@ -57,7 +57,7 @@ class Contrato(Base):
         nullable=False,
         server_default="ativo",
     )
-    
+
     iniciado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -109,3 +109,7 @@ class itens_contratuais(Base):
     )
 
     contrato: Mapped["Contrato"] = relationship("Contrato", back_populates="itens_contratuais")
+    itens_contratuais: Mapped[list["ItemContratual"]] = relationship(
+    "ItemContratual",
+    back_populates="contrato"
+    )
