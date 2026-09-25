@@ -11,6 +11,7 @@ import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "./loaders/autenticacaoLoader";
+import { redirecionarUsuarioAutenticado } from "./loaders/loginLoader";
 import { carregarResumoPainel } from "./loaders/resumoPainelLoader";
 import { carregarUsuarios } from "./loaders/usuariosLoader";
 import { executarAcaoAdministrativa } from "./actions/adminAction";
@@ -29,7 +30,12 @@ export const router = createBrowserRouter([
     errorElement: <ErroRota />,
     children: [
       { path: "cadastro", action: cadastrarUsuario, element: <Formulario /> },
-      { path: "login", action: autenticarUsuario, element: <Login /> },
+      {
+        path: "login",
+        loader: redirecionarUsuarioAutenticado,
+        action: autenticarUsuario,
+        element: <Login />,
+      },
     ],
   },
   {

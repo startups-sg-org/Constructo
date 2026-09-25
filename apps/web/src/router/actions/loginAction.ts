@@ -2,6 +2,7 @@ import { loginSchema } from "@constructo/shared";
 import { redirect, type ActionFunctionArgs } from "react-router-dom";
 
 import { loginUser } from "../../services/auth.service";
+import { obterDestinoAposLogin } from "../authRedirect";
 import { mensagemDeErro, validarFormulario, type ActionError } from "./actionUtils";
 
 export type LoginActionData = ActionError;
@@ -17,14 +18,12 @@ export async function autenticarUsuario({ request }: ActionFunctionArgs) {
             signal: request.signal,
         });
 
-        const redirectTo = new URL(request.url).searchParams.get("redirectTo");
-        const destino =
-            redirectTo === "/admin" || redirectTo?.startsWith("/admin/")
-                ? redirectTo
-                : "/admin";
-
-        return redirect(destino);
+        return redirect(obterDestinoAposLogin(request.url));
     } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+            throw error;
+        }
+
         return {
             erro: mensagemDeErro(error, "Não foi possível realizar o login"),
         } satisfies LoginActionData;
