@@ -1,7 +1,7 @@
 import { redirect, type LoaderFunctionArgs } from "react-router-dom";
 
-import { getAuthenticatedUser } from "../../services/auth.service";
-import { obterDestinoAposLogin } from "../authRedirect";
+import { getAuthenticatedUser } from "./auth.service";
+import { obterDestinoAposLogin } from "./authRedirect";
 
 export async function redirecionarUsuarioAutenticado({ request }: LoaderFunctionArgs) {
     try {

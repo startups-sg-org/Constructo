@@ -3,8 +3,8 @@ import {
     useFetcher,
     useLoaderData,
 } from "react-router-dom";
-import type { UsuariosActionData } from "../../../router/actions/usuariosAction";
-import { carregarUsuarios } from "../../../router/loaders/usuariosLoader";
+import type { UsuariosActionData } from "../../../features/usuarios/usuarios.action";
+import { carregarUsuarios } from "../../../features/usuarios/usuarios.loader";
 import EditarUsuario from "./EditarUsuario";
 import "./ListaUsuarios.css";
 

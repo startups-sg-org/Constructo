@@ -1,6 +1,6 @@
 import type { UserReponse } from "@constructo/shared";
 
-import { apiRequest, type ServiceRequestOptions } from "./api";
+import { apiRequest, type ServiceRequestOptions } from "../../services/api";
 
 type LoginResponse = {
     mensagem: string;

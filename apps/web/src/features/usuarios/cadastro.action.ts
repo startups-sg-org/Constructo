@@ -1,8 +1,8 @@
 import { userSchema } from "@constructo/shared";
 import { replace, type ActionFunctionArgs } from "react-router-dom";
 
-import { createUser } from "../../services/users.service";
-import { mensagemDeErro, validarFormulario, type ActionError } from "./actionUtils";
+import { createUser } from "./usuarios.service";
+import { mensagemDeErro, validarFormulario, type ActionError } from "../shared/actionUtils";
 
 export type CadastroActionData = ActionError;
 

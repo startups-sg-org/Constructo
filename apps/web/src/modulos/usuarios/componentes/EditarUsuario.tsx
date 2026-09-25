@@ -8,8 +8,8 @@ import { useForm } from "react-hook-form";
 import {
     useFetcher,
 } from "react-router-dom";
-import type { UsuariosActionData } from "../../../router/actions/usuariosAction";
-import { getUser } from "../../../services/users.service";
+import type { UsuariosActionData } from "../../../features/usuarios/usuarios.action";
+import { getUser } from "../../../features/usuarios/usuarios.service";
 
 type EditarUsuarioProps = {
     usuarioId: number;

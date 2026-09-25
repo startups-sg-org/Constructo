@@ -6,7 +6,7 @@ import { userSchema, type userFormData } from "@constructo/shared";
 import AuthCard from "../../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../../componentes/CampoSenha/CampoSenha";
-import type { CadastroActionData } from "../../../router/actions/cadastroAction";
+import type { CadastroActionData } from "../../../features/usuarios/cadastro.action";
 import "./Formulario.css";
 
 export default function Formulario() {
