@@ -20,7 +20,6 @@ vi.mock("../features/auth/auth.service", () => ({
 vi.mock("../features/usuarios/usuarios.service", () => ({
   createUser: vi.fn(),
   deleteUser: vi.fn(),
-  getUser: vi.fn(),
   getUsers: vi.fn(),
   getUsersCount: vi.fn(),
   updateUser: vi.fn(),
@@ -179,5 +178,18 @@ describe("novo sistema de rotas", () => {
       expect.objectContaining({ email: "maria@constructo.dev" }),
       expect.anything(),
     );
+  });
+
+  it("abre a edição com os dados fornecidos pelo loader da lista", async () => {
+    const user = userEvent.setup();
+    getUsersMock.mockResolvedValue([usuario]);
+    montarRota("/admin/usuarios");
+
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+
+    expect(screen.getByRole("dialog", { name: "Editar usuário" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome")).toHaveValue("Maria");
+    expect(screen.getByLabelText("E-mail")).toHaveValue("maria@constructo.dev");
+    expect(getUsersMock).toHaveBeenCalledTimes(1);
   });
 });

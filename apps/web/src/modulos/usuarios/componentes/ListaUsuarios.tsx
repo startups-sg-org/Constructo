@@ -12,6 +12,9 @@ export default function ListaUsuarios() {
     const usuarios = useLoaderData<typeof carregarUsuarios>();
     const fetcherExclusao = useFetcher<UsuariosActionData>();
     const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<number | null>(null);
+    const usuarioSelecionado = usuarios.find(
+        (usuario) => usuario.id === usuarioEmEdicao,
+    );
     const usuarioSendoExcluido =
         fetcherExclusao.state !== "idle" &&
         fetcherExclusao.formData?.get("intent") === "delete"
@@ -102,9 +105,9 @@ export default function ListaUsuarios() {
                 </>
             )}
 
-            {usuarioEmEdicao !== null && (
+            {usuarioSelecionado && (
                 <EditarUsuario
-                    usuarioId={usuarioEmEdicao}
+                    usuario={usuarioSelecionado}
                     aoCancelar={() => setUsuarioEmEdicao(null)}
                 />
             )}
