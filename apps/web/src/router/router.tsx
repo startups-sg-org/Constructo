@@ -13,6 +13,10 @@ import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "./loaders/autenticacaoLoader";
 import { carregarResumoPainel } from "./loaders/resumoPainelLoader";
 import { carregarUsuarios } from "./loaders/usuariosLoader";
+import { executarAcaoAdministrativa } from "./actions/adminAction";
+import { cadastrarUsuario } from "./actions/cadastroAction";
+import { autenticarUsuario } from "./actions/loginAction";
+import { alterarUsuario } from "./actions/usuariosAction";
 
 export const router = createBrowserRouter([
   {
@@ -24,8 +28,8 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     errorElement: <ErroRota />,
     children: [
-      { path: "cadastro", element: <Formulario /> },
-      { path: "login", element: <Login /> },
+      { path: "cadastro", action: cadastrarUsuario, element: <Formulario /> },
+      { path: "login", action: autenticarUsuario, element: <Login /> },
     ],
   },
   {
@@ -35,6 +39,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "admin",
+        action: executarAcaoAdministrativa,
         element: <AdminLayout />,
         children: [
           {
@@ -52,6 +57,7 @@ export const router = createBrowserRouter([
           {
             path: "usuarios",
             loader: carregarUsuarios,
+            action: alterarUsuario,
             element: (
               <PaginaPainel
                 titulo="Usuários"

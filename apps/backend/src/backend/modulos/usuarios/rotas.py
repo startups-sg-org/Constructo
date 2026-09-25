@@ -138,6 +138,20 @@ async def consultar_usuario(
     return usuario
 
 
+@router.delete("/usuarios/{usuario_id}", status_code=204)
+async def excluir_usuario(
+    usuario_id: int,
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Response:
+    usuario = await repositorio.buscar_usuario_por_id(usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    await repositorio.excluir_usuario(usuario)
+    return Response(status_code=204)
+
+
 @router.put("/usuarios/{usuario_id}", response_model=UserReturn)
 async def atualizar_usuario(
     usuario_id: int,

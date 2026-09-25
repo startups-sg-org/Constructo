@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Form, Link, useActionData, useNavigate, useNavigation, useSearchParams, useSubmit } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, type loginFormData } from "@constructo/shared";
-import {
-    getAuthenticatedUser,
-    loginUser,
-} from "../../services/auth.service";
+import { getAuthenticatedUser } from "../../services/auth.service";
+import type { LoginActionData } from "../../router/actions/loginAction";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";
 import "./Login.css";
 
 export default function Login() {
-    const [erro, setErro] = useState("");
+    const actionData = useActionData<LoginActionData>();
+    const navigation = useNavigation();
+    const submit = useSubmit();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const redirectTo = searchParams.get("redirectTo");
@@ -43,20 +43,7 @@ export default function Login() {
         verificarSessao();
     }, [destinoAposLogin, navigate]);
 
-    async function handleLogin(data: loginFormData) {
-        try {
-            setErro("");
-
-            await loginUser(data.email, data.senha);
-            navigate(destinoAposLogin, { replace: true });
-        } catch (error) {
-            if (error instanceof Error) {
-                setErro(error.message);
-            } else {
-                setErro("Não foi possível realizar o login");
-            }
-        }
-    }
+    const enviando = isSubmitting || navigation.state === "submitting";
 
     return (
         <AuthCard
@@ -71,11 +58,17 @@ export default function Login() {
                 </>
             }
         >
-            <form
+            <Form
+                method="post"
                 className="login-form"
                 noValidate
-                aria-busy={isSubmitting}
-                onSubmit={handleSubmit(handleLogin)}
+                aria-busy={enviando}
+                onSubmit={handleSubmit((data) => {
+                    const formulario = new FormData();
+                    formulario.set("email", data.email);
+                    formulario.set("senha", data.senha);
+                    submit(formulario, { method: "post" });
+                })}
             >
                 <div className="login-form__campos">
                     <div className="campo">
@@ -86,7 +79,7 @@ export default function Login() {
                             placeholder="seuemail@exemplo.com"
                             autoComplete="email"
                             {...register("email")}
-                            disabled={isSubmitting}
+                            disabled={enviando}
                             aria-invalid={Boolean(errors.email)}
                             aria-describedby={
                                 errors.email ? "email-erro" : undefined
@@ -108,12 +101,12 @@ export default function Login() {
                         placeholder="Digite sua senha"
                         autoComplete="current-password"
                         {...register("senha")}
-                        disabled={isSubmitting}
+                        disabled={enviando}
                         mensagemErro={errors.senha?.message}
                     />
                 </div>
 
-                {erro && (
+                {actionData?.erro && (
                     <p className="mensagem-erro login-form__erro" role="alert">
                         <span
                             className="login-form__erro-icone"
@@ -121,18 +114,18 @@ export default function Login() {
                         >
                             !
                         </span>
-                        <span>{erro}</span>
+                        <span>{actionData.erro}</span>
                     </p>
                 )}
 
                 <BotaoAutenticacao
                     type="submit"
-                    carregando={isSubmitting}
+                    carregando={enviando}
                     textoCarregando="Entrando..."
                 >
                     Entrar
                 </BotaoAutenticacao>
-            </form>
+            </Form>
         </AuthCard>
     );
 }

@@ -2,35 +2,56 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
     editUserSchema,
     type EditUserData,
-    type UserReponse
 } from "@constructo/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getUser, updateUser } from "../../../services/users.service";
+import {
+    Form,
+    useActionData,
+    useNavigation,
+    useSubmit,
+} from "react-router-dom";
+import type { UsuariosActionData } from "../../../router/actions/usuariosAction";
+import { getUser } from "../../../services/users.service";
 
 type EditarUsuarioProps = {
     usuarioId: number;
     aoCancelar: () => void;
-    aoSalvar: (usuario: UserReponse) => void;
 };
 
 export default function EditarUsuario({
     usuarioId,
     aoCancelar,
-    aoSalvar
 }: EditarUsuarioProps) {
     const [carregando, setCarregando] = useState(true);
-    const [salvando, setSalvando] = useState(false);
-    const [erro, setErro] = useState("");
+    const [erroCarregamento, setErroCarregamento] = useState("");
     const [carregado, setCarregado] = useState(false);
+    const actionData = useActionData<UsuariosActionData>();
+    const resultadoInicial = useRef(actionData);
+    const navigation = useNavigation();
+    const submit = useSubmit();
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors }
+        formState: { errors, isSubmitting },
     } = useForm<EditUserData>({
-        resolver: zodResolver(editUserSchema)
+        resolver: zodResolver(editUserSchema),
     });
+
+    const resultadoDestaEdicao =
+        actionData?.intent === "update" && actionData.usuarioId === usuarioId
+            ? actionData
+            : undefined;
+    const erroAction =
+        resultadoDestaEdicao && "erro" in resultadoDestaEdicao
+            ? resultadoDestaEdicao
+            : undefined;
+    const enviandoPelaRota =
+        navigation.state === "submitting" &&
+        navigation.formData?.get("intent") === "update" &&
+        navigation.formData?.get("usuarioId") === String(usuarioId);
+    const salvando = isSubmitting || enviandoPelaRota;
 
     useEffect(() => {
         let ativo = true;
@@ -48,16 +69,16 @@ export default function EditarUsuario({
                     receber_atualizacoes: usuario.receber_atualizacoes,
                     empreendimento: usuario.empreendimento,
                     unidade: usuario.unidade,
-                    ativo: usuario.ativo
+                    ativo: usuario.ativo,
                 });
                 setCarregado(true);
             })
             .catch((error: unknown) => {
                 if (ativo) {
-                    setErro(
+                    setErroCarregamento(
                         error instanceof Error
                             ? error.message
-                            : "Não foi possível carregar o usuário"
+                            : "Não foi possível carregar o usuário",
                     );
                 }
             })
@@ -70,21 +91,18 @@ export default function EditarUsuario({
         };
     }, [reset, usuarioId]);
 
-    async function salvar(dados: EditUserData) {
-        setSalvando(true);
-        setErro("");
-
-        try {
-            aoSalvar(await updateUser(usuarioId, dados));
-        } catch (error) {
-            setErro(
-                error instanceof Error
-                    ? error.message
-                    : "Não foi possível atualizar o usuário"
-            );
-        } finally {
-            setSalvando(false);
+    useEffect(() => {
+        if (
+            resultadoDestaEdicao &&
+            resultadoDestaEdicao !== resultadoInicial.current &&
+            "ok" in resultadoDestaEdicao
+        ) {
+            aoCancelar();
         }
+    }, [aoCancelar, resultadoDestaEdicao]);
+
+    function mensagemCampo(campo: keyof EditUserData) {
+        return errors[campo]?.message ?? erroAction?.campos?.[campo];
     }
 
     return (
@@ -103,6 +121,7 @@ export default function EditarUsuario({
                     <button
                         aria-label="Fechar edição"
                         className="editar-usuario__fechar"
+                        disabled={salvando}
                         onClick={aoCancelar}
                         type="button"
                     >
@@ -115,65 +134,87 @@ export default function EditarUsuario({
                         Carregando dados do usuário...
                     </div>
                 ) : !carregado ? (
-                    <div className="editar-usuario__erro" role="alert">{erro}</div>
+                    <div className="editar-usuario__erro" role="alert">
+                        {erroCarregamento}
+                    </div>
                 ) : null}
 
                 {!carregando && carregado && (
-                    <form className="editar-usuario__form" onSubmit={handleSubmit(salvar)}>
+                    <Form
+                        className="editar-usuario__form"
+                        method="post"
+                        onSubmit={handleSubmit((data) => {
+                            const formulario = new FormData();
+                            formulario.set("intent", "update");
+                            formulario.set("usuarioId", String(usuarioId));
+                            for (const [campo, valor] of Object.entries(data)) {
+                                if (typeof valor !== "boolean" || valor) {
+                                    formulario.set(campo, String(valor));
+                                }
+                            }
+                            submit(formulario, { method: "post" });
+                        })}
+                    >
+                        <input name="intent" type="hidden" value="update" />
+                        <input name="usuarioId" type="hidden" value={usuarioId} />
                         <div className="campo">
                             <label htmlFor="editar-cpf">CPF</label>
-                            <input id="editar-cpf" {...register("cpf")} />
-                            {errors.cpf && <span>{errors.cpf.message}</span>}
+                            <input id="editar-cpf" {...register("cpf")} disabled={salvando} />
+                            {mensagemCampo("cpf") && <span>{mensagemCampo("cpf")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-nome">Nome</label>
-                            <input id="editar-nome" {...register("nome")} />
-                            {errors.nome && <span>{errors.nome.message}</span>}
+                            <input id="editar-nome" {...register("nome")} disabled={salvando} />
+                            {mensagemCampo("nome") && <span>{mensagemCampo("nome")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-sobrenome">Sobrenome</label>
-                            <input id="editar-sobrenome" {...register("sobrenome")} />
-                            {errors.sobrenome && <span>{errors.sobrenome.message}</span>}
+                            <input id="editar-sobrenome" {...register("sobrenome")} disabled={salvando} />
+                            {mensagemCampo("sobrenome") && <span>{mensagemCampo("sobrenome")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-email">E-mail</label>
-                            <input id="editar-email" type="email" {...register("email")} />
-                            {errors.email && <span>{errors.email.message}</span>}
+                            <input id="editar-email" type="email" {...register("email")} disabled={salvando} />
+                            {mensagemCampo("email") && <span>{mensagemCampo("email")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-telefone">Telefone</label>
-                            <input id="editar-telefone" type="tel" {...register("telefone")} />
-                            {errors.telefone && <span>{errors.telefone.message}</span>}
+                            <input id="editar-telefone" type="tel" {...register("telefone")} disabled={salvando} />
+                            {mensagemCampo("telefone") && <span>{mensagemCampo("telefone")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-empreendimento">Empreendimento</label>
-                            <input id="editar-empreendimento" {...register("empreendimento")} />
-                            {errors.empreendimento && <span>{errors.empreendimento.message}</span>}
+                            <input id="editar-empreendimento" {...register("empreendimento")} disabled={salvando} />
+                            {mensagemCampo("empreendimento") && <span>{mensagemCampo("empreendimento")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-unidade">Unidade</label>
-                            <input id="editar-unidade" {...register("unidade")} />
-                            {errors.unidade && <span>{errors.unidade.message}</span>}
+                            <input id="editar-unidade" {...register("unidade")} disabled={salvando} />
+                            {mensagemCampo("unidade") && <span>{mensagemCampo("unidade")}</span>}
                         </div>
                         <div className="campo">
                             <label htmlFor="editar-canal">Canal preferido</label>
-                            <select id="editar-canal" {...register("canal_preferido")}>
+                            <select id="editar-canal" {...register("canal_preferido")} disabled={salvando}>
                                 <option value="email">E-mail</option>
                                 <option value="whatsapp">WhatsApp</option>
                             </select>
                         </div>
                         <div className="editar-usuario__opcoes">
                             <label>
-                                <input type="checkbox" {...register("receber_atualizacoes")} />
+                                <input type="checkbox" {...register("receber_atualizacoes")} disabled={salvando} />
                                 Receber atualizações
                             </label>
                             <label>
-                                <input type="checkbox" {...register("ativo")} />
+                                <input type="checkbox" {...register("ativo")} disabled={salvando} />
                                 Usuário ativo
                             </label>
                         </div>
 
-                        {erro && <div className="editar-usuario__erro" role="alert">{erro}</div>}
+                        {erroAction?.erro && (
+                            <div className="editar-usuario__erro" role="alert">
+                                {erroAction.erro}
+                            </div>
+                        )}
 
                         <div className="editar-usuario__acoes">
                             <button
@@ -188,7 +229,7 @@ export default function EditarUsuario({
                                 {salvando ? "Salvando..." : "Salvar alterações"}
                             </button>
                         </div>
-                    </form>
+                    </Form>
                 )}
             </section>
         </div>

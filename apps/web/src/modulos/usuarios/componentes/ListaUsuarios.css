@@ -266,3 +266,30 @@
         grid-template-columns: 1fr;
     }
 }
+
+.lista-usuarios__acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lista-usuarios__acoes form {
+    margin: 0;
+}
+
+.lista-usuarios__excluir {
+    padding: 7px 12px;
+    border: 1px solid #dcaca7;
+    color: #a0443b;
+    background: #fff;
+    font-size: 0.82rem;
+}
+
+.lista-usuarios__erro {
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border: 1px solid #efc4c0;
+    border-radius: 10px;
+    color: #a0443b;
+    background: #fcecea;
+}
