@@ -4,8 +4,7 @@ import { getAuthenticatedUser } from "../../services/auth.service";
 
 export async function exigirAutenticacao({ request }: LoaderFunctionArgs) {
   try {
-    await getAuthenticatedUser({ signal: request.signal });
-    return null;
+    return await getAuthenticatedUser({ signal: request.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw error;

@@ -1,38 +1,18 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
-import type { UserReponse } from "@constructo/shared";
-import { Link, useNavigate } from "react-router-dom";
-import { getAuthenticatedUser, logoutUser } from "../../services/auth.service";
+import { Link, useNavigate, useRouteLoaderData } from "react-router-dom";
+import { exigirAutenticacao } from "../../router/loaders/autenticacaoLoader";
+import { logoutUser } from "../../services/auth.service";
 import "./UserMenu.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
 
 export default function UserMenu() {
-    const [usuario, setUsuario] = useState<UserReponse | null>(null);
-    const [carregando, setCarregando] = useState(true);
+    const usuario = useRouteLoaderData<typeof exigirAutenticacao>("admin-autenticado");
     const [menuAberto, setMenuAberto] = useState(false);
     const [saindo, setSaindo] = useState(false);
     const [erro, setErro] = useState("");
     const menuRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        let ativo = true;
-
-        getAuthenticatedUser()
-            .then((usuarioAutenticado) => {
-                if (ativo) setUsuario(usuarioAutenticado);
-            })
-            .catch(() => {
-                if (ativo) setUsuario(null);
-            })
-            .finally(() => {
-                if (ativo) setCarregando(false);
-            });
-
-        return () => {
-            ativo = false;
-        };
-    }, []);
 
     useEffect(() => {
         if (!menuAberto) return;
@@ -90,9 +70,7 @@ export default function UserMenu() {
                     {iniciais || <IconeUsuario />}
                 </span>
                 <span className="user-menu__identificacao">
-                    <span className="user-menu__nome">
-                        {carregando ? "Carregando..." : nomeCompleto}
-                    </span>
+                    <span className="user-menu__nome">{nomeCompleto}</span>
                     <span className="user-menu__funcao">{usuario ? "Minha conta" : "Conta"}</span>
                 </span>
                 <IconeChevron className="user-menu__chevron" aria-hidden="true" />
