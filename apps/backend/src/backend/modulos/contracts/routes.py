@@ -53,7 +53,7 @@ from .schema.itensContratuais_schemas import (
 # GET /contratantes/{id}
 # GET /contratadas/{id}
 
-router = APIRouter()
+
 
 # Instanciando OBJETO de serviços
 empresa_service = EmpresaService()
@@ -89,7 +89,6 @@ async def update_empresa(id: uuid.UUID, payload: Empresa_UpdateRequest_Schema, d
 async def desativar_empresa(id: uuid.UUID, payload: Empresa_StatusRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
     return await empresa_service.desativar_empresa(db, id, payload)
 
-router.include_router(empresas_router)
 
 
 # -----------------------------------------------------------------------------
@@ -113,7 +112,7 @@ async def atualizar_status_contrato(id: uuid.UUID, payload: Contrato_StatusReque
 async def update_contrato(id: uuid.UUID, payload: Contrato_UpdateRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
     return await contrato_service.update_contrato(db, id, payload)
 
-router.include_router(contratos_router)
+
 
 
 # -----------------------------------------------------------------------------
@@ -134,4 +133,3 @@ async def get_item_contratual(contrato_id: uuid.UUID, item_id: uuid.UUID, db: An
 async def update_item_contratual(contrato_id: uuid.UUID, item_id: uuid.UUID, payload: ItemContratual_UpdateRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
     return await item_contratual_service.update_item_contratual(db, contrato_id, item_id, payload)
 
-router.include_router(itens_contratuais_router)
