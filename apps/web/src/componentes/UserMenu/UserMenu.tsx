@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
 import { Link, useFetcher, useRouteLoaderData } from "react-router-dom";
-import { exigirAutenticacao } from "../../router/loaders/autenticacaoLoader";
-import type { AdminActionData } from "../../router/actions/adminAction";
+import { exigirAutenticacao } from "../../features/auth/auth.loader";
+import type { AdminActionData } from "../../features/auth/logout.action";
 import "./UserMenu.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;

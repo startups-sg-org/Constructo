@@ -11,14 +11,14 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
-import { exigirAutenticacao } from "./loaders/autenticacaoLoader";
-import { redirecionarUsuarioAutenticado } from "./loaders/loginLoader";
-import { carregarResumoPainel } from "./loaders/resumoPainelLoader";
-import { carregarUsuarios } from "./loaders/usuariosLoader";
-import { executarAcaoAdministrativa } from "./actions/adminAction";
-import { cadastrarUsuario } from "./actions/cadastroAction";
-import { autenticarUsuario } from "./actions/loginAction";
-import { alterarUsuario } from "./actions/usuariosAction";
+import { exigirAutenticacao } from "../features/auth/auth.loader";
+import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
+import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
+import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
+import { executarAcaoAdministrativa } from "../features/auth/logout.action";
+import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
+import { autenticarUsuario } from "../features/auth/auth.action";
+import { alterarUsuario } from "../features/usuarios/usuarios.action";
 
 const rotas = [
   {

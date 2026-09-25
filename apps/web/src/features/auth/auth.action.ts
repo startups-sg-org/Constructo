@@ -1,9 +1,9 @@
 import { loginSchema } from "@constructo/shared";
 import { redirect, type ActionFunctionArgs } from "react-router-dom";
 
-import { loginUser } from "../../services/auth.service";
-import { obterDestinoAposLogin } from "../authRedirect";
-import { mensagemDeErro, validarFormulario, type ActionError } from "./actionUtils";
+import { loginUser } from "./auth.service";
+import { obterDestinoAposLogin } from "./authRedirect";
+import { mensagemDeErro, validarFormulario, type ActionError } from "../shared/actionUtils";
 
 export type LoginActionData = ActionError;
 

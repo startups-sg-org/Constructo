@@ -1,6 +1,6 @@
 import { redirect, type LoaderFunctionArgs } from "react-router-dom";
 
-import { getAuthenticatedUser } from "../../services/auth.service";
+import { getAuthenticatedUser } from "./auth.service";
 
 export async function exigirAutenticacao({ request }: LoaderFunctionArgs) {
   try {

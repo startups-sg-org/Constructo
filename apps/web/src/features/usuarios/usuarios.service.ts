@@ -1,6 +1,6 @@
 import type { EditUserData, User, UserReponse } from "@constructo/shared";
 
-import { apiRequest, type ServiceRequestOptions } from "./api";
+import { apiRequest, type ServiceRequestOptions } from "../../services/api";
 
 export function createUser(
     user: User,

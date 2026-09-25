@@ -2,7 +2,7 @@ import { Form, Link, useActionData, useNavigation, useSubmit } from "react-route
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, type loginFormData } from "@constructo/shared";
-import type { LoginActionData } from "../../router/actions/loginAction";
+import type { LoginActionData } from "../../features/auth/auth.action";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";

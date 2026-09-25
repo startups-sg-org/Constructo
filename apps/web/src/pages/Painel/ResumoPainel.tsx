@@ -1,6 +1,6 @@
 import { useLoaderData } from "react-router-dom";
 import DashboardSummary from "../../componentes/DashboardSummary/DashboardSummary";
-import { carregarResumoPainel } from "../../router/loaders/resumoPainelLoader";
+import { carregarResumoPainel } from "../../features/usuarios/resumoPainel.loader";
 
 export default function ResumoPainel() {
     const dados = useLoaderData<typeof carregarResumoPainel>();

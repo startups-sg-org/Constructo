@@ -1,8 +1,8 @@
 import { editUserSchema } from "@constructo/shared";
 import type { ActionFunctionArgs } from "react-router-dom";
 
-import { deleteUser, updateUser } from "../../services/users.service";
-import { mensagemDeErro, validarFormulario, type ActionError } from "./actionUtils";
+import { deleteUser, updateUser } from "./usuarios.service";
+import { mensagemDeErro, validarFormulario, type ActionError } from "../shared/actionUtils";
 
 type UsuarioActionSuccess = {
     ok: true;

@@ -1,7 +1,7 @@
 import { redirect, type ActionFunctionArgs } from "react-router-dom";
 
-import { logoutUser } from "../../services/auth.service";
-import { mensagemDeErro, type ActionError } from "./actionUtils";
+import { logoutUser } from "./auth.service";
+import { mensagemDeErro, type ActionError } from "../shared/actionUtils";
 
 export type AdminActionData = ActionError;
 
