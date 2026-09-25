@@ -48,7 +48,7 @@ export default function EditarUsuario({
             ? resultadoDestaEdicao
             : undefined;
     const enviandoPelaRota =
-        navigation.state === "submitting" &&
+        navigation.state !== "idle" &&
         navigation.formData?.get("intent") === "update" &&
         navigation.formData?.get("usuarioId") === String(usuarioId);
     const salvando = isSubmitting || enviandoPelaRota;
@@ -143,6 +143,7 @@ export default function EditarUsuario({
                     <Form
                         className="editar-usuario__form"
                         method="post"
+                        aria-busy={salvando}
                         onSubmit={handleSubmit((data) => {
                             const formulario = new FormData();
                             formulario.set("intent", "update");

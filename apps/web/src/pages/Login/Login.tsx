@@ -21,7 +21,9 @@ export default function Login() {
         resolver: zodResolver(loginSchema),
     });
 
-    const enviando = isSubmitting || navigation.state === "submitting";
+    const enviando =
+        isSubmitting ||
+        (navigation.state !== "idle" && navigation.formData != null);
 
     return (
         <AuthCard

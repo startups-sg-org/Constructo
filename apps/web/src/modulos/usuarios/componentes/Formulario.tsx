@@ -26,7 +26,9 @@ export default function Formulario() {
         }
     });
 
-    const enviando = isSubmitting || navigation.state === "submitting";
+    const enviando =
+        isSubmitting ||
+        (navigation.state !== "idle" && navigation.formData != null);
 
     useEffect(() => {
         if (!actionData?.campos) return;

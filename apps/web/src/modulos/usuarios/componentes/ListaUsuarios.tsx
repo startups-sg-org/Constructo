@@ -16,7 +16,7 @@ export default function ListaUsuarios() {
     const navigation = useNavigation();
     const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<number | null>(null);
     const usuarioSendoExcluido =
-        navigation.state === "submitting" &&
+        navigation.state !== "idle" &&
         navigation.formData?.get("intent") === "delete"
             ? Number(navigation.formData.get("usuarioId"))
             : null;
@@ -78,6 +78,7 @@ export default function ListaUsuarios() {
                                                 </button>
                                                 <Form
                                                     method="post"
+                                                    aria-busy={usuarioSendoExcluido === usuario.id}
                                                     onSubmit={(event) => {
                                                         if (!window.confirm(`Excluir ${usuario.nome} ${usuario.sobrenome}? Esta ação não pode ser desfeita.`)) {
                                                             event.preventDefault();
