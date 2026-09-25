@@ -3,13 +3,10 @@ import {
     editUserSchema,
     type EditUserData,
 } from "@constructo/shared";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-    Form,
-    useActionData,
-    useNavigation,
-    useSubmit,
+    useFetcher,
 } from "react-router-dom";
 import type { UsuariosActionData } from "../../../router/actions/usuariosAction";
 import { getUser } from "../../../services/users.service";
@@ -26,10 +23,7 @@ export default function EditarUsuario({
     const [carregando, setCarregando] = useState(true);
     const [erroCarregamento, setErroCarregamento] = useState("");
     const [carregado, setCarregado] = useState(false);
-    const actionData = useActionData<UsuariosActionData>();
-    const resultadoInicial = useRef(actionData);
-    const navigation = useNavigation();
-    const submit = useSubmit();
+    const fetcher = useFetcher<UsuariosActionData>();
     const {
         register,
         handleSubmit,
@@ -40,18 +34,14 @@ export default function EditarUsuario({
     });
 
     const resultadoDestaEdicao =
-        actionData?.intent === "update" && actionData.usuarioId === usuarioId
-            ? actionData
+        fetcher.data?.intent === "update" && fetcher.data.usuarioId === usuarioId
+            ? fetcher.data
             : undefined;
     const erroAction =
         resultadoDestaEdicao && "erro" in resultadoDestaEdicao
             ? resultadoDestaEdicao
             : undefined;
-    const enviandoPelaRota =
-        navigation.state !== "idle" &&
-        navigation.formData?.get("intent") === "update" &&
-        navigation.formData?.get("usuarioId") === String(usuarioId);
-    const salvando = isSubmitting || enviandoPelaRota;
+    const salvando = isSubmitting || fetcher.state !== "idle";
 
     useEffect(() => {
         let ativo = true;
@@ -93,13 +83,13 @@ export default function EditarUsuario({
 
     useEffect(() => {
         if (
+            fetcher.state === "idle" &&
             resultadoDestaEdicao &&
-            resultadoDestaEdicao !== resultadoInicial.current &&
             "ok" in resultadoDestaEdicao
         ) {
             aoCancelar();
         }
-    }, [aoCancelar, resultadoDestaEdicao]);
+    }, [aoCancelar, fetcher.state, resultadoDestaEdicao]);
 
     function mensagemCampo(campo: keyof EditUserData) {
         return errors[campo]?.message ?? erroAction?.campos?.[campo];
@@ -140,7 +130,7 @@ export default function EditarUsuario({
                 ) : null}
 
                 {!carregando && carregado && (
-                    <Form
+                    <fetcher.Form
                         className="editar-usuario__form"
                         method="post"
                         aria-busy={salvando}
@@ -153,7 +143,7 @@ export default function EditarUsuario({
                                     formulario.set(campo, String(valor));
                                 }
                             }
-                            submit(formulario, { method: "post" });
+                            fetcher.submit(formulario, { method: "post" });
                         })}
                     >
                         <input name="intent" type="hidden" value="update" />
@@ -230,7 +220,7 @@ export default function EditarUsuario({
                                 {salvando ? "Salvando..." : "Salvar alterações"}
                             </button>
                         </div>
-                    </Form>
+                    </fetcher.Form>
                 )}
             </section>
         </div>
