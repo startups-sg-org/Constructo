@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
-import { Link, useNavigate, useRouteLoaderData } from "react-router-dom";
+import { Link, useFetcher, useRouteLoaderData } from "react-router-dom";
 import { exigirAutenticacao } from "../../router/loaders/autenticacaoLoader";
-import { logoutUser } from "../../services/auth.service";
+import type { AdminActionData } from "../../router/actions/adminAction";
 import "./UserMenu.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
@@ -9,10 +9,9 @@ type IconeProps = SVGProps<SVGSVGElement>;
 export default function UserMenu() {
     const usuario = useRouteLoaderData<typeof exigirAutenticacao>("admin-autenticado");
     const [menuAberto, setMenuAberto] = useState(false);
-    const [saindo, setSaindo] = useState(false);
-    const [erro, setErro] = useState("");
+    const fetcher = useFetcher<AdminActionData>();
+    const saindo = fetcher.state !== "idle";
     const menuRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (!menuAberto) return;
@@ -33,18 +32,6 @@ export default function UserMenu() {
             document.removeEventListener("keydown", fecharComEscape);
         };
     }, [menuAberto]);
-
-    async function sair() {
-        try {
-            setSaindo(true);
-            setErro("");
-            await logoutUser();
-            navigate("/login", { replace: true });
-        } catch {
-            setErro("Não foi possível encerrar a sessão. Tente novamente.");
-            setSaindo(false);
-        }
-    }
 
     const nomeCompleto = usuario ? `${usuario.nome} ${usuario.sobrenome}`.trim() : "Usuário";
     const iniciais = usuario
@@ -93,17 +80,21 @@ export default function UserMenu() {
                         <IconeUsuario aria-hidden="true" />
                         Perfil
                     </Link>
-                    <button
-                        className="user-menu__item user-menu__item--sair"
-                        type="button"
-                        role="menuitem"
-                        disabled={saindo}
-                        onClick={sair}
-                    >
-                        <IconeSair aria-hidden="true" />
-                        {saindo ? "Saindo..." : "Sair"}
-                    </button>
-                    {erro && <p className="user-menu__erro" role="alert">{erro}</p>}
+                    <fetcher.Form method="post" action="/admin">
+                        <input name="intent" type="hidden" value="logout" />
+                        <button
+                            className="user-menu__item user-menu__item--sair"
+                            type="submit"
+                            role="menuitem"
+                            disabled={saindo}
+                        >
+                            <IconeSair aria-hidden="true" />
+                            {saindo ? "Saindo..." : "Sair"}
+                        </button>
+                    </fetcher.Form>
+                    {fetcher.data?.erro && (
+                        <p className="user-menu__erro" role="alert">{fetcher.data.erro}</p>
+                    )}
                 </div>
             )}
         </div>

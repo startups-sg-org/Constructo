@@ -43,3 +43,13 @@ export function updateUser(
         signal: options?.signal,
     });
 }
+
+export function deleteUser(
+    userId: number,
+    options?: ServiceRequestOptions,
+): Promise<void> {
+    return apiRequest<void>(`/usuarios/${userId}`, {
+        method: "DELETE",
+        signal: options?.signal,
+    });
+}

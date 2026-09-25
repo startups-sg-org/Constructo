@@ -68,6 +68,10 @@ class RepositorioDeUsuarios:
         await self.session.refresh(usuario)
         return usuario
 
+    async def excluir_usuario(self, usuario: Usuario) -> None:
+        await self.session.delete(usuario)
+        await self.session.flush()
+
     async def contar_usuarios(self) -> int:
         consulta = select(func.count()).select_from(Usuario)
         return await self.session.scalar(consulta) or 0

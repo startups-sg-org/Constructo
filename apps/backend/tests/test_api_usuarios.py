@@ -35,6 +35,14 @@ class RepositorioEmMemoria:
         self.usuarios[usuario.email] = usuario
         return usuario
 
+    async def excluir_usuario(self, usuario: SimpleNamespace) -> None:
+        self.usuarios.pop(usuario.email.lower(), None)
+        self.sessoes = {
+            token: usuario_da_sessao
+            for token, usuario_da_sessao in self.sessoes.items()
+            if usuario_da_sessao.id != usuario.id
+        }
+
     async def contar_usuarios(self) -> int:
         return len(self.usuarios)
 
@@ -306,3 +314,44 @@ def test_rejeita_consulta_e_edicao_sem_autenticacao():
     app.dependency_overrides.clear()
     assert consulta.status_code == 401
     assert edicao.status_code == 401
+
+
+def test_exclui_usuario_e_reflete_na_listagem():
+    cliente, _ = criar_cliente()
+    outro_usuario = {
+        **USUARIO,
+        "nome": "Ana",
+        "email": "ana@example.com",
+    }
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post("/usuarios/", json=outro_usuario)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        exclusao = cliente.delete("/usuarios/2")
+        listagem = cliente.get("/usuarios/")
+
+    app.dependency_overrides.clear()
+    assert exclusao.status_code == 204
+    assert [usuario["id"] for usuario in listagem.json()] == [1]
+
+
+def test_rejeita_exclusao_inexistente_ou_sem_autenticacao():
+    cliente, _ = criar_cliente()
+
+    with cliente:
+        sem_autenticacao = cliente.delete("/usuarios/1")
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        inexistente = cliente.delete("/usuarios/999")
+
+    app.dependency_overrides.clear()
+    assert sem_autenticacao.status_code == 401
+    assert inexistente.status_code == 404
+    assert inexistente.json() == {"detail": "Usuário não encontrado"}
