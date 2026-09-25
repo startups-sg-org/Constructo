@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardSummary from "../../componentes/DashboardSummary/DashboardSummary";
-import { getUsersCount } from "../../modulos/usuarios/servicos/userService";
+import { getUsersCount } from "../../services/users.service";
 
 export default function ResumoPainel() {
     const [quantidadeDeUsuarios, setQuantidadeDeUsuarios] = useState<number>();

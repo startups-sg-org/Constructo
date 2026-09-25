@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { UserReponse } from "@constructo/shared";
-import { getUsers } from "../servicos/userService";
+import { getUsers } from "../../../services/users.service";
 import EditarUsuario from "./EditarUsuario";
 import "./ListaUsuarios.css";
 

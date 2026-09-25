@@ -6,7 +6,7 @@ import {
 } from "@constructo/shared";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getUser, updateUser } from "../servicos/userService";
+import { getUser, updateUser } from "../../../services/users.service";
 
 type EditarUsuarioProps = {
     usuarioId: number;
