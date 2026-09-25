@@ -1,65 +1,13 @@
-import { useEffect, useState } from "react";
-import type { UserReponse } from "@constructo/shared";
-import { getUsers } from "../../../services/users.service";
+import { useState } from "react";
+import { useLoaderData } from "react-router-dom";
+import { carregarUsuarios } from "../../../router/loaders/usuariosLoader";
 import EditarUsuario from "./EditarUsuario";
 import "./ListaUsuarios.css";
 
 export default function ListaUsuarios() {
-    const [usuarios, setUsuarios] = useState<UserReponse[]>([]);
-    const [carregando, setCarregando] = useState(true);
-    const [erro, setErro] = useState("");
-    const [tentativa, setTentativa] = useState(0);
+    const usuariosCarregados = useLoaderData<typeof carregarUsuarios>();
+    const [usuarios, setUsuarios] = useState(usuariosCarregados);
     const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<number | null>(null);
-
-    useEffect(() => {
-        let ativo = true;
-
-        getUsers()
-            .then((usuariosCarregados) => {
-                if (ativo) setUsuarios(usuariosCarregados);
-            })
-            .catch((error: unknown) => {
-                if (!ativo) return;
-
-                setErro(
-                    error instanceof Error
-                        ? error.message
-                        : "Não foi possível carregar os usuários"
-                );
-            })
-            .finally(() => {
-                if (ativo) setCarregando(false);
-            });
-
-        return () => {
-            ativo = false;
-        };
-    }, [tentativa]);
-
-    function tentarNovamente() {
-        setCarregando(true);
-        setErro("");
-        setTentativa((valorAtual) => valorAtual + 1);
-    }
-
-    if (carregando) {
-        return (
-            <div className="lista-usuarios__estado" role="status">
-                Carregando usuários...
-            </div>
-        );
-    }
-
-    if (erro) {
-        return (
-            <div className="lista-usuarios__estado lista-usuarios__estado--erro" role="alert">
-                <span>{erro}</span>
-                <button className="botao secundario" type="button" onClick={tentarNovamente}>
-                    Tentar novamente
-                </button>
-            </div>
-        );
-    }
 
     if (usuarios.length === 0) {
         return <div className="lista-usuarios__estado">Nenhum usuário cadastrado.</div>;

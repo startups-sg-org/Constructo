@@ -11,6 +11,8 @@ import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "./loaders/autenticacaoLoader";
+import { carregarResumoPainel } from "./loaders/resumoPainelLoader";
+import { carregarUsuarios } from "./loaders/usuariosLoader";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +29,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    id: "admin-autenticado",
     loader: exigirAutenticacao,
     errorElement: <ErroRota />,
     children: [
@@ -36,6 +39,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
+            loader: carregarResumoPainel,
             element: (
               <PaginaPainel
                 titulo="Painel Administrativo"
@@ -47,6 +51,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "usuarios",
+            loader: carregarUsuarios,
             element: (
               <PaginaPainel
                 titulo="Usuários"

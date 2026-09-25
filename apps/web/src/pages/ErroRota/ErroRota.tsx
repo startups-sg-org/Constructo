@@ -1,4 +1,5 @@
 import { Link, isRouteErrorResponse, useRouteError } from "react-router-dom";
+import { ApiError } from "../../services/api";
 import "./ErroRota.css";
 
 type TipoErro = "nao-encontrado" | "carregamento" | "comunicacao" | "inesperado";
@@ -36,6 +37,11 @@ const STATUS_COMUNICACAO_API = new Set([502, 503, 504]);
 const MENSAGEM_ERRO_REDE = /failed to fetch|network\s?error|load failed|fetch failed/i;
 
 function classificarErro(erro: unknown): TipoErro {
+    if (erro instanceof ApiError) {
+        if (erro.status === 0 || STATUS_COMUNICACAO_API.has(erro.status)) return "comunicacao";
+        return "carregamento";
+    }
+
     if (isRouteErrorResponse(erro)) {
         if (erro.status === 404) return "nao-encontrado";
         if (STATUS_COMUNICACAO_API.has(erro.status)) return "comunicacao";
