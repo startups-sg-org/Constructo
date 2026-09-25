@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { userSchema, type User, type userFormData } from "@constructo/shared";
 import AuthCard from "../../../componentes/AuthCard/AuthCard";
+import BotaoAutenticacao from "../../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../../componentes/CampoSenha/CampoSenha";
 import { createUser } from "../servicos/userService";
 import "./Formulario.css";
@@ -184,16 +185,13 @@ export default function Formulario() {
                     </p>
                 )}
 
-                <button className="botao primario cadastro-form__botao" type="submit" disabled={isSubmitting}>
-                    <span>{isSubmitting ? "Criando conta..." : "Criar minha conta"}</span>
-                    {isSubmitting ? (
-                        <span className="cadastro-form__carregando" aria-hidden="true" />
-                    ) : (
-                        <svg viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M4 10h12M11 5l5 5-5 5" />
-                        </svg>
-                    )}
-                </button>
+                <BotaoAutenticacao
+                    type="submit"
+                    carregando={isSubmitting}
+                    textoCarregando="Criando conta..."
+                >
+                    Criar minha conta
+                </BotaoAutenticacao>
             </form>
         </AuthCard>
     );
