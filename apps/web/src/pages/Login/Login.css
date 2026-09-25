@@ -31,51 +31,8 @@
     line-height: 1;
 }
 
-.auth-card .login-form__botao {
-    display: flex;
-    gap: 10px;
-    min-height: 50px;
-    padding-inline: 20px;
-}
-
-.login-form__botao svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-    transition: transform 160ms ease;
-}
-
-.login-form__botao:hover:not(:disabled) svg {
-    transform: translateX(3px);
-}
-
-.login-form__carregando {
-    width: 17px;
-    height: 17px;
-    border: 2px solid rgb(255 255 255 / 45%);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: login-carregando 700ms linear infinite;
-}
-
-@keyframes login-carregando {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 @media (max-width: 600px) {
     .login-form__campos {
         gap: 16px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .login-form__carregando {
-        animation: none;
     }
 }

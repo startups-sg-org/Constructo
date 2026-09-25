@@ -98,45 +98,6 @@
     line-height: 1;
 }
 
-.auth-card .cadastro-form__botao {
-    display: flex;
-    width: 100%;
-    min-height: 50px;
-    gap: 10px;
-    margin-top: -4px;
-    padding-inline: 20px;
-}
-
-.cadastro-form__botao svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-    transition: transform 160ms ease;
-}
-
-.cadastro-form__botao:hover:not(:disabled) svg {
-    transform: translateX(3px);
-}
-
-.cadastro-form__carregando {
-    width: 17px;
-    height: 17px;
-    border: 2px solid rgb(255 255 255 / 45%);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: cadastro-carregando 700ms linear infinite;
-}
-
-@keyframes cadastro-carregando {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 @media (max-width: 600px) {
     .auth-card .cadastro-form {
         gap: 24px;
@@ -154,11 +115,5 @@
 
     .cadastro-form__campo--largo {
         grid-column: auto;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .cadastro-form__carregando {
-        animation: none;
     }
 }

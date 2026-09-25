@@ -175,42 +175,9 @@
     background: #fff5f3;
 }
 
-.auth-card .botao.primario {
-    min-height: 48px;
-    margin-top: 4px;
-    border-radius: 10px;
-    color: #fff;
-    background: #153b36;
-    box-shadow: 0 10px 22px rgb(21 59 54 / 16%);
-    transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-}
-
-.auth-card .botao.primario:hover:not(:disabled) {
-    background: #21534c;
-    box-shadow: 0 13px 26px rgb(21 59 54 / 21%);
-    transform: translateY(-1px);
-}
-
-.auth-card .botao.primario:disabled {
-    background: #6f8882;
-    box-shadow: none;
-    cursor: wait;
-    opacity: 0.8;
-}
-
-.auth-card .botao.primario:focus-visible,
 .auth-card a:focus-visible {
     outline: 3px solid rgb(245 158 11 / 42%);
     outline-offset: 3px;
-}
-
-.auth-card--compacto .botao.primario {
-    width: 100%;
-}
-
-.auth-card:not(.auth-card--compacto) .usuario-form .botao.primario {
-    grid-column: 1 / -1;
-    justify-self: end;
 }
 
 .auth-card__acoes {
@@ -223,6 +190,19 @@
 .auth-card__acoes a {
     color: #236557;
     font-weight: 700;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.auth-card__acoes a:hover {
+    color: #153b36;
+    text-decoration-color: #f59e0b;
+}
+
+.auth-card__acoes a:active {
+    color: #b97200;
 }
 
 @media (max-width: 600px) {
@@ -235,9 +215,10 @@
         grid-template-columns: 1fr;
         gap: 16px;
     }
+}
 
-    .auth-card:not(.auth-card--compacto) .usuario-form .botao.primario {
-        grid-column: auto;
-        width: 100%;
+@media (prefers-reduced-motion: reduce) {
+    .auth-card__acoes a {
+        transition: none;
     }
 }

@@ -8,6 +8,7 @@ import {
     loginUser,
 } from "../../modulos/usuarios/servicos/userService";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
+import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";
 import "./Login.css";
 
@@ -130,23 +131,13 @@ export default function Login() {
                     </p>
                 )}
 
-                <button
-                    className="botao primario login-form__botao"
+                <BotaoAutenticacao
                     type="submit"
-                    disabled={isSubmitting}
+                    carregando={isSubmitting}
+                    textoCarregando="Entrando..."
                 >
-                    <span>{isSubmitting ? "Entrando..." : "Entrar"}</span>
-                    {isSubmitting ? (
-                        <span
-                            className="login-form__carregando"
-                            aria-hidden="true"
-                        />
-                    ) : (
-                        <svg viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M4 10h12M11 5l5 5-5 5" />
-                        </svg>
-                    )}
-                </button>
+                    Entrar
+                </BotaoAutenticacao>
             </form>
         </AuthCard>
     );
