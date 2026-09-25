@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, Link, useActionData, useNavigation, useSubmit } from "react-router-dom";
@@ -15,6 +16,7 @@ export default function Formulario() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting }
     } = useForm<userFormData>({
         resolver: zodResolver(userSchema),
@@ -25,6 +27,17 @@ export default function Formulario() {
     });
 
     const enviando = isSubmitting || navigation.state === "submitting";
+
+    useEffect(() => {
+        if (!actionData?.campos) return;
+
+        for (const [campo, mensagem] of Object.entries(actionData.campos)) {
+            setError(campo as keyof userFormData, {
+                type: "server",
+                message: mensagem,
+            });
+        }
+    }, [actionData, setError]);
 
     return (
         <AuthCard
