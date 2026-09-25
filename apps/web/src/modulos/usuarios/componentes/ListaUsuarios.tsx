@@ -1,9 +1,7 @@
 import { useState } from "react";
 import {
-    Form,
-    useActionData,
+    useFetcher,
     useLoaderData,
-    useNavigation,
 } from "react-router-dom";
 import type { UsuariosActionData } from "../../../router/actions/usuariosAction";
 import { carregarUsuarios } from "../../../router/loaders/usuariosLoader";
@@ -12,17 +10,16 @@ import "./ListaUsuarios.css";
 
 export default function ListaUsuarios() {
     const usuarios = useLoaderData<typeof carregarUsuarios>();
-    const actionData = useActionData<UsuariosActionData>();
-    const navigation = useNavigation();
+    const fetcherExclusao = useFetcher<UsuariosActionData>();
     const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<number | null>(null);
     const usuarioSendoExcluido =
-        navigation.state !== "idle" &&
-        navigation.formData?.get("intent") === "delete"
-            ? Number(navigation.formData.get("usuarioId"))
+        fetcherExclusao.state !== "idle" &&
+        fetcherExclusao.formData?.get("intent") === "delete"
+            ? Number(fetcherExclusao.formData.get("usuarioId"))
             : null;
     const erroExclusao =
-        actionData?.intent === "delete" && "erro" in actionData
-            ? actionData.erro
+        fetcherExclusao.data?.intent === "delete" && "erro" in fetcherExclusao.data
+            ? fetcherExclusao.data.erro
             : undefined;
 
     return (
@@ -76,7 +73,7 @@ export default function ListaUsuarios() {
                                                 >
                                                     Editar
                                                 </button>
-                                                <Form
+                                                <fetcherExclusao.Form
                                                     method="post"
                                                     aria-busy={usuarioSendoExcluido === usuario.id}
                                                     onSubmit={(event) => {
@@ -94,7 +91,7 @@ export default function ListaUsuarios() {
                                                     >
                                                         {usuarioSendoExcluido === usuario.id ? "Excluindo..." : "Excluir"}
                                                     </button>
-                                                </Form>
+                                                </fetcherExclusao.Form>
                                             </div>
                                         </td>
                                     </tr>
