@@ -1,9 +1,7 @@
-import { useEffect } from "react";
-import { Form, Link, useActionData, useNavigate, useNavigation, useSearchParams, useSubmit } from "react-router-dom";
+import { Form, Link, useActionData, useNavigation, useSubmit } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, type loginFormData } from "@constructo/shared";
-import { getAuthenticatedUser } from "../../services/auth.service";
 import type { LoginActionData } from "../../router/actions/loginAction";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutenticacao";
@@ -14,13 +12,6 @@ export default function Login() {
     const actionData = useActionData<LoginActionData>();
     const navigation = useNavigation();
     const submit = useSubmit();
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const redirectTo = searchParams.get("redirectTo");
-    const destinoAposLogin =
-        redirectTo === "/admin" || redirectTo?.startsWith("/admin/")
-            ? redirectTo
-            : "/admin";
 
     const {
         register,
@@ -29,19 +20,6 @@ export default function Login() {
     } = useForm<loginFormData>({
         resolver: zodResolver(loginSchema),
     });
-
-    useEffect(() => {
-        async function verificarSessao() {
-            try {
-                await getAuthenticatedUser();
-                navigate(destinoAposLogin, { replace: true });
-            } catch {
-                // Sem sessão ativa: o formulário de login permanece disponível.
-            }
-        }
-
-        verificarSessao();
-    }, [destinoAposLogin, navigate]);
 
     const enviando = isSubmitting || navigation.state === "submitting";
 
