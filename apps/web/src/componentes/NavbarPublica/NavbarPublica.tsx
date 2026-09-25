@@ -1,5 +1,6 @@
 import { useEffect, useState, type SVGProps } from "react";
 import { Link } from "react-router-dom";
+import LogoConstructo from "../LogoConstructo/LogoConstructo";
 import "./NavbarPublica.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
@@ -33,7 +34,7 @@ export default function NavbarPublica() {
                     href="/#inicio"
                     aria-label="Constructo — ir para o início"
                 >
-                    <LogoConstructo />
+                    <LogoConstructo className="navbar-publica__logo" />
                     <span>Constructo</span>
                 </a>
 
@@ -78,18 +79,6 @@ export default function NavbarPublica() {
     );
 }
 
-function LogoConstructo() {
-    return (
-        <svg className="navbar-publica__logo" viewBox="0 0 44 44" aria-hidden="true">
-            <path d="M22 2 39.3 12v20L22 42 4.7 32V12L22 2Z" fill="currentColor" />
-            <path
-                d="M29.7 14.8a10 10 0 1 0 .2 14.2l-4-3.2a5 5 0 1 1-.1-7.7l3.9-3.3Z"
-                fill="white"
-            />
-        </svg>
-    );
-}
-
 function IconeMenu(props: IconeProps) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -105,4 +94,3 @@ function IconeFechar(props: IconeProps) {
         </svg>
     );
 }
-

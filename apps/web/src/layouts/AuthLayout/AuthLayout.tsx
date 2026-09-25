@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, Outlet } from "react-router-dom";
+import LogoConstructo from "../../componentes/LogoConstructo/LogoConstructo";
 import "./AuthLayout.css";
 
 type AuthLayoutProps = {
@@ -18,7 +19,7 @@ export default function AuthLayout({ children, exibirMarca = true }: AuthLayoutP
                             to="/"
                             aria-label="Constructo — ir para o início"
                         >
-                            <LogoConstructo />
+                            <LogoConstructo className="auth-layout__logo" />
                             <span>Constructo</span>
                         </Link>
                     )}
@@ -55,18 +56,6 @@ export default function AuthLayout({ children, exibirMarca = true }: AuthLayoutP
                 </div>
             </main>
         </div>
-    );
-}
-
-function LogoConstructo() {
-    return (
-        <svg className="auth-layout__logo" viewBox="0 0 44 44" aria-hidden="true">
-            <path d="M22 2 39.3 12v20L22 42 4.7 32V12L22 2Z" fill="currentColor" />
-            <path
-                d="M29.7 14.8a10 10 0 1 0 .2 14.2l-4-3.2a5 5 0 1 1-.1-7.7l3.9-3.3Z"
-                fill="white"
-            />
-        </svg>
     );
 }
 
