@@ -80,6 +80,7 @@ export default function Login() {
         >
             <form
                 className="login-form"
+                noValidate
                 aria-busy={isSubmitting}
                 onSubmit={handleSubmit(handleLogin)}
             >
