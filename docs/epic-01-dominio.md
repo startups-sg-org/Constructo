@@ -53,7 +53,7 @@ Chaves e atributos estão em `modulos/dominio/modelos.py`; o banco impõe FKs, u
 
 ## Verificação do Epic 1
 
-`tests/test_dominio.py` cobre enums e contratos; `tests/test_dominio_integracao.py` cobre serviços em SQLite com FKs ligadas. O workflow `.github/workflows/epic-01-dominio.yml` executa a suíte e o script `scripts/verificar_epic01_postgres.py` em um PostgreSQL temporário: upgrade com usuário legado, downgrade/upgrade das invariantes e comparação de metadata via `alembic check`. O teste PostgreSQL deve passar antes de fechar o Epic; os testes locais SQLite não demonstram comportamento concorrente do PostgreSQL. O teste de concorrência real permanece como critério para operações simultâneas que o Epic 2 venha a expor por API.
+`tests/test_dominio.py` cobre enums e contratos; `tests/test_dominio_integracao.py` cobre serviços em SQLite com FKs ligadas. O workflow `.github/workflows/epic-01-dominio.yml` executa a suíte e o script `scripts/verificar_epic01_postgres.py` em um PostgreSQL temporário: upgrade com usuário legado, downgrade/upgrade das invariantes, comparação de metadata via `alembic check` e duas transições simultâneas do mesmo marco. O teste PostgreSQL deve passar antes de fechar o Epic. Endpoints futuros devem manter o mesmo bloqueio e limite de transação dos serviços.
 
 ## Entidades anteriores (#12) e transição de dados
 
