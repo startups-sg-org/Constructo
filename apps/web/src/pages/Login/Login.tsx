@@ -6,7 +6,7 @@ import { loginSchema, type loginFormData } from "@constructo/shared";
 import {
     getAuthenticatedUser,
     loginUser,
-} from "../../modulos/usuarios/servicos/userService";
+} from "../../services/auth.service";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";

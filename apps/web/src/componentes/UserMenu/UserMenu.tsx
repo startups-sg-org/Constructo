@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
 import type { UserReponse } from "@constructo/shared";
 import { Link, useNavigate } from "react-router-dom";
-import { getAuthenticatedUser, logoutUser } from "../../modulos/usuarios/servicos/userService";
+import { getAuthenticatedUser, logoutUser } from "../../services/auth.service";
 import "./UserMenu.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;

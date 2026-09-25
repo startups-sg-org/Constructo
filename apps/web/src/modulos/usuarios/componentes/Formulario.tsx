@@ -6,7 +6,7 @@ import { userSchema, type User, type userFormData } from "@constructo/shared";
 import AuthCard from "../../../componentes/AuthCard/AuthCard";
 import BotaoAutenticacao from "../../../componentes/BotaoAutenticacao/BotaoAutenticacao";
 import CampoSenha from "../../../componentes/CampoSenha/CampoSenha";
-import { createUser } from "../servicos/userService";
+import { createUser } from "../../../services/users.service";
 import "./Formulario.css";
 
 export default function Formulario() {
