@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 import RotaProtegida from "../componentes/RotaProtegida/RotaProtegida";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
@@ -6,6 +6,7 @@ import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
+import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
@@ -14,10 +15,12 @@ import ResumoPainel from "../pages/Painel/ResumoPainel";
 export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
+    errorElement: <ErroRota />,
     children: [{ index: true, element: <Home /> }],
   },
   {
     element: <AuthLayout />,
+    errorElement: <ErroRota />,
     children: [
       { path: "cadastro", element: <Formulario /> },
       { path: "login", element: <Login /> },
@@ -25,6 +28,7 @@ export const router = createBrowserRouter([
   },
   {
     element: <RotaProtegida />,
+    errorElement: <ErroRota />,
     children: [
       {
         path: "admin",
@@ -84,5 +88,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: "*", element: <Navigate to="/login" replace /> },
+  { path: "*", element: <PaginaNaoEncontrada /> },
 ]);
