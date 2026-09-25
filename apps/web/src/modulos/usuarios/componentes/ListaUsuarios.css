@@ -224,8 +224,7 @@
 }
 
 .editar-usuario__acoes,
-.editar-usuario__erro,
-.editar-usuario__estado {
+.editar-usuario__erro {
     grid-column: 1 / -1;
 }
 
@@ -239,12 +238,6 @@
 .editar-usuario__erro {
     color: #b91c1c;
     font-size: 0.875rem;
-}
-
-.editar-usuario__estado {
-    padding: 32px 0;
-    color: #62706d;
-    text-align: center;
 }
 
 .botao:disabled {

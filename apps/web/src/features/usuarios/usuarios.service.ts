@@ -25,13 +25,6 @@ export function getUsers(options?: ServiceRequestOptions): Promise<UserReponse[]
     return apiRequest<UserReponse[]>("/usuarios/", { signal: options?.signal });
 }
 
-export function getUser(
-    userId: number,
-    options?: ServiceRequestOptions,
-): Promise<UserReponse> {
-    return apiRequest<UserReponse>(`/usuarios/${userId}`, { signal: options?.signal });
-}
-
 export function updateUser(
     userId: number,
     user: EditUserData,
