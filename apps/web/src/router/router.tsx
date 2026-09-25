@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import RotaProtegida from "../componentes/RotaProtegida/RotaProtegida";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
@@ -11,6 +10,7 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
+import { exigirAutenticacao } from "./loaders/autenticacaoLoader";
 
 export const router = createBrowserRouter([
   {
@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <RotaProtegida />,
+    loader: exigirAutenticacao,
     errorElement: <ErroRota />,
     children: [
       {

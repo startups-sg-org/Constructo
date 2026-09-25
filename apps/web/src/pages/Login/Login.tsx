@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, type loginFormData } from "@constructo/shared";
@@ -12,22 +12,15 @@ import BotaoAutenticacao from "../../componentes/BotaoAutenticacao/BotaoAutentic
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";
 import "./Login.css";
 
-type EstadoNavegacao = {
-    origem?: {
-        pathname?: string;
-        search?: string;
-        hash?: string;
-    };
-};
-
 export default function Login() {
     const [erro, setErro] = useState("");
     const navigate = useNavigate();
-    const location = useLocation();
-    const origem = (location.state as EstadoNavegacao | null)?.origem;
-    const destinoAposLogin = origem?.pathname?.startsWith("/admin")
-        ? `${origem.pathname}${origem.search ?? ""}${origem.hash ?? ""}`
-        : "/admin";
+    const [searchParams] = useSearchParams();
+    const redirectTo = searchParams.get("redirectTo");
+    const destinoAposLogin =
+        redirectTo === "/admin" || redirectTo?.startsWith("/admin/")
+            ? redirectTo
+            : "/admin";
 
     const {
         register,
