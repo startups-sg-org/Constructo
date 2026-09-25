@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 import re
 
 
+
 class TipoEmpresaEnum(str, Enum):
     CONTRATANTE = "contratante"
     CONTRATADA  = "contratada"
