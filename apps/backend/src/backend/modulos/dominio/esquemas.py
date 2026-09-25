@@ -2,9 +2,9 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
-from .regras import EstadoMarco, Papel, TipoLocal
+from .regras import EstadoMarco, TipoLocal
 
 
 class Leitura(BaseModel):
@@ -97,10 +97,14 @@ class PublicacaoCriar(BaseModel):
     titulo: str = Field(min_length=1, max_length=200)
     texto_cliente: str = Field(min_length=1)
     proximo_passo: str | None = None
-    evidencia_ids: list[int] = Field(default_factory=list)
+    evidencia_ids: list[int] = Field(min_length=1)
 
 
-class PublicacaoLer(Leitura, PublicacaoCriar):
+class PublicacaoLer(Leitura):
+    progresso_marco_id: int
+    titulo: str
+    texto_cliente: str
+    proximo_passo: str | None
     publicado_em: datetime | None
     publicado_por: int | None
 
@@ -108,13 +112,6 @@ class PublicacaoLer(Leitura, PublicacaoCriar):
 class VinculoGestor(BaseModel):
     usuario_id: int
     empreendimento_id: int
-    papel: Papel = Papel.GESTOR
-
-    @model_validator(mode="after")
-    def apenas_gestor(self):
-        if self.papel != Papel.GESTOR:
-            raise ValueError("Vínculo de empreendimento requer papel GESTOR")
-        return self
 
 
 class VinculoComprador(BaseModel):
