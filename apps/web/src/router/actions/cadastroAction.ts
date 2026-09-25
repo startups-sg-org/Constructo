@@ -1,5 +1,5 @@
 import { userSchema } from "@constructo/shared";
-import { redirect, type ActionFunctionArgs } from "react-router-dom";
+import { replace, type ActionFunctionArgs } from "react-router-dom";
 
 import { createUser } from "../../services/users.service";
 import { mensagemDeErro, validarFormulario, type ActionError } from "./actionUtils";
@@ -19,8 +19,12 @@ export async function cadastrarUsuario({ request }: ActionFunctionArgs) {
         const { confirmarSenha, ...usuario } = validacao.dados;
         void confirmarSenha;
         await createUser(usuario, { signal: request.signal });
-        return redirect("/login");
+        return replace("/login");
     } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+            throw error;
+        }
+
         return {
             erro: mensagemDeErro(
                 error,
