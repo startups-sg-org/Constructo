@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, type RouteObject } from "react-router-dom";
 
 import FeedbackNavegacao from "../componentes/FeedbackNavegacao/FeedbackNavegacao";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
@@ -20,7 +20,7 @@ import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
 import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
 
-const rotas = [
+export const rotas: RouteObject[] = [
   {
     element: <PublicLayout />,
     errorElement: <ErroRota />,
@@ -109,9 +109,11 @@ const rotas = [
   { path: "*", element: <PaginaNaoEncontrada /> },
 ];
 
-export const router = createBrowserRouter([
+export const rotasAplicacao: RouteObject[] = [
   {
     element: <FeedbackNavegacao />,
     children: rotas,
   },
-]);
+];
+
+export const router = createBrowserRouter(rotasAplicacao);
