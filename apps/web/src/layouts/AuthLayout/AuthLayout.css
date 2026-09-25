@@ -1,5 +1,7 @@
 .auth-layout {
     display: grid;
+    width: 100%;
+    min-width: 0;
     min-height: 100vh;
     min-height: 100dvh;
     grid-template-columns: minmax(360px, 0.82fr) minmax(560px, 1.18fr);
@@ -142,6 +144,7 @@
 
 .auth-layout__conteudo {
     display: grid;
+    width: 100%;
     min-width: 0;
     place-items: center;
     padding: clamp(32px, 5vw, 76px);
@@ -165,7 +168,7 @@
     }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
     .auth-layout {
         display: flex;
         flex-direction: column;
@@ -226,6 +229,25 @@
 
     .auth-layout__conteudo {
         padding: 20px 12px 32px;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-layout__identidade {
+        min-height: 168px;
+        padding: 18px 16px;
+    }
+
+    .auth-layout__apresentacao {
+        padding-top: 24px;
+    }
+
+    .auth-layout__apresentacao h1 {
+        font-size: 1.75rem;
+    }
+
+    .auth-layout__conteudo {
+        padding: 16px 8px 24px;
     }
 }
 
