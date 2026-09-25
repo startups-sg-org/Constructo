@@ -1,28 +1,20 @@
-import type { ReactNode } from "react";
 import { Link, Outlet } from "react-router-dom";
 import LogoConstructo from "../../componentes/LogoConstructo/LogoConstructo";
 import "./AuthLayout.css";
 
-type AuthLayoutProps = {
-    children?: ReactNode;
-    exibirMarca?: boolean;
-};
-
-export default function AuthLayout({ children, exibirMarca = true }: AuthLayoutProps) {
+export default function AuthLayout() {
     return (
         <div className="auth-layout">
             <aside className="auth-layout__identidade" aria-label="Sobre o Constructo">
                 <div className="auth-layout__identidade-conteudo">
-                    {exibirMarca && (
-                        <Link
-                            className="auth-layout__marca"
-                            to="/"
-                            aria-label="Constructo — ir para o início"
-                        >
-                            <LogoConstructo className="auth-layout__logo" />
-                            <span>Constructo</span>
-                        </Link>
-                    )}
+                    <Link
+                        className="auth-layout__marca"
+                        to="/"
+                        aria-label="Constructo — ir para o início"
+                    >
+                        <LogoConstructo className="auth-layout__logo" />
+                        <span>Constructo</span>
+                    </Link>
 
                     <div className="auth-layout__apresentacao">
                         <p className="auth-layout__chamada">
@@ -52,7 +44,7 @@ export default function AuthLayout({ children, exibirMarca = true }: AuthLayoutP
 
             <main className="auth-layout__conteudo">
                 <div className="auth-layout__formulario">
-                    {children ?? <Outlet />}
+                    <Outlet />
                 </div>
             </main>
         </div>
