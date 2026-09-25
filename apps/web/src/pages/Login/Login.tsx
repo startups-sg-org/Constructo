@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-    loginSchema,
-    type loginFormData
-} from "@constructo/shared";
+import { loginSchema, type loginFormData } from "@constructo/shared";
 import {
     getAuthenticatedUser,
-    loginUser
+    loginUser,
 } from "../../modulos/usuarios/servicos/userService";
 import AuthCard from "../../componentes/AuthCard/AuthCard";
 import CampoSenha from "../../componentes/CampoSenha/CampoSenha";
+import "./Login.css";
 
 type EstadoNavegacao = {
     origem?: {
@@ -33,9 +31,9 @@ export default function Login() {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
     } = useForm<loginFormData>({
-        resolver: zodResolver(loginSchema)
+        resolver: zodResolver(loginSchema),
     });
 
     useEffect(() => {
@@ -68,45 +66,86 @@ export default function Login() {
 
     return (
         <AuthCard
-            titulo="Bem-vindo de volta"
-            descricao="Informe seu e-mail e sua senha para continuar."
-            chamada="Acesse sua conta"
+            titulo="Entre na sua conta"
+            descricao="Use seus dados de acesso para continuar gerenciando suas obras."
+            chamada="Bem-vindo de volta"
             compacto
-            acoes={<>Não tem uma conta? <Link to="/cadastro">Crie uma</Link></>}
+            acoes={
+                <>
+                    Ainda não tem uma conta?{" "}
+                    <Link to="/cadastro">Cadastre-se</Link>
+                </>
+            }
         >
-            <form className="login-form" aria-busy={isSubmitting} onSubmit={handleSubmit(handleLogin)}>
-                <div className="campo">
-                    <label htmlFor="email">E-mail</label>
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="seuemail@exemplo.com"
-                        autoComplete="email"
-                        {...register("email")}
+            <form
+                className="login-form"
+                aria-busy={isSubmitting}
+                onSubmit={handleSubmit(handleLogin)}
+            >
+                <div className="login-form__campos">
+                    <div className="campo">
+                        <label htmlFor="email">E-mail</label>
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="seuemail@exemplo.com"
+                            autoComplete="email"
+                            {...register("email")}
+                            disabled={isSubmitting}
+                            aria-invalid={Boolean(errors.email)}
+                            aria-describedby={
+                                errors.email ? "email-erro" : undefined
+                            }
+                        />
+                        {errors.email && (
+                            <span
+                                id="email-erro"
+                                className="campo__erro"
+                                role="alert"
+                            >
+                                {errors.email.message}
+                            </span>
+                        )}
+                    </div>
+
+                    <CampoSenha
+                        label="Senha"
+                        placeholder="Digite sua senha"
+                        autoComplete="current-password"
+                        {...register("senha")}
                         disabled={isSubmitting}
-                        aria-invalid={Boolean(errors.email)}
-                        aria-describedby={errors.email ? "email-erro" : undefined}
+                        mensagemErro={errors.senha?.message}
                     />
-                    {errors.email && (
-                        <span id="email-erro" className="campo__erro" role="alert">
-                            {errors.email.message}
-                        </span>
-                    )}
                 </div>
 
-                <CampoSenha
-                    label="Senha"
-                    placeholder="Digite sua senha"
-                    autoComplete="current-password"
-                    {...register("senha")}
+                {erro && (
+                    <p className="mensagem-erro login-form__erro" role="alert">
+                        <span
+                            className="login-form__erro-icone"
+                            aria-hidden="true"
+                        >
+                            !
+                        </span>
+                        <span>{erro}</span>
+                    </p>
+                )}
+
+                <button
+                    className="botao primario login-form__botao"
+                    type="submit"
                     disabled={isSubmitting}
-                    mensagemErro={errors.senha?.message}
-                />
-
-                {erro && <p className="mensagem-erro" role="alert">{erro}</p>}
-
-                <button className="botao primario" type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Entrando..." : "Entrar"}
+                >
+                    <span>{isSubmitting ? "Entrando..." : "Entrar"}</span>
+                    {isSubmitting ? (
+                        <span
+                            className="login-form__carregando"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <svg viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M4 10h12M11 5l5 5-5 5" />
+                        </svg>
+                    )}
                 </button>
             </form>
         </AuthCard>
