@@ -13,8 +13,9 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    Pavimento_FromRequest_Schema,
 )
-from .modelos import Empreendimento, LocalObra, StatusEmpreendimento
+from .modelos import Empreendimento, LocalObra, StatusEmpreendimento, TipoLocalObra
 
 
 class EmpreendimentoRepo:
@@ -39,13 +40,36 @@ class EmpreendimentoRepo:
         await db.refresh(local)
         return LocalObra_FromDB_Schema.model_validate(local)
 
+    async def get_local_obra(
+        self, db: AsyncSession, local_id: uuid.UUID
+    ) -> LocalObra | None:
+        return await db.get(LocalObra, local_id)
+
+    async def create_pavimento(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        parent_id: uuid.UUID,
+        payload: Pavimento_FromRequest_Schema,
+    ) -> LocalObra_FromDB_Schema:
+        local = LocalObra(
+            empreendimento_id=empreendimento_id,
+            parent_id=parent_id,
+            tipo=TipoLocalObra.PAVIMENTO,
+            **payload.model_dump(),
+        )
+        db.add(local)
+        await db.flush()
+        await db.refresh(local)
+        return LocalObra_FromDB_Schema.model_validate(local)
+
     async def get_locais_obra(
         self, db: AsyncSession, empreendimento_id: uuid.UUID
     ) -> list[LocalObra_FromDB_Schema]:
         resultado = await db.execute(
             select(LocalObra)
             .where(LocalObra.empreendimento_id == empreendimento_id)
-            .order_by(LocalObra.ordem, LocalObra.nome)
+            .order_by(LocalObra.parent_id, LocalObra.ordem, LocalObra.nome)
         )
         return [LocalObra_FromDB_Schema.model_validate(local) for local in resultado.scalars()]
 

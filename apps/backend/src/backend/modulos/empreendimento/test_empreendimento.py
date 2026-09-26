@@ -10,8 +10,9 @@ from .esquemas import (
     Empreendimento_FromRequest_Schema,
     Empreendimento_StatusRequest_Schema,
     Empreendimento_UpdateRequest_Schema,
+    Pavimento_FromRequest_Schema,
 )
-from .modelos import Empreendimento, StatusEmpreendimento
+from .modelos import Empreendimento, StatusEmpreendimento, TipoLocalObra
 from .servicos import EmpreendimentoService
 
 
@@ -180,3 +181,80 @@ def test_status_e_alterado_por_operacao_dedicada():
 
 def test_modelo_atualiza_timestamp_em_alteracoes():
     assert Empreendimento.__table__.c.atualizado_em.onupdate is not None
+
+
+class RepoLocalFalso:
+    def __init__(self, empreendimento, pai):
+        self.empreendimento = empreendimento
+        self.pai = pai
+        self.criacao = None
+
+    async def get_local_empreendimento(self, _db, _id):
+        return self.empreendimento
+
+    async def get_local_obra(self, _db, _id):
+        return self.pai
+
+    async def create_pavimento(self, _db, empreendimento_id, parent_id, payload):
+        self.criacao = (empreendimento_id, parent_id, payload)
+        return SimpleNamespace(
+            empreendimento_id=empreendimento_id,
+            parent_id=parent_id,
+            tipo=TipoLocalObra.PAVIMENTO,
+            nome=payload.nome,
+            ordem=payload.ordem,
+        )
+
+
+def usuario_com_acesso():
+    return SimpleNamespace(papel="COMPRADOR", empreendimento="Residencial Ipê")
+
+
+def test_schema_de_pavimento_nao_recebe_pai_ou_tipo():
+    with pytest.raises(ValidationError):
+        Pavimento_FromRequest_Schema.model_validate(
+            {"nome": "Térreo", "ordem": 0, "parent_id": uuid.uuid4()}
+        )
+
+
+def test_cria_pavimento_sob_torre():
+    empreendimento = SimpleNamespace(
+        nome="Residencial Ipê", status=StatusEmpreendimento.PLANEJADO
+    )
+    pai = SimpleNamespace(
+        empreendimento_id=uuid.uuid4(), tipo=TipoLocalObra.TORRE
+    )
+    repo = RepoLocalFalso(empreendimento, pai)
+    empreendimento_id = uuid.uuid4()
+    pai.empreendimento_id = empreendimento_id
+    payload = Pavimento_FromRequest_Schema(nome="Térreo", ordem=1)
+
+    resultado = asyncio.run(
+        service_com(repo).create_pavimento(
+            None, empreendimento_id, pai.empreendimento_id, payload, usuario_com_acesso()
+        )
+    )
+
+    assert resultado.tipo is TipoLocalObra.PAVIMENTO
+    assert resultado.parent_id == empreendimento_id
+
+
+def test_pavimento_nao_aceita_pai_pavimento():
+    empreendimento = SimpleNamespace(
+        nome="Residencial Ipê", status=StatusEmpreendimento.PLANEJADO
+    )
+    pai = SimpleNamespace(empreendimento_id=uuid.uuid4(), tipo=TipoLocalObra.PAVIMENTO)
+    empreendimento_id = pai.empreendimento_id
+
+    with pytest.raises(HTTPException) as erro:
+        asyncio.run(
+            service_com(RepoLocalFalso(empreendimento, pai)).create_pavimento(
+                None,
+                empreendimento_id,
+                pai.empreendimento_id,
+                Pavimento_FromRequest_Schema(nome="Térreo"),
+                usuario_com_acesso(),
+            )
+        )
+
+    assert erro.value.status_code == 400

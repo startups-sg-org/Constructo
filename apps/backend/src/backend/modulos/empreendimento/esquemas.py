@@ -104,3 +104,18 @@ class LocalObra_FromDB_Schema(BaseModel):
     nome: str
     tipo: TipoLocalObra
     ordem: int
+
+
+class Pavimento_FromRequest_Schema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nome: str = Field(min_length=1, max_length=200)
+    ordem: int = Field(default=0, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def remover_espacos_e_rejeitar_vazio(cls, valor: str) -> str:
+        valor = valor.strip()
+        if not valor:
+            raise ValueError("campo obrigatório")
+        return valor

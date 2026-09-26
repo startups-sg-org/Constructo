@@ -16,6 +16,7 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    Pavimento_FromRequest_Schema,
 )
 from .servicos import EmpreendimentoService
 
@@ -94,3 +95,20 @@ async def list_locais_obra(
     usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> list[LocalObra_FromDB_Schema]:
     return await empreendimento_service.get_locais_obra(db, id, usuario)
+
+
+@router.post(
+    "/{id}/locais/{parent_id}/pavimentos",
+    response_model=LocalObra_FromDB_Schema,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_pavimento(
+    id: uuid.UUID,
+    parent_id: uuid.UUID,
+    payload: Pavimento_FromRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> LocalObra_FromDB_Schema:
+    return await empreendimento_service.create_pavimento(
+        db, id, parent_id, payload, usuario
+    )

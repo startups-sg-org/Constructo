@@ -6,6 +6,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     String,
     Text,
@@ -30,6 +31,7 @@ class StatusEmpreendimento(str, enum.Enum):
 class TipoLocalObra(str, enum.Enum):
     TORRE = "TORRE"
     BLOCO = "BLOCO"
+    PAVIMENTO = "PAVIMENTO"
 
 
 class Empreendimento(Base):
@@ -67,8 +69,14 @@ class Empreendimento(Base):
 class LocalObra(Base):
     __tablename__ = "locais_obra"
     __table_args__ = (
+        UniqueConstraint("id", "empreendimento_id", name="uq_locais_obra_id_empreendimento"),
+        ForeignKeyConstraint(
+            ["parent_id", "empreendimento_id"],
+            ["locais_obra.id", "locais_obra.empreendimento_id"],
+            name="fk_locais_obra_pai_mesmo_empreendimento",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint("ordem >= 0", name="ck_locais_obra_ordem"),
-        CheckConstraint("parent_id IS NULL", name="ck_locais_obra_primeiro_nivel"),
         UniqueConstraint("empreendimento_id", "nome", name="uq_locais_obra_empreendimento_nome"),
     )
 

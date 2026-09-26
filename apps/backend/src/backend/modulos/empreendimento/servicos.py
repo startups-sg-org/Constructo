@@ -11,8 +11,9 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    Pavimento_FromRequest_Schema,
 )
-from .modelos import StatusEmpreendimento
+from .modelos import StatusEmpreendimento, TipoLocalObra
 from .repositorio import EmpreendimentoRepo
 
 
@@ -52,6 +53,42 @@ class EmpreendimentoService:
         ):
             raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
         return await self.repo.get_locais_obra(db, empreendimento_id)
+
+    async def create_pavimento(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        parent_id: uuid.UUID,
+        payload: Pavimento_FromRequest_Schema,
+        usuario,
+    ) -> LocalObra_FromDB_Schema:
+        empreendimento = await self.repo.get_local_empreendimento(db, empreendimento_id)
+        if empreendimento is None:
+            raise HTTPException(status_code=404, detail="Empreendimento não encontrado.")
+        if getattr(usuario, "papel", None) not in {"ADMIN", "GESTOR"} and (
+            getattr(usuario, "empreendimento", None) != empreendimento.nome
+        ):
+            raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
+        if empreendimento.status is StatusEmpreendimento.INATIVO:
+            raise HTTPException(
+                status_code=403,
+                detail="Não é possível alterar um empreendimento inativo.",
+            )
+
+        pai = await self.repo.get_local_obra(db, parent_id)
+        if pai is None:
+            raise HTTPException(status_code=404, detail="Local pai não encontrado.")
+        if pai.empreendimento_id != empreendimento_id:
+            raise HTTPException(
+                status_code=409,
+                detail="O local pai pertence a outro empreendimento.",
+            )
+        if pai.tipo not in {TipoLocalObra.TORRE, TipoLocalObra.BLOCO}:
+            raise HTTPException(
+                status_code=400,
+                detail="Um pavimento só pode pertencer a uma torre ou bloco.",
+            )
+        return await self.repo.create_pavimento(db, empreendimento_id, parent_id, payload)
 
     async def create_empreendimento(
         self,
