@@ -35,7 +35,9 @@ def cliente(monkeypatch):
         return True
 
     app.dependency_overrides[get_db] = fornecer_sessao
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=7, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=7, ativo=True, papel="ADMIN"
+    )
     monkeypatch.setattr(rotas, "pode_gerir", permitir_acesso)
 
     try:
@@ -197,6 +199,9 @@ def test_rejeita_usuario_sem_acesso_ao_empreendimento(cliente, monkeypatch):
         return False
 
     monkeypatch.setattr(rotas, "pode_gerir", negar_acesso)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=7, ativo=True, papel="GESTOR"
+    )
     resposta = cliente[0].post(
         "/empreendimentos/42/locais",
         json={"nome": "Torre A", "tipo": "TORRE", "ordem": 0},
@@ -223,9 +228,7 @@ def test_lista_somente_locais_raiz_do_empreendimento(cliente, monkeypatch):
     resposta = cliente[0].get("/empreendimentos/42/locais")
 
     assert resposta.status_code == 200
-    assert [(item["nome"], item["parent_id"]) for item in resposta.json()] == [
-        ("Bloco A", None)
-    ]
+    assert [(item["nome"], item["parent_id"]) for item in resposta.json()] == [("Bloco A", None)]
 
 
 def test_retorna_estrutura_fisica_hierarquica(cliente, monkeypatch):

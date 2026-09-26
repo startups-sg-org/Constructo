@@ -1,4 +1,9 @@
-import { createBrowserRouter, type RouteObject } from "react-router-dom";
+import {
+  createBrowserRouter,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type RouteObject,
+} from "react-router-dom";
 
 import FeedbackNavegacao from "../componentes/FeedbackNavegacao/FeedbackNavegacao";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
@@ -16,7 +21,7 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
-import { exigirAutenticacao } from "../features/auth/auth.loader";
+import { exigirAcessoAoPainel, exigirAdmin } from "../features/auth/auth.loader";
 import { cadastrarEmpreendimento, cadastrarLocalRaiz, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
 import { carregarEmpreendimento, carregarEmpreendimentos, carregarEstruturaFisica } from "../features/empreendimentos/empreendimentos.loader";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
@@ -27,6 +32,15 @@ import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
 import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
 
+async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
+  await exigirAdmin(args);
+  return carregarUsuarios(args);
+}
+
+async function alterarUsuarioComoAdmin(args: ActionFunctionArgs) {
+  await exigirAdmin(args);
+  return alterarUsuario(args);
+}
 export const rotas: RouteObject[] = [
   {
     element: <PublicLayout />,
@@ -48,7 +62,7 @@ export const rotas: RouteObject[] = [
   },
   {
     id: "admin-autenticado",
-    loader: exigirAutenticacao,
+    loader: exigirAcessoAoPainel,
     errorElement: <ErroRota />,
     children: [
       {
@@ -70,8 +84,8 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "usuarios",
-            loader: carregarUsuarios,
-            action: alterarUsuario,
+            loader: carregarUsuariosComoAdmin,
+            action: alterarUsuarioComoAdmin,
             element: (
               <PaginaPainel
                 titulo="Usuários"

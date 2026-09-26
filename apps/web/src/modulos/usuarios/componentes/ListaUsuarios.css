@@ -286,3 +286,22 @@
     color: #a0443b;
     background: #fcecea;
 }
+
+.lista-usuarios__papel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.lista-usuarios__papel select {
+    min-width: 130px;
+    padding: 7px 9px;
+    border: 1px solid #c8d3d0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.lista-usuarios__papel button {
+    white-space: nowrap;
+}

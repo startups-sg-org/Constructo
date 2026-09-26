@@ -7,9 +7,11 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
-from backend.modulos.usuarios.modelos import Sessao, Usuario
+from backend.modulos.dominio.regras import Papel
+from backend.modulos.usuarios.modelos import AuditoriaPapelUsuario, Sessao, Usuario
 
 SESSAO_DURACAO = timedelta(days=7)
+
 
 class RepositorioDeUsuarios:
     def __init__(self, session: AsyncSession):
@@ -28,7 +30,6 @@ class RepositorioDeUsuarios:
         receber_atualizacoes: bool,
         empreendimento: str,
         unidade: str,
-        ativo: bool,
     ) -> Usuario:
         usuario = Usuario(
             cpf=cpf,
@@ -41,7 +42,8 @@ class RepositorioDeUsuarios:
             receber_atualizacoes=receber_atualizacoes,
             empreendimento=empreendimento,
             unidade=unidade,
-            ativo=ativo,
+            ativo=True,
+            papel=Papel.COMPRADOR,
         )
         self.session.add(usuario)
         await self.session.flush()
@@ -71,6 +73,38 @@ class RepositorioDeUsuarios:
     async def excluir_usuario(self, usuario: Usuario) -> None:
         await self.session.delete(usuario)
         await self.session.flush()
+
+    async def contar_administradores_ativos(self) -> int:
+        consulta = (
+            select(Usuario.id)
+            .where(
+                Usuario.papel == Papel.ADMIN,
+                Usuario.ativo.is_(True),
+            )
+            .with_for_update()
+        )
+        return len((await self.session.scalars(consulta)).all())
+
+    async def alterar_papel(
+        self,
+        usuario: Usuario,
+        papel: Papel,
+        *,
+        alterado_por_id: int,
+    ) -> Usuario:
+        papel_anterior = usuario.papel
+        usuario.papel = papel
+        self.session.add(
+            AuditoriaPapelUsuario(
+                usuario_id=usuario.id,
+                alterado_por_id=alterado_por_id,
+                papel_anterior=str(papel_anterior),
+                papel_novo=str(papel),
+            )
+        )
+        await self.session.flush()
+        await self.session.refresh(usuario)
+        return usuario
 
     async def contar_usuarios(self) -> int:
         consulta = select(func.count()).select_from(Usuario)
