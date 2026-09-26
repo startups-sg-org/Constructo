@@ -1,12 +1,16 @@
-import { editUserSchema } from "@constructo/shared";
+import {
+    editUserSchema,
+    papeisUsuario,
+    type PapelUsuario,
+} from "@constructo/shared";
 import type { ActionFunctionArgs } from "react-router-dom";
 
-import { deleteUser, updateUser } from "./usuarios.service";
+import { deleteUser, updateUser, updateUserRole } from "./usuarios.service";
 import { mensagemDeErro, validarFormulario, type ActionError } from "../shared/actionUtils";
 
 type UsuarioActionSuccess = {
     ok: true;
-    intent: "update" | "delete";
+    intent: "update" | "delete" | "update-role";
     usuarioId: number;
 };
 
@@ -27,6 +31,16 @@ export async function alterarUsuario({ request }: ActionFunctionArgs): Promise<U
     try {
         if (intent === "delete") {
             await deleteUser(usuarioId, { signal: request.signal });
+            return { ok: true, intent, usuarioId };
+        }
+
+        if (intent === "update-role") {
+            const papel = String(formulario.get("papel")) as PapelUsuario;
+            if (!papeisUsuario.includes(papel)) {
+                return { erro: "Papel de usuário inválido.", intent, usuarioId };
+            }
+
+            await updateUserRole(usuarioId, papel, { signal: request.signal });
             return { ok: true, intent, usuarioId };
         }
 
@@ -52,7 +66,9 @@ export async function alterarUsuario({ request }: ActionFunctionArgs): Promise<U
                 error,
                 intent === "delete"
                     ? "Não foi possível excluir o usuário"
-                    : "Não foi possível atualizar o usuário",
+                    : intent === "update-role"
+                      ? "Não foi possível alterar o papel do usuário"
+                      : "Não foi possível atualizar o usuário",
             ),
             intent: String(intent ?? ""),
             usuarioId,

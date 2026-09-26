@@ -76,6 +76,7 @@ const usuario = {
   empreendimento: "Residencial Sol",
   unidade: "101",
   ativo: true,
+  papel: "ADMIN" as const,
 };
 
 const empreendimento = {
@@ -147,7 +148,7 @@ describe("novo sistema de rotas", () => {
   });
 
   it("bloqueia rota administrativa e preserva o destino no login", async () => {
-    getAuthenticatedUserMock.mockRejectedValue(new Error("sem sessão"));
+    getAuthenticatedUserMock.mockRejectedValue(new ApiError("sem sessão", 401, "Unauthorized"));
     const router = montarRota("/admin/usuarios?pagina=2");
 
     expect(

@@ -51,7 +51,9 @@ def configurar_sessao(session: SessaoEmMemoria) -> None:
 def test_usuario_autenticado_cadastra_e_recebe_empreendimento():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:
@@ -85,7 +87,9 @@ def test_usuario_autenticado_cadastra_e_recebe_empreendimento():
 def test_rejeita_nome_ausente_e_status_invalido():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:
@@ -106,7 +110,9 @@ def test_rejeita_nome_ausente_e_status_invalido():
 def test_lista_empreendimentos_disponiveis_do_mais_recente_para_o_mais_antigo():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:
@@ -132,7 +138,9 @@ def test_lista_empreendimentos_disponiveis_do_mais_recente_para_o_mais_antigo():
 def test_lista_empreendimentos_vazia():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:
@@ -147,7 +155,9 @@ def test_lista_empreendimentos_vazia():
 def test_carrega_e_atualiza_parcialmente_empreendimento():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:
@@ -182,7 +192,9 @@ def test_carrega_e_atualiza_parcialmente_empreendimento():
 def test_retorna_404_para_empreendimento_inexistente():
     session = SessaoEmMemoria()
     configurar_sessao(session)
-    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(
+        id=1, ativo=True, papel="ADMIN"
+    )
 
     try:
         with TestClient(app) as cliente:

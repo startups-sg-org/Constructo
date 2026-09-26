@@ -71,6 +71,18 @@ async def listar_empreendimentos(session: AsyncSession) -> list[Empreendimento]:
     )
 
 
+async def listar_empreendimentos_do_gestor(
+    session: AsyncSession, usuario_id: int
+) -> list[Empreendimento]:
+    consulta = (
+        select(Empreendimento)
+        .join(UsuarioEmpreendimento)
+        .where(UsuarioEmpreendimento.usuario_id == usuario_id)
+        .order_by(Empreendimento.criado_em.desc(), Empreendimento.id.desc())
+    )
+    return list((await session.scalars(consulta)).all())
+
+
 async def buscar_empreendimento(session: AsyncSession, empreendimento_id: int) -> Empreendimento:
     return await _exigir(session, Empreendimento, empreendimento_id)
 

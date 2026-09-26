@@ -5,7 +5,8 @@ import { obterDestinoAposLogin } from "./authRedirect";
 
 export async function redirecionarUsuarioAutenticado({ request }: LoaderFunctionArgs) {
     try {
-        await getAuthenticatedUser({ signal: request.signal });
+        const usuario = await getAuthenticatedUser({ signal: request.signal });
+        return redirect(obterDestinoAposLogin(request.url, usuario.papel));
     } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
             throw error;
@@ -13,6 +14,4 @@ export async function redirecionarUsuarioAutenticado({ request }: LoaderFunction
 
         return null;
     }
-
-    return redirect(obterDestinoAposLogin(request.url));
 }

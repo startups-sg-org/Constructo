@@ -14,11 +14,11 @@ export async function autenticarUsuario({ request }: ActionFunctionArgs) {
     if (validacao.erro) return validacao.erro;
 
     try {
-        await loginUser(validacao.dados.email, validacao.dados.senha, {
+        const usuario = await loginUser(validacao.dados.email, validacao.dados.senha, {
             signal: request.signal,
         });
 
-        return redirect(obterDestinoAposLogin(request.url));
+        return redirect(obterDestinoAposLogin(request.url, usuario.papel));
     } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
             throw error;

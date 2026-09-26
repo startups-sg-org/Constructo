@@ -1,11 +1,19 @@
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, Link, useActionData, useNavigation, useSubmit } from "react-router-dom";
+import {
+    Form,
+    Link,
+    useActionData,
+    useNavigation,
+    useRouteLoaderData,
+    useSubmit,
+} from "react-router-dom";
 import {
     empreendimentoSchema,
     type EmpreendimentoFormData,
 } from "@constructo/shared";
+import { exigirAcessoAoPainel } from "../../../features/auth/auth.loader";
 
 import type { EmpreendimentoActionData } from "../../../features/empreendimentos/empreendimentos.action";
 import "./FormularioEmpreendimento.css";
@@ -16,8 +24,8 @@ const valoresIniciais: EmpreendimentoFormData = {
     endereco: "",
     status: "PLANEJADO",
 };
-
 export default function FormularioEmpreendimento() {
+    const usuario = useRouteLoaderData<typeof exigirAcessoAoPainel>("admin-autenticado");
     const actionData = useActionData<EmpreendimentoActionData>();
     const navigation = useNavigation();
     const submit = useSubmit();
@@ -50,6 +58,8 @@ export default function FormularioEmpreendimento() {
             });
         }
     }, [actionData, reset, setError]);
+
+    if (usuario?.papel !== "ADMIN") return null;
 
     return (
         <section className="empreendimento-card" aria-labelledby="novo-empreendimento-titulo">
