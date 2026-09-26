@@ -120,6 +120,10 @@ class LocalLer(Leitura, LocalCriar):
     atualizado_em: datetime
 
 
+class LocalHierarquiaLer(LocalLer):
+    filhos: list["LocalHierarquiaLer"] = Field(default_factory=list)
+
+
 class TaxonomiaCriar(BaseModel):
     empreendimento_id: int
     nome: str = Field(min_length=1, max_length=200)

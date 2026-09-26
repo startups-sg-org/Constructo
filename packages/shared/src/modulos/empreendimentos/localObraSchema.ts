@@ -34,3 +34,7 @@ export type LocalObra = PavimentoFormData & {
     criado_em: string;
     atualizado_em: string;
 };
+
+export type EstruturaLocal = LocalObra & {
+    filhos: EstruturaLocal[];
+};

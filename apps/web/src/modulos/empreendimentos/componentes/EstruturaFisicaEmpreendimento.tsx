@@ -1,6 +1,8 @@
+import type { EstruturaLocal } from "@constructo/shared";
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 
+import StructureTree from "../../../componentes/StructureTree/StructureTree";
 import type { LocalRaizActionData } from "../../../features/empreendimentos/empreendimentos.action";
 import { carregarEstruturaFisica } from "../../../features/empreendimentos/empreendimentos.loader";
 import "./EstruturaFisicaEmpreendimento.css";
@@ -8,15 +10,15 @@ import "./EstruturaFisicaEmpreendimento.css";
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
 
 export default function EstruturaFisicaEmpreendimento() {
-    const { empreendimento, locais, pavimentosPorPai, unidadesPorPavimento } =
-        useLoaderData<typeof carregarEstruturaFisica>();
+    const { empreendimento, estrutura } = useLoaderData<typeof carregarEstruturaFisica>();
     const actionData = useActionData<LocalRaizActionData>();
     const navigation = useNavigation();
     const formularioRaizRef = useRef<HTMLFormElement>(null);
     const formularioPavimentoRef = useRef<HTMLFormElement>(null);
     const formularioUnidadeRef = useRef<HTMLFormElement>(null);
-    const [paiSelecionado, setPaiSelecionado] = useState<number | null>(null);
-    const [pavimentoSelecionado, setPavimentoSelecionado] = useState<number | null>(null);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [paiSelecionado, setPaiSelecionado] = useState<EstruturaLocal | null>(null);
+    const [pavimentoSelecionado, setPavimentoSelecionado] = useState<EstruturaLocal | null>(null);
     const enviando = navigation.state !== "idle" && navigation.formData != null;
     const enviandoPavimento = enviando
         && navigation.formData?.get("intencao") === "adicionar-pavimento";
@@ -29,6 +31,18 @@ export default function EstruturaFisicaEmpreendimento() {
         else if (actionData.intencao === "unidade") formularioUnidadeRef.current?.reset();
         else formularioRaizRef.current?.reset();
     }, [actionData]);
+
+    function abrirPavimento(item: EstruturaLocal) {
+        setSelectedId(item.id);
+        setPavimentoSelecionado(null);
+        setPaiSelecionado((atual) => atual?.id === item.id ? null : item);
+    }
+
+    function abrirUnidade(item: EstruturaLocal) {
+        setSelectedId(item.id);
+        setPaiSelecionado(null);
+        setPavimentoSelecionado((atual) => atual?.id === item.id ? null : item);
+    }
 
     return (
         <>
@@ -51,231 +65,131 @@ export default function EstruturaFisicaEmpreendimento() {
 
                 <div className="estrutura-fisica__cabecalho-lista">
                     <div>
-                        <span className="subtitulo">Primeiro nível</span>
-                        <h3>Torres e blocos</h3>
+                        <span className="subtitulo">Visão hierárquica</span>
+                        <h3>Torres, blocos, pavimentos e unidades</h3>
                     </div>
-                    <p>{locais.length} {locais.length === 1 ? "local cadastrado" : "locais cadastrados"}</p>
+                    <p>
+                        {estrutura.length} {estrutura.length === 1 ? "local raiz" : "locais raiz"}
+                    </p>
                 </div>
 
-                {locais.length === 0 ? (
+                {estrutura.length === 0 ? (
                     <div className="estrutura-fisica__vazia">
                         <h3>Nenhuma torre ou bloco cadastrado</h3>
                         <p>Adicione o primeiro local para iniciar a estrutura física da obra.</p>
                     </div>
                 ) : (
-                    <ol className="estrutura-fisica__lista">
-                        {locais.map((local) => (
-                            <li className="estrutura-fisica__raiz" key={local.id}>
-                                <div className="estrutura-fisica__local">
-                                    <span className="estrutura-fisica__ordem">{local.ordem}</span>
-                                    <div className="estrutura-fisica__identificacao">
-                                        <strong>{local.nome}</strong>
-                                        <span>{rotuloTipo[local.tipo as keyof typeof rotuloTipo]}</span>
-                                    </div>
-                                    <button
-                                        className="botao secundario estrutura-fisica__adicionar"
-                                        type="button"
-                                        aria-expanded={paiSelecionado === local.id}
-                                        onClick={() => setPaiSelecionado(
-                                            paiSelecionado === local.id ? null : local.id,
-                                        )}
-                                    >
-                                        Adicionar pavimento
-                                    </button>
-                                </div>
-
-                                {(pavimentosPorPai[local.id] ?? []).length > 0 ? (
-                                    <ol className="estrutura-fisica__pavimentos">
-                                        {(pavimentosPorPai[local.id] ?? []).map((pavimento) => (
-                                            <li className="estrutura-fisica__pavimento" key={pavimento.id}>
-                                                <div className="estrutura-fisica__local">
-                                                    <span className="estrutura-fisica__ordem">{pavimento.ordem}</span>
-                                                    <div className="estrutura-fisica__identificacao">
-                                                        <strong>{pavimento.nome}</strong>
-                                                        <span>Pavimento</span>
-                                                    </div>
-                                                    <button
-                                                        className="botao secundario estrutura-fisica__adicionar"
-                                                        type="button"
-                                                        aria-expanded={pavimentoSelecionado === pavimento.id}
-                                                        onClick={() => setPavimentoSelecionado(
-                                                            pavimentoSelecionado === pavimento.id
-                                                                ? null
-                                                                : pavimento.id,
-                                                        )}
-                                                    >
-                                                        Adicionar unidade
-                                                    </button>
-                                                </div>
-
-                                                {(unidadesPorPavimento[pavimento.id] ?? []).length > 0 ? (
-                                                    <ol className="estrutura-fisica__unidades">
-                                                        {(unidadesPorPavimento[pavimento.id] ?? []).map((unidade) => (
-                                                            <li key={unidade.id}>
-                                                                <span className="estrutura-fisica__ordem">
-                                                                    {unidade.ordem}
-                                                                </span>
-                                                                <div className="estrutura-fisica__identificacao">
-                                                                    <strong>{unidade.nome}</strong>
-                                                                    <span>Unidade</span>
-                                                                </div>
-                                                            </li>
-                                                        ))}
-                                                    </ol>
-                                                ) : (
-                                                    <p className="estrutura-fisica__sem-unidades">
-                                                        Nenhuma unidade cadastrada.
-                                                    </p>
-                                                )}
-
-                                                {pavimentoSelecionado === pavimento.id && (
-                                                    <Form
-                                                        ref={formularioUnidadeRef}
-                                                        method="post"
-                                                        className="empreendimento-form estrutura-fisica__form-unidade"
-                                                        noValidate
-                                                        aria-label={`Adicionar unidade em ${pavimento.nome}`}
-                                                        aria-busy={enviandoUnidade}
-                                                    >
-                                                        <input type="hidden" name="intencao" value="adicionar-unidade" />
-                                                        <input type="hidden" name="parent_id" value={pavimento.id} />
-                                                        <div className="campo empreendimento-form__nome">
-                                                            <label htmlFor={`unidade-nome-${pavimento.id}`}>
-                                                                Nome <span aria-hidden="true">*</span>
-                                                            </label>
-                                                            <input
-                                                                id={`unidade-nome-${pavimento.id}`}
-                                                                name="nome"
-                                                                type="text"
-                                                                maxLength={200}
-                                                                disabled={enviandoUnidade}
-                                                                aria-invalid={Boolean(
-                                                                    actionData?.intencao === "unidade"
-                                                                    && actionData.parentId === pavimento.id
-                                                                    && actionData.campos?.nome,
-                                                                )}
-                                                            />
-                                                            {actionData?.intencao === "unidade"
-                                                                && actionData.parentId === pavimento.id
-                                                                && actionData.campos?.nome && (
-                                                                <span role="alert">{actionData.campos.nome}</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="campo">
-                                                            <label htmlFor={`unidade-ordem-${pavimento.id}`}>
-                                                                Ordem <span aria-hidden="true">*</span>
-                                                            </label>
-                                                            <input
-                                                                id={`unidade-ordem-${pavimento.id}`}
-                                                                name="ordem"
-                                                                type="number"
-                                                                min="0"
-                                                                step="1"
-                                                                defaultValue="0"
-                                                                disabled={enviandoUnidade}
-                                                            />
-                                                            {actionData?.intencao === "unidade"
-                                                                && actionData.parentId === pavimento.id
-                                                                && actionData.campos?.ordem && (
-                                                                <span role="alert">{actionData.campos.ordem}</span>
-                                                            )}
-                                                        </div>
-                                                        <button className="botao primario" type="submit" disabled={enviandoUnidade}>
-                                                            {enviandoUnidade ? "Adicionando..." : "Adicionar unidade"}
-                                                        </button>
-                                                        {actionData?.intencao === "unidade"
-                                                            && actionData.parentId === pavimento.id
-                                                            && actionData.ok && (
-                                                            <p className="empreendimento-form__sucesso" role="status">
-                                                                Unidade “{actionData.local.nome}” adicionada com sucesso.
-                                                            </p>
-                                                        )}
-                                                        {actionData?.intencao === "unidade"
-                                                            && actionData.parentId === pavimento.id
-                                                            && actionData.erro && (
-                                                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
-                                                        )}
-                                                    </Form>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ol>
-                                ) : (
-                                    <p className="estrutura-fisica__sem-pavimentos">Nenhum pavimento cadastrado.</p>
-                                )}
-
-                                {paiSelecionado === local.id && (
-                                    <Form
-                                        ref={formularioPavimentoRef}
-                                        method="post"
-                                        className="empreendimento-form estrutura-fisica__form-pavimento"
-                                        noValidate
-                                        aria-label={`Adicionar pavimento em ${local.nome}`}
-                                        aria-busy={enviandoPavimento}
-                                    >
-                                        <input type="hidden" name="intencao" value="adicionar-pavimento" />
-                                        <input type="hidden" name="parent_id" value={local.id} />
-                                        <div className="campo empreendimento-form__nome">
-                                            <label htmlFor={`pavimento-nome-${local.id}`}>
-                                                Nome <span aria-hidden="true">*</span>
-                                            </label>
-                                            <input
-                                                id={`pavimento-nome-${local.id}`}
-                                                name="nome"
-                                                type="text"
-                                                maxLength={200}
-                                                disabled={enviandoPavimento}
-                                                aria-invalid={Boolean(
-                                                    actionData?.intencao === "pavimento"
-                                                    && actionData.parentId === local.id
-                                                    && actionData.campos?.nome,
-                                                )}
-                                            />
-                                            {actionData?.intencao === "pavimento"
-                                                && actionData.parentId === local.id
-                                                && actionData.campos?.nome && (
-                                                <span role="alert">{actionData.campos.nome}</span>
-                                            )}
-                                        </div>
-                                        <div className="campo">
-                                            <label htmlFor={`pavimento-ordem-${local.id}`}>
-                                                Ordem <span aria-hidden="true">*</span>
-                                            </label>
-                                            <input
-                                                id={`pavimento-ordem-${local.id}`}
-                                                name="ordem"
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                defaultValue="0"
-                                                disabled={enviandoPavimento}
-                                            />
-                                            {actionData?.intencao === "pavimento"
-                                                && actionData.parentId === local.id
-                                                && actionData.campos?.ordem && (
-                                                <span role="alert">{actionData.campos.ordem}</span>
-                                            )}
-                                        </div>
-                                        <button className="botao primario" type="submit" disabled={enviandoPavimento}>
-                                            {enviandoPavimento ? "Adicionando..." : "Adicionar pavimento"}
+                    <>
+                        <StructureTree
+                            items={estrutura}
+                            selectedId={selectedId}
+                            onSelect={(item) => setSelectedId(item.id)}
+                            renderActions={(item) => {
+                                if (item.tipo === "TORRE" || item.tipo === "BLOCO") {
+                                    return (
+                                        <button
+                                            className="botao secundario"
+                                            type="button"
+                                            aria-expanded={paiSelecionado?.id === item.id}
+                                            onClick={() => abrirPavimento(item)}
+                                        >
+                                            Adicionar pavimento
                                         </button>
-                                        {actionData?.intencao === "pavimento"
-                                            && actionData.parentId === local.id
-                                            && actionData.ok && (
-                                            <p className="empreendimento-form__sucesso" role="status">
-                                                Pavimento “{actionData.local.nome}” adicionado com sucesso.
-                                            </p>
-                                        )}
-                                        {actionData?.intencao === "pavimento"
-                                            && actionData.parentId === local.id
-                                            && actionData.erro && (
-                                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
-                                        )}
-                                    </Form>
-                                )}
-                            </li>
-                        ))}
-                    </ol>
+                                    );
+                                }
+                                if (item.tipo === "PAVIMENTO") {
+                                    return (
+                                        <button
+                                            className="botao secundario"
+                                            type="button"
+                                            aria-expanded={pavimentoSelecionado?.id === item.id}
+                                            onClick={() => abrirUnidade(item)}
+                                        >
+                                            Adicionar unidade
+                                        </button>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
+                        {selectedId !== null && (
+                            <p className="estrutura-fisica__selecao" role="status">
+                                Item selecionado na estrutura.
+                            </p>
+                        )}
+                    </>
+                )}
+
+                {paiSelecionado && (
+                    <Form
+                        ref={formularioPavimentoRef}
+                        method="post"
+                        className="empreendimento-form estrutura-fisica__form-filho"
+                        noValidate
+                        aria-label={`Adicionar pavimento em ${paiSelecionado.nome}`}
+                        aria-busy={enviandoPavimento}
+                    >
+                        <input type="hidden" name="intencao" value="adicionar-pavimento" />
+                        <input type="hidden" name="parent_id" value={paiSelecionado.id} />
+                        <CampoFilho
+                            prefixo="pavimento"
+                            parentId={paiSelecionado.id}
+                            disabled={enviandoPavimento}
+                            actionData={actionData}
+                            intencao="pavimento"
+                        />
+                        <button className="botao primario" type="submit" disabled={enviandoPavimento}>
+                            {enviandoPavimento ? "Adicionando..." : "Adicionar pavimento"}
+                        </button>
+                        {actionData?.intencao === "pavimento"
+                            && actionData.parentId === paiSelecionado.id
+                            && actionData.ok && (
+                            <p className="empreendimento-form__sucesso" role="status">
+                                Pavimento “{actionData.local.nome}” adicionado com sucesso.
+                            </p>
+                        )}
+                        {actionData?.intencao === "pavimento"
+                            && actionData.parentId === paiSelecionado.id
+                            && actionData.erro && (
+                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                        )}
+                    </Form>
+                )}
+
+                {pavimentoSelecionado && (
+                    <Form
+                        ref={formularioUnidadeRef}
+                        method="post"
+                        className="empreendimento-form estrutura-fisica__form-filho"
+                        noValidate
+                        aria-label={`Adicionar unidade em ${pavimentoSelecionado.nome}`}
+                        aria-busy={enviandoUnidade}
+                    >
+                        <input type="hidden" name="intencao" value="adicionar-unidade" />
+                        <input type="hidden" name="parent_id" value={pavimentoSelecionado.id} />
+                        <CampoFilho
+                            prefixo="unidade"
+                            parentId={pavimentoSelecionado.id}
+                            disabled={enviandoUnidade}
+                            actionData={actionData}
+                            intencao="unidade"
+                        />
+                        <button className="botao primario" type="submit" disabled={enviandoUnidade}>
+                            {enviandoUnidade ? "Adicionando..." : "Adicionar unidade"}
+                        </button>
+                        {actionData?.intencao === "unidade"
+                            && actionData.parentId === pavimentoSelecionado.id
+                            && actionData.ok && (
+                            <p className="empreendimento-form__sucesso" role="status">
+                                Unidade “{actionData.local.nome}” adicionada com sucesso.
+                            </p>
+                        )}
+                        {actionData?.intencao === "unidade"
+                            && actionData.parentId === pavimentoSelecionado.id
+                            && actionData.erro && (
+                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                        )}
+                    </Form>
                 )}
             </section>
 
@@ -304,22 +218,18 @@ export default function EstruturaFisicaEmpreendimento() {
                             maxLength={200}
                             disabled={enviando}
                             aria-invalid={Boolean(actionData?.intencao === "raiz" && actionData.campos?.nome)}
-                            aria-describedby={actionData?.intencao === "raiz" && actionData.campos?.nome ? "local-nome-erro" : undefined}
                         />
                         {actionData?.intencao === "raiz" && actionData.campos?.nome && (
-                            <span id="local-nome-erro" role="alert">{actionData.campos.nome}</span>
+                            <span role="alert">{actionData.campos.nome}</span>
                         )}
                     </div>
-
                     <div className="campo">
                         <label htmlFor="local-tipo">Tipo <span aria-hidden="true">*</span></label>
                         <select id="local-tipo" name="tipo" defaultValue="TORRE" disabled={enviando}>
                             <option value="TORRE">Torre</option>
                             <option value="BLOCO">Bloco</option>
                         </select>
-                        {actionData?.intencao === "raiz" && actionData.campos?.tipo && <span role="alert">{actionData.campos.tipo}</span>}
                     </div>
-
                     <div className="campo">
                         <label htmlFor="local-ordem">Ordem <span aria-hidden="true">*</span></label>
                         <input
@@ -332,9 +242,10 @@ export default function EstruturaFisicaEmpreendimento() {
                             disabled={enviando}
                             aria-invalid={Boolean(actionData?.intencao === "raiz" && actionData.campos?.ordem)}
                         />
-                        {actionData?.intencao === "raiz" && actionData.campos?.ordem && <span role="alert">{actionData.campos.ordem}</span>}
+                        {actionData?.intencao === "raiz" && actionData.campos?.ordem && (
+                            <span role="alert">{actionData.campos.ordem}</span>
+                        )}
                     </div>
-
                     {actionData?.ok && actionData.intencao === "raiz" && (
                         <p className="empreendimento-form__sucesso" role="status">
                             {rotuloTipo[actionData.local.tipo as keyof typeof rotuloTipo]} “{actionData.local.nome}” adicionada com sucesso.
@@ -343,7 +254,6 @@ export default function EstruturaFisicaEmpreendimento() {
                     {actionData?.intencao === "raiz" && actionData.erro && (
                         <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
                     )}
-
                     <div className="empreendimento-form__acoes">
                         <button className="botao primario" type="submit" disabled={enviando}>
                             {enviando ? "Adicionando..." : "Adicionar torre/bloco"}
@@ -351,6 +261,54 @@ export default function EstruturaFisicaEmpreendimento() {
                     </div>
                 </Form>
             </section>
+        </>
+    );
+}
+
+type CampoFilhoProps = {
+    prefixo: "pavimento" | "unidade";
+    parentId: number;
+    disabled: boolean;
+    actionData: LocalRaizActionData | undefined;
+    intencao: "pavimento" | "unidade";
+};
+
+function CampoFilho({ prefixo, parentId, disabled, actionData, intencao }: CampoFilhoProps) {
+    const erroNome = actionData?.intencao === intencao
+        && actionData.parentId === parentId
+        && actionData.campos?.nome;
+    const erroOrdem = actionData?.intencao === intencao
+        && actionData.parentId === parentId
+        && actionData.campos?.ordem;
+
+    return (
+        <>
+            <div className="campo empreendimento-form__nome">
+                <label htmlFor={`${prefixo}-nome-${parentId}`}>Nome <span aria-hidden="true">*</span></label>
+                <input
+                    id={`${prefixo}-nome-${parentId}`}
+                    name="nome"
+                    type="text"
+                    maxLength={200}
+                    disabled={disabled}
+                    aria-invalid={Boolean(erroNome)}
+                />
+                {erroNome && <span role="alert">{erroNome}</span>}
+            </div>
+            <div className="campo">
+                <label htmlFor={`${prefixo}-ordem-${parentId}`}>Ordem <span aria-hidden="true">*</span></label>
+                <input
+                    id={`${prefixo}-ordem-${parentId}`}
+                    name="ordem"
+                    type="number"
+                    min="0"
+                    step="1"
+                    defaultValue="0"
+                    disabled={disabled}
+                    aria-invalid={Boolean(erroOrdem)}
+                />
+                {erroOrdem && <span role="alert">{erroOrdem}</span>}
+            </div>
         </>
     );
 }

@@ -16,6 +16,8 @@ from .esquemas import (
     EtapaCriar,
     EvidenciaCriar,
     LocalCriar,
+    LocalHierarquiaLer,
+    LocalLer,
     ProgressoMarcoCriar,
     PublicacaoCriar,
 )
@@ -152,6 +154,40 @@ async def listar_locais(
         LocalObra.parent_id == parent_id,
     )
     return list((await session.scalars(consulta.order_by(LocalObra.ordem, LocalObra.id))).all())
+
+
+async def listar_estrutura_fisica(
+    session: AsyncSession, empreendimento_id: int
+) -> list[LocalHierarquiaLer]:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    locais = list(
+        (
+            await session.scalars(
+                select(LocalObra)
+                .where(LocalObra.empreendimento_id == empreendimento_id)
+                .order_by(LocalObra.ordem, LocalObra.id)
+            )
+        ).all()
+    )
+    nos = {
+        local.id: LocalHierarquiaLer(
+            **LocalLer.model_validate(local).model_dump(),
+            filhos=[],
+        )
+        for local in locais
+    }
+    raizes: list[LocalHierarquiaLer] = []
+
+    for local in locais:
+        no = nos[local.id]
+        if local.parent_id is None:
+            raizes.append(no)
+        else:
+            pai = nos.get(local.parent_id)
+            if pai is not None:
+                pai.filhos.append(no)
+
+    return raizes
 
 
 async def mover_local(session: AsyncSession, local_id: int, parent_id: int | None) -> LocalObra:
