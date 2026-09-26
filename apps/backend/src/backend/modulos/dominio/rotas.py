@@ -12,6 +12,7 @@ from .esquemas import (
     EmpreendimentoCriar,
     EmpreendimentoLer,
     LocalCriar,
+    LocalHierarquiaLer,
     LocalLer,
     LocalRaizCriar,
     PavimentoCriar,
@@ -23,6 +24,7 @@ from .servicos import (
     criar_empreendimento,
     criar_local,
     listar_empreendimentos,
+    listar_estrutura_fisica,
     listar_locais,
     pode_gerir,
 )
@@ -77,6 +79,22 @@ async def _exigir_acesso_ao_empreendimento(
 ) -> None:
     if not await pode_gerir(session, usuario.id, empreendimento_id):
         raise HTTPException(status_code=403, detail="Acesso negado ao empreendimento")
+
+
+@router.get(
+    "/{empreendimento_id}/estrutura-fisica",
+    response_model=list[LocalHierarquiaLer],
+)
+async def consultar_estrutura_fisica(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await listar_estrutura_fisica(session, empreendimento_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
 
 
 @router.get("/{empreendimento_id}/locais", response_model=list[LocalLer])

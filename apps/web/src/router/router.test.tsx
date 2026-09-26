@@ -11,9 +11,7 @@ import {
   criarPavimento,
   criarUnidade,
   listarEmpreendimentos,
-  listarLocaisRaiz,
-  listarPavimentos,
-  listarUnidades,
+  obterEstruturaFisica,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../services/api";
@@ -36,9 +34,7 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   criarPavimento: vi.fn(),
   criarUnidade: vi.fn(),
   listarEmpreendimentos: vi.fn(),
-  listarLocaisRaiz: vi.fn(),
-  listarPavimentos: vi.fn(),
-  listarUnidades: vi.fn(),
+  obterEstruturaFisica: vi.fn(),
   obterEmpreendimento: vi.fn(),
 }));
 
@@ -59,9 +55,7 @@ const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
 const criarPavimentoMock = vi.mocked(criarPavimento);
 const criarUnidadeMock = vi.mocked(criarUnidade);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
-const listarLocaisRaizMock = vi.mocked(listarLocaisRaiz);
-const listarPavimentosMock = vi.mocked(listarPavimentos);
-const listarUnidadesMock = vi.mocked(listarUnidades);
+const obterEstruturaFisicaMock = vi.mocked(obterEstruturaFisica);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -106,9 +100,7 @@ describe("novo sistema de rotas", () => {
     getUsersCountMock.mockResolvedValue(8);
     getUsersMock.mockResolvedValue([]);
     listarEmpreendimentosMock.mockResolvedValue([]);
-    listarLocaisRaizMock.mockResolvedValue([]);
-    listarPavimentosMock.mockResolvedValue([]);
-    listarUnidadesMock.mockResolvedValue([]);
+    obterEstruturaFisicaMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
@@ -366,7 +358,9 @@ describe("novo sistema de rotas", () => {
       criado_em: "2026-09-26T12:00:00Z",
       atualizado_em: "2026-09-26T12:00:00Z",
     };
-    listarLocaisRaizMock.mockResolvedValueOnce([]).mockResolvedValue([local]);
+    obterEstruturaFisicaMock
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([{ ...local, filhos: [] }]);
     criarLocalRaizMock.mockResolvedValue(local);
     montarRota("/admin/empreendimentos/12/estrutura-fisica");
 
@@ -407,8 +401,9 @@ describe("novo sistema de rotas", () => {
       tipo: "PAVIMENTO" as const,
       ordem: 2,
     };
-    listarLocaisRaizMock.mockResolvedValue([torre]);
-    listarPavimentosMock.mockResolvedValueOnce([]).mockResolvedValue([pavimento]);
+    obterEstruturaFisicaMock
+      .mockResolvedValueOnce([{ ...torre, filhos: [] }])
+      .mockResolvedValue([{ ...torre, filhos: [{ ...pavimento, filhos: [] }] }]);
     criarPavimentoMock.mockResolvedValue(pavimento);
     montarRota("/admin/empreendimentos/12/estrutura-fisica");
 
@@ -457,9 +452,15 @@ describe("novo sistema de rotas", () => {
       tipo: "UNIDADE" as const,
       ordem: 3,
     };
-    listarLocaisRaizMock.mockResolvedValue([torre]);
-    listarPavimentosMock.mockResolvedValue([pavimento]);
-    listarUnidadesMock.mockResolvedValueOnce([]).mockResolvedValue([unidade]);
+    obterEstruturaFisicaMock
+      .mockResolvedValueOnce([{
+        ...torre,
+        filhos: [{ ...pavimento, filhos: [] }],
+      }])
+      .mockResolvedValue([{
+        ...torre,
+        filhos: [{ ...pavimento, filhos: [{ ...unidade, filhos: [] }] }],
+      }]);
     criarUnidadeMock.mockResolvedValue(unidade);
     montarRota("/admin/empreendimentos/12/estrutura-fisica");
 

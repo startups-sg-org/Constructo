@@ -10,7 +10,7 @@ from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio.esquemas import LocalCriar
 from backend.modulos.dominio.modelos import Empreendimento
 from backend.modulos.dominio.regras import TipoLocal
-from backend.modulos.dominio.servicos import criar_local, mover_local
+from backend.modulos.dominio.servicos import criar_local, listar_estrutura_fisica, mover_local
 
 
 async def _cenario():
@@ -176,6 +176,65 @@ def test_move_pavimento_entre_raizes_validas_e_bloqueia_ciclo():
                 with pytest.raises(ValueError, match="Ciclo detectado"):
                     await mover_local(session, bloco.id, unidade.id)
                 assert bloco.parent_id is None
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_retorna_estrutura_hierarquica_ordenada():
+    async def executar():
+        engine, factory = await _cenario()
+        try:
+            async with factory() as session:
+                empreendimento = Empreendimento(nome="Aurora")
+                session.add(empreendimento)
+                await session.flush()
+                await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=empreendimento.id,
+                        nome="Bloco B",
+                        tipo=TipoLocal.BLOCO,
+                        ordem=2,
+                    ),
+                )
+                torre = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=empreendimento.id,
+                        nome="Torre A",
+                        tipo=TipoLocal.TORRE,
+                        ordem=1,
+                    ),
+                )
+                pavimento = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=empreendimento.id,
+                        parent_id=torre.id,
+                        nome="1º Pavimento",
+                        tipo=TipoLocal.PAVIMENTO,
+                    ),
+                )
+                await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=empreendimento.id,
+                        parent_id=pavimento.id,
+                        nome="Unidade 101",
+                        tipo=TipoLocal.UNIDADE,
+                    ),
+                )
+
+                estrutura = await listar_estrutura_fisica(session, empreendimento.id)
+
+                assert [item.nome for item in estrutura] == ["Torre A", "Bloco B"]
+                assert [item.nome for item in estrutura[0].filhos] == ["1º Pavimento"]
+                assert [item.nome for item in estrutura[0].filhos[0].filhos] == [
+                    "Unidade 101"
+                ]
+                assert estrutura[1].filhos == []
         finally:
             await engine.dispose()
 

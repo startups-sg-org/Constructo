@@ -226,3 +226,45 @@ def test_lista_somente_locais_raiz_do_empreendimento(cliente, monkeypatch):
     assert [(item["nome"], item["parent_id"]) for item in resposta.json()] == [
         ("Bloco A", None)
     ]
+
+
+def test_retorna_estrutura_fisica_hierarquica(cliente, monkeypatch):
+    async def listar(_session, empreendimento_id):
+        assert empreendimento_id == 42
+        torre_dados = SimpleNamespace(
+            empreendimento_id=42,
+            parent_id=None,
+            nome="Torre A",
+            tipo="TORRE",
+            ordem=1,
+        )
+        pavimento_dados = SimpleNamespace(
+            empreendimento_id=42,
+            parent_id=1,
+            nome="1º Pavimento",
+            tipo="PAVIMENTO",
+            ordem=1,
+        )
+        unidade_dados = SimpleNamespace(
+            empreendimento_id=42,
+            parent_id=2,
+            nome="Unidade 101",
+            tipo="UNIDADE",
+            ordem=1,
+        )
+        unidade = local_resposta(unidade_dados, identificador=3)
+        unidade.filhos = []
+        pavimento = local_resposta(pavimento_dados, identificador=2)
+        pavimento.filhos = [unidade]
+        torre = local_resposta(torre_dados, identificador=1)
+        torre.filhos = [pavimento]
+        return [torre]
+
+    monkeypatch.setattr(rotas, "listar_estrutura_fisica", listar)
+    resposta = cliente[0].get("/empreendimentos/42/estrutura-fisica")
+
+    assert resposta.status_code == 200
+    dados = resposta.json()
+    assert dados[0]["nome"] == "Torre A"
+    assert dados[0]["filhos"][0]["nome"] == "1º Pavimento"
+    assert dados[0]["filhos"][0]["filhos"][0]["nome"] == "Unidade 101"
