@@ -51,7 +51,7 @@
 }
 
 .estrutura-fisica__local,
-.estrutura-fisica__pavimentos li {
+.estrutura-fisica__unidades li {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -67,7 +67,8 @@
 }
 
 .estrutura-fisica__identificacao > span,
-.estrutura-fisica__sem-pavimentos {
+.estrutura-fisica__sem-pavimentos,
+.estrutura-fisica__sem-unidades {
     color: #62706d;
     font-size: 0.78rem;
 }
@@ -85,17 +86,39 @@
     list-style: none;
 }
 
-.estrutura-fisica__pavimentos li {
+.estrutura-fisica__pavimento {
+    display: grid;
+    gap: 8px;
     padding: 10px 12px;
     border-radius: 8px;
     background: #fff;
+}
+
+.estrutura-fisica__unidades {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 0 24px;
+    padding: 0 0 0 18px;
+    border-left: 2px solid #e6eee9;
+    list-style: none;
+}
+
+.estrutura-fisica__unidades li {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f7faf9;
 }
 
 .estrutura-fisica__sem-pavimentos {
     margin-left: 48px;
 }
 
-.estrutura-fisica__form-pavimento {
+.estrutura-fisica__sem-unidades {
+    margin-left: 48px;
+}
+
+.estrutura-fisica__form-pavimento,
+.estrutura-fisica__form-unidade {
     grid-template-columns: minmax(180px, 1fr) minmax(100px, 160px) auto;
     align-items: end;
     padding: 16px;
@@ -103,7 +126,8 @@
     background: #eef6f3;
 }
 
-.estrutura-fisica__form-pavimento > p {
+.estrutura-fisica__form-pavimento > p,
+.estrutura-fisica__form-unidade > p {
     grid-column: 1 / -1;
 }
 
@@ -136,7 +160,8 @@
         margin-left: 48px;
     }
 
-    .estrutura-fisica__form-pavimento {
+    .estrutura-fisica__form-pavimento,
+    .estrutura-fisica__form-unidade {
         grid-template-columns: 1fr;
     }
 }
