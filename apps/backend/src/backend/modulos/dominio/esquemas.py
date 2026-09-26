@@ -115,6 +115,10 @@ class UnidadeCriar(PavimentoCriar):
     pass
 
 
+class LocalAtualizar(PavimentoCriar):
+    pass
+
+
 class LocalLer(Leitura, LocalCriar):
     criado_em: datetime
     atualizado_em: datetime

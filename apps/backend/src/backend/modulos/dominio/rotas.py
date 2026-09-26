@@ -11,6 +11,7 @@ from .esquemas import (
     EmpreendimentoAtualizar,
     EmpreendimentoCriar,
     EmpreendimentoLer,
+    LocalAtualizar,
     LocalCriar,
     LocalHierarquiaLer,
     LocalLer,
@@ -20,6 +21,7 @@ from .esquemas import (
 )
 from .servicos import (
     atualizar_empreendimento,
+    atualizar_local,
     buscar_empreendimento,
     criar_empreendimento,
     criar_local,
@@ -129,6 +131,21 @@ async def cadastrar_local_raiz(
         )
     except ValueError as erro:
         raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
+
+
+@router.patch("/{empreendimento_id}/locais/{local_id}", response_model=LocalLer)
+async def editar_local(
+    empreendimento_id: int,
+    local_id: int,
+    dados: LocalAtualizar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await atualizar_local(session, empreendimento_id, local_id, dados)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail="Local não encontrado") from erro
 
 
 @router.get("/{empreendimento_id}/locais/{parent_id}/pavimentos", response_model=list[LocalLer])

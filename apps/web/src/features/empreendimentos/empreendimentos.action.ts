@@ -1,5 +1,6 @@
 import {
     atualizacaoEmpreendimentoSchema,
+    atualizacaoLocalSchema,
     empreendimentoSchema,
     type Empreendimento,
     localRaizSchema,
@@ -12,6 +13,7 @@ import type { ActionFunctionArgs } from "react-router-dom";
 import { mensagemDeErro, validarFormulario, type ActionError } from "../shared/actionUtils";
 import {
     atualizarEmpreendimento,
+    atualizarLocal,
     criarEmpreendimento,
     criarLocalRaiz,
     criarPavimento,
@@ -88,14 +90,16 @@ export async function editarEmpreendimento({ request, params }: ActionFunctionAr
 export type LocalRaizActionData =
     | (ActionError & {
         ok?: false;
-        intencao?: "raiz" | "pavimento" | "unidade";
+        intencao?: "raiz" | "pavimento" | "unidade" | "edicao";
         parentId?: number;
+        localId?: number;
     })
     | {
         ok: true;
         local: LocalObra;
-        intencao: "raiz" | "pavimento" | "unidade";
+        intencao: "raiz" | "pavimento" | "unidade" | "edicao";
         parentId?: number;
+        localId?: number;
         erro?: never;
         campos?: never;
     };
@@ -108,6 +112,35 @@ export async function cadastrarLocalRaiz({ request, params }: ActionFunctionArgs
 
     const formulario = await request.formData();
     const intencao = formulario.get("intencao");
+
+    if (intencao === "editar-local") {
+        const localId = Number(formulario.get("local_id"));
+        if (!Number.isInteger(localId) || localId <= 0) {
+            return { intencao: "edicao", erro: "Local inválido." } satisfies LocalRaizActionData;
+        }
+
+        const validacao = validarFormulario(atualizacaoLocalSchema, Object.fromEntries(formulario));
+        if (validacao.erro) {
+            return { ...validacao.erro, intencao: "edicao", localId } satisfies LocalRaizActionData;
+        }
+
+        try {
+            const local = await atualizarLocal(empreendimentoId, localId, validacao.dados, {
+                signal: request.signal,
+            });
+            return { ok: true, local, intencao: "edicao", localId } satisfies LocalRaizActionData;
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") throw error;
+            return {
+                intencao: "edicao",
+                localId,
+                erro: mensagemDeErro(
+                    error,
+                    "Não foi possível atualizar o local. Tente novamente mais tarde.",
+                ),
+            } satisfies LocalRaizActionData;
+        }
+    }
 
     if (intencao === "adicionar-unidade") {
         const parentId = Number(formulario.get("parent_id"));

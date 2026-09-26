@@ -98,3 +98,31 @@
         grid-template-columns: 1fr;
     }
 }
+
+.estrutura-fisica__editar-local {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.location-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.location-form__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.location-form > .empreendimento-form__erro {
+    margin: 0;
+}
+
+@media (max-width: 700px) {
+    .location-form__acoes .botao {
+        width: 100%;
+    }
+}

@@ -42,7 +42,7 @@ export default function DetalhesEmpreendimento() {
 
             <footer className="detalhes-empreendimento__acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
-                <Link className="botao secundario" to="estrutura-fisica">
+                <Link className="botao secundario" to="estrutura">
                     Gerenciar estrutura física
                 </Link>
                 <Link className="botao primario" to="editar">Editar empreendimento</Link>

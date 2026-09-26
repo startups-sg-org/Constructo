@@ -268,3 +268,44 @@ def test_retorna_estrutura_fisica_hierarquica(cliente, monkeypatch):
     assert dados[0]["nome"] == "Torre A"
     assert dados[0]["filhos"][0]["nome"] == "1º Pavimento"
     assert dados[0]["filhos"][0]["filhos"][0]["nome"] == "Unidade 101"
+
+
+def test_edita_informacoes_basicas_do_local(cliente, monkeypatch):
+    test_client, session = cliente
+    recebidos = []
+
+    async def atualizar(_session, empreendimento_id, local_id, dados):
+        recebidos.append((_session, empreendimento_id, local_id, dados))
+        local = SimpleNamespace(
+            empreendimento_id=empreendimento_id,
+            parent_id=None,
+            nome=dados.nome,
+            tipo="BLOCO",
+            ordem=dados.ordem,
+        )
+        return local_resposta(local, identificador=local_id)
+
+    monkeypatch.setattr(rotas, "atualizar_local", atualizar)
+    resposta = test_client.patch(
+        "/empreendimentos/42/locais/7",
+        json={"nome": "Bloco Sul", "ordem": 2},
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["nome"] == "Bloco Sul"
+    assert resposta.json()["ordem"] == 2
+    assert recebidos[0][:3] == (session, 42, 7)
+
+
+def test_rejeita_edicao_de_local_inexistente(cliente, monkeypatch):
+    async def atualizar(_session, _empreendimento_id, _local_id, _dados):
+        raise ValueError("LocalObra inexistente: 999")
+
+    monkeypatch.setattr(rotas, "atualizar_local", atualizar)
+    resposta = cliente[0].patch(
+        "/empreendimentos/42/locais/999",
+        json={"nome": "Inexistente", "ordem": 0},
+    )
+
+    assert resposta.status_code == 404
+    assert resposta.json() == {"detail": "Local não encontrado"}

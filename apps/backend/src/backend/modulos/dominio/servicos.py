@@ -15,6 +15,7 @@ from .esquemas import (
     EmpreendimentoCriar,
     EtapaCriar,
     EvidenciaCriar,
+    LocalAtualizar,
     LocalCriar,
     LocalHierarquiaLer,
     LocalLer,
@@ -143,6 +144,24 @@ async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
 
 async def buscar_local(session: AsyncSession, local_id: int) -> LocalObra:
     return await _exigir(session, LocalObra, local_id)
+
+
+async def atualizar_local(
+    session: AsyncSession,
+    empreendimento_id: int,
+    local_id: int,
+    dados: LocalAtualizar,
+) -> LocalObra:
+    local = await buscar_local(session, local_id)
+    if local.empreendimento_id != empreendimento_id:
+        raise ValueError("Local não pertence ao empreendimento")
+
+    local.nome = dados.nome
+    local.ordem = dados.ordem
+    local.atualizado_em = datetime.now(UTC)
+    await session.flush()
+    await session.refresh(local)
+    return local
 
 
 async def listar_locais(
