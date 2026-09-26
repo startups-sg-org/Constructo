@@ -34,10 +34,16 @@ export default function CardEmpreendimento({ empreendimento }: CardEmpreendiment
             </dl>
 
             <footer className="card-empreendimento__acoes">
-                <Link className="botao secundario" to={`${empreendimento.id}`}>
+                <Link
+                    className="botao secundario"
+                    to={`/admin/empreendimentos/${empreendimento.id}`}
+                >
                     Visualizar
                 </Link>
-                <Link className="botao primario" to={`${empreendimento.id}/editar`}>
+                <Link
+                    className="botao primario"
+                    to={`/admin/empreendimentos/${empreendimento.id}/editar`}
+                >
                     Editar
                 </Link>
             </footer>

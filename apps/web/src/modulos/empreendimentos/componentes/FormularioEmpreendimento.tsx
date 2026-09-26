@@ -132,7 +132,9 @@ export default function FormularioEmpreendimento() {
                     <p className="empreendimento-form__sucesso" role="status">
                         Empreendimento “{actionData.empreendimento.nome}” cadastrado com sucesso.
                         {" "}
-                        <Link to={`${actionData.empreendimento.id}/editar`}>Editar empreendimento</Link>
+                        <Link to={`/admin/empreendimentos/${actionData.empreendimento.id}/editar`}>
+                            Editar empreendimento
+                        </Link>
                     </p>
                 )}
                 {actionData?.erro && (
