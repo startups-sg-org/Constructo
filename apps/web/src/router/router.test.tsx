@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getAuthenticatedUser, loginUser } from "../features/auth/auth.service";
 import {
   atualizarEmpreendimento,
+  atualizarLocal,
   criarEmpreendimento,
   criarLocalRaiz,
   criarPavimento,
@@ -29,6 +30,7 @@ vi.mock("../features/auth/auth.service", () => ({
 }));
 vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   atualizarEmpreendimento: vi.fn(),
+  atualizarLocal: vi.fn(),
   criarEmpreendimento: vi.fn(),
   criarLocalRaiz: vi.fn(),
   criarPavimento: vi.fn(),
@@ -50,6 +52,7 @@ vi.mock("../features/usuarios/usuarios.service", () => ({
 const getAuthenticatedUserMock = vi.mocked(getAuthenticatedUser);
 const loginUserMock = vi.mocked(loginUser);
 const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
+const atualizarLocalMock = vi.mocked(atualizarLocal);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
 const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
 const criarPavimentoMock = vi.mocked(criarPavimento);
@@ -324,7 +327,7 @@ describe("novo sistema de rotas", () => {
     );
     expect(screen.getByRole("link", { name: "Gerenciar estrutura física" })).toHaveAttribute(
       "href",
-      "/admin/empreendimentos/12/estrutura-fisica",
+      "/admin/empreendimentos/12/estrutura",
     );
     expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
   });
@@ -378,7 +381,7 @@ describe("novo sistema de rotas", () => {
         filhos: [{ ...unidade, filhos: [] }],
       }],
     }]);
-    const router = montarRota("/admin/empreendimentos/12/estrutura-fisica");
+    const router = montarRota("/admin/empreendimentos/12/estrutura");
 
     expect(await screen.findByRole("heading", { name: "Selecione um local" })).toBeInTheDocument();
     await user.click(screen.getByRole("treeitem", { name: /Unidade 704/ }));
@@ -428,7 +431,7 @@ describe("novo sistema de rotas", () => {
     };
     obterEstruturaFisicaMock.mockResolvedValue([local]);
 
-    montarRota("/admin/empreendimentos/12/estrutura-fisica?localId=32");
+    montarRota("/admin/empreendimentos/12/estrutura?localId=32");
 
     expect(await screen.findByRole("treeitem", { name: /Bloco Norte/ }))
       .toHaveAttribute("aria-selected", "true");
@@ -455,7 +458,7 @@ describe("novo sistema de rotas", () => {
       .mockResolvedValueOnce([])
       .mockResolvedValue([{ ...local, filhos: [] }]);
     criarLocalRaizMock.mockResolvedValue(local);
-    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+    montarRota("/admin/empreendimentos/12/estrutura");
 
     await user.type(await screen.findByLabelText(/^Nome/), nome);
     await user.selectOptions(screen.getByLabelText(/^Tipo/), tipo);
@@ -498,7 +501,7 @@ describe("novo sistema de rotas", () => {
       .mockResolvedValueOnce([{ ...torre, filhos: [] }])
       .mockResolvedValue([{ ...torre, filhos: [{ ...pavimento, filhos: [] }] }]);
     criarPavimentoMock.mockResolvedValue(pavimento);
-    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+    montarRota("/admin/empreendimentos/12/estrutura");
 
     await user.click(await screen.findByRole("button", { name: "Adicionar pavimento" }));
     const formulario = screen.getByRole("form", { name: "Adicionar pavimento em Torre A" });
@@ -555,7 +558,7 @@ describe("novo sistema de rotas", () => {
         filhos: [{ ...pavimento, filhos: [{ ...unidade, filhos: [] }] }],
       }]);
     criarUnidadeMock.mockResolvedValue(unidade);
-    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+    montarRota("/admin/empreendimentos/12/estrutura");
 
     await user.click(await screen.findByRole("button", { name: "Adicionar unidade" }));
     const formulario = screen.getByRole("form", { name: "Adicionar unidade em 1º pavimento" });
@@ -710,5 +713,47 @@ describe("novo sistema de rotas", () => {
     expect(
       await screen.findByText("Não foi possível atualizar o empreendimento"),
     ).toBeInTheDocument();
+  });
+
+  it("edita as informações básicas do local e revalida a árvore", async () => {
+    const user = userEvent.setup();
+    const local = {
+      id: 32,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Bloco Norte",
+      tipo: "BLOCO" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    const localAtualizado = { ...local, nome: "Bloco Sul", ordem: 2 };
+    obterEstruturaFisicaMock
+      .mockResolvedValueOnce([{ ...local, filhos: [] }])
+      .mockResolvedValue([{ ...localAtualizado, filhos: [] }]);
+    atualizarLocalMock.mockResolvedValue(localAtualizado);
+    montarRota("/admin/empreendimentos/12/estrutura?localId=32");
+
+    await user.click(await screen.findByRole("button", { name: "Editar local" }));
+    const formulario = screen.getByRole("form", { name: "Editar Bloco Norte" });
+    const nome = within(formulario).getByLabelText(/^Nome/);
+    await user.clear(nome);
+    await user.type(nome, "Bloco Sul");
+    const ordem = within(formulario).getByLabelText(/^Ordem/);
+    await user.clear(ordem);
+    await user.type(ordem, "2");
+    await user.click(within(formulario).getByRole("button", { name: "Salvar alterações" }));
+
+    expect(atualizarLocalMock).toHaveBeenCalledWith(
+      12,
+      32,
+      { nome: "Bloco Sul", ordem: 2 },
+      expect.anything(),
+    );
+    expect(await screen.findByRole("heading", { name: "Bloco Sul" })).toBeInTheDocument();
+    expect(screen.getByRole("treeitem", { name: /Bloco Sul/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

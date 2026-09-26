@@ -47,7 +47,7 @@ describe("loader de empreendimentos", () => {
         obterEmpreendimentoMock.mockResolvedValue(empreendimento as never);
         obterEstruturaFisicaMock.mockResolvedValue(estrutura as never);
         const args = {
-            ...loaderArgs("http://localhost/admin/empreendimentos/12/estrutura-fisica"),
+            ...loaderArgs("http://localhost/admin/empreendimentos/12/estrutura"),
             params: { empreendimentoId: "12" },
         };
 

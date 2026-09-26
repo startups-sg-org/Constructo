@@ -7,7 +7,7 @@ import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
-import EstruturaFisicaEmpreendimento from "../modulos/empreendimentos/componentes/EstruturaFisicaEmpreendimento";
+import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
@@ -121,7 +121,7 @@ export const rotas: RouteObject[] = [
             ),
           },
           {
-            path: "empreendimentos/:empreendimentoId/estrutura-fisica",
+            path: "empreendimentos/:empreendimentoId/estrutura",
             loader: carregarEstruturaFisica,
             action: cadastrarLocalRaiz,
             element: (
@@ -129,7 +129,7 @@ export const rotas: RouteObject[] = [
                 titulo="Estrutura física"
                 subtitulo="Gerencie a organização física do empreendimento selecionado."
               >
-                <EstruturaFisicaEmpreendimento />
+                <StructureManagementPage />
               </PaginaPainel>
             ),
           },

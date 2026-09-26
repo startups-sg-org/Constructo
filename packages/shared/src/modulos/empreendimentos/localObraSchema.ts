@@ -26,6 +26,10 @@ export const unidadeSchema = pavimentoSchema;
 
 export type UnidadeFormData = z.infer<typeof unidadeSchema>;
 
+export const atualizacaoLocalSchema = pavimentoSchema;
+
+export type AtualizacaoLocalData = z.infer<typeof atualizacaoLocalSchema>;
+
 export type LocalObra = PavimentoFormData & {
     id: number;
     empreendimento_id: number;

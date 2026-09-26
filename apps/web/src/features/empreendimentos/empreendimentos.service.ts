@@ -1,5 +1,6 @@
 import type {
     AtualizacaoEmpreendimentoData,
+    AtualizacaoLocalData,
     Empreendimento,
     EmpreendimentoFormData,
     EstruturaLocal,
@@ -68,6 +69,19 @@ export function obterEstruturaFisica(
         `/empreendimentos/${empreendimentoId}/estrutura-fisica`,
         { signal: options?.signal },
     );
+}
+
+export function atualizarLocal(
+    empreendimentoId: number,
+    localId: number,
+    dados: AtualizacaoLocalData,
+    options?: ServiceRequestOptions,
+): Promise<LocalObra> {
+    return apiRequest<LocalObra>(`/empreendimentos/${empreendimentoId}/locais/${localId}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
+        signal: options?.signal,
+    });
 }
 
 export function criarLocalRaiz(

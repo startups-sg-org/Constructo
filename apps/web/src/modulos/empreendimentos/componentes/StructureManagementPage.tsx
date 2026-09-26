@@ -2,7 +2,6 @@ import type { EstruturaLocal } from "@constructo/shared";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     Form,
-    Link,
     useActionData,
     useLoaderData,
     useLocation,
@@ -18,12 +17,13 @@ import {
     LOCAL_SELECIONADO_PARAM,
     obterLocalSelecionadoId,
 } from "../../../features/empreendimentos/localSelecionado";
-import DetalhesLocalSelecionado from "./DetalhesLocalSelecionado";
-import "./EstruturaFisicaEmpreendimento.css";
+import LocationDetails from "./LocationDetails";
+import StructureHeader from "./StructureHeader";
+import "./StructureManagementPage.css";
 
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
 
-export default function EstruturaFisicaEmpreendimento() {
+export default function StructureManagementPage() {
     const { empreendimento, estrutura } = useLoaderData<typeof carregarEstruturaFisica>();
     const actionData = useActionData<LocalRaizActionData>();
     const navigation = useNavigation();
@@ -78,18 +78,10 @@ export default function EstruturaFisicaEmpreendimento() {
                 className="detalhes-empreendimento estrutura-fisica"
                 aria-labelledby="estrutura-fisica-empreendimento-titulo"
             >
-                <header className="detalhes-empreendimento__cabecalho">
-                    <div>
-                        <span className="subtitulo">Empreendimento</span>
-                        <h2 id="estrutura-fisica-empreendimento-titulo">{empreendimento.nome}</h2>
-                    </div>
-                    <Link
-                        className="botao secundario"
-                        to={`/admin/empreendimentos/${empreendimento.id}`}
-                    >
-                        Voltar aos detalhes
-                    </Link>
-                </header>
+                <StructureHeader
+                    empreendimentoId={empreendimento.id}
+                    empreendimentoNome={empreendimento.nome}
+                />
 
                 <div className="estrutura-fisica__cabecalho-lista">
                     <div>
@@ -142,7 +134,8 @@ export default function EstruturaFisicaEmpreendimento() {
                                 }}
                             />
                         </div>
-                        <DetalhesLocalSelecionado
+                        <LocationDetails
+                            key={selecao?.local.id ?? "sem-selecao"}
                             selecao={selecao}
                             empreendimentoNome={empreendimento.nome}
                         />
