@@ -3,6 +3,7 @@ import {
     empreendimentoSchema,
     type Empreendimento,
     localRaizSchema,
+    pavimentoSchema,
     type LocalObra,
 } from "@constructo/shared";
 import type { ActionFunctionArgs } from "react-router-dom";
@@ -12,6 +13,7 @@ import {
     atualizarEmpreendimento,
     criarEmpreendimento,
     criarLocalRaiz,
+    criarPavimento,
 } from "./empreendimentos.service";
 
 export type EmpreendimentoActionData =
@@ -82,8 +84,19 @@ export async function editarEmpreendimento({ request, params }: ActionFunctionAr
 
 
 export type LocalRaizActionData =
-    | (ActionError & { ok?: false })
-    | { ok: true; local: LocalObra; erro?: never; campos?: never };
+    | (ActionError & {
+        ok?: false;
+        intencao?: "raiz" | "pavimento";
+        parentId?: number;
+    })
+    | {
+        ok: true;
+        local: LocalObra;
+        intencao: "raiz" | "pavimento";
+        parentId?: number;
+        erro?: never;
+        campos?: never;
+    };
 
 export async function cadastrarLocalRaiz({ request, params }: ActionFunctionArgs) {
     const empreendimentoId = Number(params.empreendimentoId);
@@ -92,19 +105,62 @@ export async function cadastrarLocalRaiz({ request, params }: ActionFunctionArgs
     }
 
     const formulario = await request.formData();
+    const intencao = formulario.get("intencao");
+
+    if (intencao === "adicionar-pavimento") {
+        const parentId = Number(formulario.get("parent_id"));
+        if (!Number.isInteger(parentId) || parentId <= 0) {
+            return { erro: "Torre ou bloco inválido." } satisfies LocalRaizActionData;
+        }
+
+        const validacao = validarFormulario(pavimentoSchema, Object.fromEntries(formulario));
+        if (validacao.erro) {
+            return {
+                ...validacao.erro,
+                intencao: "pavimento",
+                parentId,
+            } satisfies LocalRaizActionData;
+        }
+
+        try {
+            const local = await criarPavimento(empreendimentoId, parentId, validacao.dados, {
+                signal: request.signal,
+            });
+            return {
+                ok: true,
+                local,
+                intencao: "pavimento",
+                parentId,
+            } satisfies LocalRaizActionData;
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") throw error;
+            return {
+                intencao: "pavimento",
+                parentId,
+                erro: mensagemDeErro(
+                    error,
+                    "Não foi possível adicionar o pavimento. Tente novamente mais tarde.",
+                ),
+            } satisfies LocalRaizActionData;
+        }
+    }
+
     const validacao = validarFormulario(localRaizSchema, Object.fromEntries(formulario));
 
-    if (validacao.erro) return validacao.erro;
+    if (validacao.erro) {
+        return { ...validacao.erro, intencao: "raiz" } satisfies LocalRaizActionData;
+    }
 
     try {
         const local = await criarLocalRaiz(empreendimentoId, validacao.dados, {
             signal: request.signal,
         });
-        return { ok: true, local } satisfies LocalRaizActionData;
+        return { ok: true, local, intencao: "raiz" } satisfies LocalRaizActionData;
     } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") throw error;
 
         return {
+            intencao: "raiz",
             erro: mensagemDeErro(
                 error,
                 "Não foi possível adicionar a torre ou o bloco. Tente novamente mais tarde.",

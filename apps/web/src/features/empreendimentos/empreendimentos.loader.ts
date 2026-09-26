@@ -4,6 +4,7 @@ import { ApiError } from "../../services/api";
 import {
     listarEmpreendimentos,
     listarLocaisRaiz,
+    listarPavimentos,
     obterEmpreendimento,
 } from "./empreendimentos.service";
 
@@ -41,7 +42,15 @@ export async function carregarEstruturaFisica({ params, request }: LoaderFunctio
             obterEmpreendimento(empreendimentoId, { signal: request.signal }),
             listarLocaisRaiz(empreendimentoId, { signal: request.signal }),
         ]);
-        return { empreendimento, locais };
+        const pavimentosPorPai = Object.fromEntries(
+            await Promise.all(
+                locais.map(async (local) => [
+                    local.id,
+                    await listarPavimentos(empreendimentoId, local.id, { signal: request.signal }),
+                ] as const),
+            ),
+        );
+        return { empreendimento, locais, pavimentosPorPai };
     } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
             throw new Response("Empreendimento não encontrado", { status: 404 });

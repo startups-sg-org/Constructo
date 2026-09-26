@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const tiposLocalRaiz = ["TORRE", "BLOCO"] as const;
+export const tiposLocal = [...tiposLocalRaiz, "PAVIMENTO", "UNIDADE"] as const;
 
 export const localRaizSchema = z.object({
     nome: z
@@ -17,10 +18,15 @@ export const localRaizSchema = z.object({
 
 export type LocalRaizFormData = z.infer<typeof localRaizSchema>;
 
-export type LocalObra = LocalRaizFormData & {
+export const pavimentoSchema = localRaizSchema.pick({ nome: true, ordem: true });
+
+export type PavimentoFormData = z.infer<typeof pavimentoSchema>;
+
+export type LocalObra = PavimentoFormData & {
     id: number;
     empreendimento_id: number;
     parent_id: number | null;
+    tipo: (typeof tiposLocal)[number];
     criado_em: string;
     atualizado_em: string;
 };

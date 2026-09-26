@@ -86,6 +86,49 @@ def test_rejeita_tipo_que_nao_pode_ser_raiz(cliente, monkeypatch):
     assert not chamado
 
 
+def test_cadastra_pavimento_na_torre_ou_bloco_informado(cliente, monkeypatch):
+    test_client, session = cliente
+    recebidos = []
+
+    async def criar(_session, dados):
+        recebidos.append((_session, dados))
+        return local_resposta(dados, identificador=9)
+
+    monkeypatch.setattr(rotas, "criar_local", criar)
+    resposta = test_client.post(
+        "/empreendimentos/42/locais/7/pavimentos",
+        json={"nome": "1º pavimento", "ordem": 2},
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json()["tipo"] == "PAVIMENTO"
+    assert resposta.json()["parent_id"] == 7
+    assert recebidos[0][0] is session
+    assert recebidos[0][1].empreendimento_id == 42
+
+
+@pytest.mark.parametrize(
+    "mensagem",
+    [
+        "LocalObra inexistente",
+        "Pavimento deve possuir torre ou bloco como pai",
+        "Pai e filho devem pertencer ao mesmo empreendimento",
+    ],
+)
+def test_rejeita_pavimento_com_pai_invalido(cliente, monkeypatch, mensagem):
+    async def criar(_session, _dados):
+        raise ValueError(mensagem)
+
+    monkeypatch.setattr(rotas, "criar_local", criar)
+    resposta = cliente[0].post(
+        "/empreendimentos/42/locais/7/pavimentos",
+        json={"nome": "1º pavimento", "ordem": 2},
+    )
+
+    assert resposta.status_code == 400
+    assert resposta.json() == {"detail": mensagem}
+
+
 def test_rejeita_usuario_sem_acesso_ao_empreendimento(cliente, monkeypatch):
     async def negar_acesso(_session, _usuario_id, _empreendimento_id):
         return False

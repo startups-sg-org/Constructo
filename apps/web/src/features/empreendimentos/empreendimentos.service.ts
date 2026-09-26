@@ -4,6 +4,7 @@ import type {
     EmpreendimentoFormData,
     LocalObra,
     LocalRaizFormData,
+    PavimentoFormData,
 } from "@constructo/shared";
 
 import { apiRequest, type ServiceRequestOptions } from "../../services/api";
@@ -67,4 +68,31 @@ export function criarLocalRaiz(
         body: JSON.stringify(dados),
         signal: options?.signal,
     });
+}
+
+export function listarPavimentos(
+    empreendimentoId: number,
+    parentId: number,
+    options?: ServiceRequestOptions,
+): Promise<LocalObra[]> {
+    return apiRequest<LocalObra[]>(
+        `/empreendimentos/${empreendimentoId}/locais/${parentId}/pavimentos`,
+        { signal: options?.signal },
+    );
+}
+
+export function criarPavimento(
+    empreendimentoId: number,
+    parentId: number,
+    dados: PavimentoFormData,
+    options?: ServiceRequestOptions,
+): Promise<LocalObra> {
+    return apiRequest<LocalObra>(
+        `/empreendimentos/${empreendimentoId}/locais/${parentId}/pavimentos`,
+        {
+            method: "POST",
+            body: JSON.stringify(dados),
+            signal: options?.signal,
+        },
+    );
 }
