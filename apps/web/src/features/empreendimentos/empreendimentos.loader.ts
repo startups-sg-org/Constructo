@@ -1,7 +1,11 @@
 import type { LoaderFunctionArgs } from "react-router-dom";
 
 import { ApiError } from "../../services/api";
-import { obterEmpreendimento } from "./empreendimentos.service";
+import { listarEmpreendimentos, obterEmpreendimento } from "./empreendimentos.service";
+
+export function carregarEmpreendimentos({ request }: LoaderFunctionArgs) {
+    return listarEmpreendimentos({ signal: request.signal });
+}
 
 export async function carregarEmpreendimento({ params, request }: LoaderFunctionArgs) {
     const empreendimentoId = Number(params.empreendimentoId);

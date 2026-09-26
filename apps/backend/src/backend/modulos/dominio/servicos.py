@@ -57,6 +57,18 @@ async def criar_empreendimento(session: AsyncSession, dados: EmpreendimentoCriar
     return empreendimento
 
 
+async def listar_empreendimentos(session: AsyncSession) -> list[Empreendimento]:
+    return list(
+        (
+            await session.scalars(
+                select(Empreendimento).order_by(
+                    Empreendimento.criado_em.desc(), Empreendimento.id.desc()
+                )
+            )
+        ).all()
+    )
+
+
 async def buscar_empreendimento(session: AsyncSession, empreendimento_id: int) -> Empreendimento:
     return await _exigir(session, Empreendimento, empreendimento_id)
 

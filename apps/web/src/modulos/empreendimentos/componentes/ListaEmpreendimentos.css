@@ -1,0 +1,202 @@
+.lista-empreendimentos {
+    margin-top: 32px;
+}
+
+.lista-empreendimentos__cabecalho,
+.card-empreendimento__cabecalho,
+.detalhes-empreendimento__cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.lista-empreendimentos__cabecalho h2,
+.detalhes-empreendimento__cabecalho h2 {
+    margin-top: 5px;
+    color: #153b36;
+    font-size: 1.35rem;
+}
+
+.lista-empreendimentos__cabecalho > p {
+    color: #62706d;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.lista-empreendimentos__grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.card-empreendimento,
+.detalhes-empreendimento,
+.lista-empreendimentos__vazia {
+    border: 1px solid #dfe5e3;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+}
+
+.card-empreendimento {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 22px;
+}
+
+.card-empreendimento__legenda {
+    margin-bottom: 5px;
+    color: #7a8784;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.card-empreendimento h3 {
+    color: #153b36;
+    font-size: 1.08rem;
+    overflow-wrap: anywhere;
+}
+
+.card-empreendimento__status {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.card-empreendimento__status--planejado {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.card-empreendimento__status--em_andamento {
+    color: #9a5b0a;
+    background: #fef3c7;
+}
+
+.card-empreendimento__status--concluido {
+    color: #147a55;
+    background: #e8f7f0;
+}
+
+.card-empreendimento__status--inativo {
+    color: #5f6b68;
+    background: #e8eceb;
+}
+
+.card-empreendimento__dados {
+    display: grid;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.card-empreendimento__dados dt,
+.detalhes-empreendimento__dados dt {
+    margin-bottom: 4px;
+    color: #7a8784;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.card-empreendimento__dados dd,
+.detalhes-empreendimento__dados dd {
+    color: #344a46;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.card-empreendimento__acoes,
+.detalhes-empreendimento__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid #edf0ef;
+}
+
+.card-empreendimento__acoes .botao {
+    padding: 8px 13px;
+    font-size: 0.82rem;
+}
+
+.lista-empreendimentos__vazia {
+    display: flex;
+    min-height: 150px;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 28px;
+    color: #62706d;
+    text-align: left;
+}
+
+.lista-empreendimentos__vazia > span {
+    font-size: 2rem;
+}
+
+.lista-empreendimentos__vazia h3 {
+    margin-bottom: 5px;
+    color: #344a46;
+    font-size: 1rem;
+}
+
+.lista-empreendimentos__vazia p {
+    font-size: 0.875rem;
+}
+
+.detalhes-empreendimento {
+    margin-top: 32px;
+    padding: clamp(22px, 4vw, 32px);
+}
+
+.detalhes-empreendimento__cabecalho {
+    padding-bottom: 24px;
+    border-bottom: 1px solid #edf0ef;
+}
+
+.detalhes-empreendimento__dados {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin: 26px 0;
+}
+
+.detalhes-empreendimento__descricao {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+    .lista-empreendimentos__grade,
+    .detalhes-empreendimento__dados {
+        grid-template-columns: 1fr;
+    }
+
+    .lista-empreendimentos__cabecalho,
+    .card-empreendimento__cabecalho,
+    .detalhes-empreendimento__cabecalho {
+        flex-direction: column;
+    }
+
+    .detalhes-empreendimento__descricao {
+        grid-column: auto;
+    }
+
+    .card-empreendimento__acoes .botao,
+    .detalhes-empreendimento__acoes .botao {
+        width: 100%;
+    }
+}

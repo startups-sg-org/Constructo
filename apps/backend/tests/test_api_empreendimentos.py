@@ -29,6 +29,17 @@ class SessaoEmMemoria:
     async def get(self, _classe, empreendimento_id: int):
         return next((item for item in self.empreendimentos if item.id == empreendimento_id), None)
 
+    async def scalars(self, _consulta):
+        return ResultadoEscala(self.empreendimentos)
+
+
+class ResultadoEscala:
+    def __init__(self, empreendimentos) -> None:
+        self.empreendimentos = empreendimentos
+
+    def all(self):
+        return list(reversed(self.empreendimentos))
+
 
 def configurar_sessao(session: SessaoEmMemoria) -> None:
     async def fornecer_sessao():
@@ -90,6 +101,47 @@ def test_rejeita_nome_ausente_e_status_invalido():
     assert sem_nome.status_code == 422
     assert status_invalido.status_code == 422
     assert session.empreendimentos == []
+
+
+def test_lista_empreendimentos_disponiveis_do_mais_recente_para_o_mais_antigo():
+    session = SessaoEmMemoria()
+    configurar_sessao(session)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+
+    try:
+        with TestClient(app) as cliente:
+            cliente.post(
+                "/empreendimentos/",
+                json={"nome": "Residencial Aurora", "status": "EM_ANDAMENTO"},
+            )
+            cliente.post(
+                "/empreendimentos/",
+                json={"nome": "Edifício Horizonte", "status": "PLANEJADO"},
+            )
+            resposta = cliente.get("/empreendimentos/")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resposta.status_code == 200
+    assert [item["nome"] for item in resposta.json()] == [
+        "Edifício Horizonte",
+        "Residencial Aurora",
+    ]
+
+
+def test_lista_empreendimentos_vazia():
+    session = SessaoEmMemoria()
+    configurar_sessao(session)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+
+    try:
+        with TestClient(app) as cliente:
+            resposta = cliente.get("/empreendimentos/")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resposta.status_code == 200
+    assert resposta.json() == []
 
 
 def test_carrega_e_atualiza_parcialmente_empreendimento():
