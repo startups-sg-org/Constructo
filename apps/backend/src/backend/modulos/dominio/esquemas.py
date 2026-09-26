@@ -1,6 +1,7 @@
 """Contratos iniciais da camada de domínio, ainda sem rotas públicas."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -72,6 +73,20 @@ class LocalCriar(BaseModel):
     parent_id: int | None = None
     nome: str = Field(min_length=1, max_length=200)
     tipo: TipoLocal
+    ordem: int = Field(default=0, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+
+class LocalRaizCriar(BaseModel):
+    nome: str = Field(min_length=1, max_length=200)
+    tipo: Literal[TipoLocal.TORRE, TipoLocal.BLOCO]
     ordem: int = Field(default=0, ge=0)
 
     @field_validator("nome")

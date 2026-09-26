@@ -1,0 +1,86 @@
+.estrutura-fisica__cabecalho-lista {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 28px;
+}
+
+.estrutura-fisica__cabecalho-lista h3 {
+    margin-top: 5px;
+    color: #153b36;
+    font-size: 1.1rem;
+}
+
+.estrutura-fisica__cabecalho-lista p {
+    color: #62706d;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.estrutura-fisica__vazia {
+    margin-top: 18px;
+    padding: 28px;
+    border: 1px dashed #cdd7d4;
+    border-radius: 12px;
+    color: #62706d;
+    text-align: center;
+}
+
+.estrutura-fisica__vazia h3 {
+    margin-bottom: 6px;
+    color: #344a46;
+    font-size: 1rem;
+}
+
+.estrutura-fisica__lista {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 0;
+    list-style: none;
+}
+
+.estrutura-fisica__lista li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8e6;
+    border-radius: 10px;
+    background: #f9fbfa;
+}
+
+.estrutura-fisica__lista li > div {
+    display: grid;
+    gap: 3px;
+}
+
+.estrutura-fisica__lista strong {
+    color: #274640;
+}
+
+.estrutura-fisica__lista li > div > span {
+    color: #62706d;
+    font-size: 0.78rem;
+}
+
+.estrutura-fisica__ordem {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    color: #147a55;
+    background: #e8f7f0;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+    .estrutura-fisica__cabecalho-lista {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

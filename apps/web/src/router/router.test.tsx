@@ -7,7 +7,9 @@ import { getAuthenticatedUser, loginUser } from "../features/auth/auth.service";
 import {
   atualizarEmpreendimento,
   criarEmpreendimento,
+  criarLocalRaiz,
   listarEmpreendimentos,
+  listarLocaisRaiz,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../services/api";
@@ -26,7 +28,9 @@ vi.mock("../features/auth/auth.service", () => ({
 vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   atualizarEmpreendimento: vi.fn(),
   criarEmpreendimento: vi.fn(),
+  criarLocalRaiz: vi.fn(),
   listarEmpreendimentos: vi.fn(),
+  listarLocaisRaiz: vi.fn(),
   obterEmpreendimento: vi.fn(),
 }));
 
@@ -43,7 +47,9 @@ const getAuthenticatedUserMock = vi.mocked(getAuthenticatedUser);
 const loginUserMock = vi.mocked(loginUser);
 const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
+const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
+const listarLocaisRaizMock = vi.mocked(listarLocaisRaiz);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -88,6 +94,7 @@ describe("novo sistema de rotas", () => {
     getUsersCountMock.mockResolvedValue(8);
     getUsersMock.mockResolvedValue([]);
     listarEmpreendimentosMock.mockResolvedValue([]);
+    listarLocaisRaizMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
@@ -328,6 +335,42 @@ describe("novo sistema de rotas", () => {
       await screen.findByRole("heading", { name: "Estrutura física" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["TORRE", "Torre A", "Torre"],
+    ["BLOCO", "Bloco Norte", "Bloco"],
+  ] as const)("cadastra um local raiz do tipo %s e atualiza a estrutura", async (tipo, nome, rotulo) => {
+    const user = userEvent.setup();
+    const local = {
+      id: tipo === "TORRE" ? 31 : 32,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome,
+      tipo,
+      ordem: 2,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    listarLocaisRaizMock.mockResolvedValueOnce([]).mockResolvedValue([local]);
+    criarLocalRaizMock.mockResolvedValue(local);
+    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+
+    await user.type(await screen.findByLabelText(/^Nome/), nome);
+    await user.selectOptions(screen.getByLabelText(/^Tipo/), tipo);
+    await user.clear(screen.getByLabelText(/^Ordem/));
+    await user.type(screen.getByLabelText(/^Ordem/), "2");
+    await user.click(screen.getByRole("button", { name: "Adicionar torre/bloco" }));
+
+    expect(criarLocalRaizMock).toHaveBeenCalledWith(
+      12,
+      { nome, tipo, ordem: 2 },
+      expect.anything(),
+    );
+    const itemCriado = (await screen.findByText(nome)).closest("li");
+    expect(itemCriado).not.toBeNull();
+    expect(within(itemCriado!).getByText(rotulo)).toBeInTheDocument();
+    expect(screen.getByText(`${rotulo} “${nome}” adicionada com sucesso.`)).toBeInTheDocument();
   });
 
   it("trata empreendimento inexistente", async () => {

@@ -17,8 +17,8 @@ import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "../features/auth/auth.loader";
-import { cadastrarEmpreendimento, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
-import { carregarEmpreendimento, carregarEmpreendimentos } from "../features/empreendimentos/empreendimentos.loader";
+import { cadastrarEmpreendimento, cadastrarLocalRaiz, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
+import { carregarEmpreendimento, carregarEmpreendimentos, carregarEstruturaFisica } from "../features/empreendimentos/empreendimentos.loader";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -122,7 +122,8 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "empreendimentos/:empreendimentoId/estrutura-fisica",
-            loader: carregarEmpreendimento,
+            loader: carregarEstruturaFisica,
+            action: cadastrarLocalRaiz,
             element: (
               <PaginaPainel
                 titulo="Estrutura física"
