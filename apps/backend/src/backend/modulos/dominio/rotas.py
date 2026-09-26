@@ -14,6 +14,7 @@ from .esquemas import (
     LocalCriar,
     LocalLer,
     LocalRaizCriar,
+    PavimentoCriar,
 )
 from .servicos import (
     atualizar_empreendimento,
@@ -109,3 +110,44 @@ async def cadastrar_local_raiz(
         )
     except ValueError as erro:
         raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
+
+
+@router.get("/{empreendimento_id}/locais/{parent_id}/pavimentos", response_model=list[LocalLer])
+async def consultar_pavimentos(
+    empreendimento_id: int,
+    parent_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await listar_locais(session, empreendimento_id, parent_id=parent_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
+
+
+@router.post(
+    "/{empreendimento_id}/locais/{parent_id}/pavimentos",
+    response_model=LocalLer,
+    status_code=201,
+)
+async def cadastrar_pavimento(
+    empreendimento_id: int,
+    parent_id: int,
+    dados: PavimentoCriar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await criar_local(
+            session,
+            LocalCriar(
+                empreendimento_id=empreendimento_id,
+                parent_id=parent_id,
+                tipo="PAVIMENTO",
+                **dados.model_dump(),
+            ),
+        )
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro

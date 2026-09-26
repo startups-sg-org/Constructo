@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 
 import type { LocalRaizActionData } from "../../../features/empreendimentos/empreendimentos.action";
@@ -8,14 +8,20 @@ import "./EstruturaFisicaEmpreendimento.css";
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
 
 export default function EstruturaFisicaEmpreendimento() {
-    const { empreendimento, locais } = useLoaderData<typeof carregarEstruturaFisica>();
+    const { empreendimento, locais, pavimentosPorPai } = useLoaderData<typeof carregarEstruturaFisica>();
     const actionData = useActionData<LocalRaizActionData>();
     const navigation = useNavigation();
-    const formularioRef = useRef<HTMLFormElement>(null);
+    const formularioRaizRef = useRef<HTMLFormElement>(null);
+    const formularioPavimentoRef = useRef<HTMLFormElement>(null);
+    const [paiSelecionado, setPaiSelecionado] = useState<number | null>(null);
     const enviando = navigation.state !== "idle" && navigation.formData != null;
+    const enviandoPavimento = enviando
+        && navigation.formData?.get("intencao") === "adicionar-pavimento";
 
     useEffect(() => {
-        if (actionData?.ok) formularioRef.current?.reset();
+        if (!actionData?.ok) return;
+        if (actionData.intencao === "pavimento") formularioPavimentoRef.current?.reset();
+        else formularioRaizRef.current?.reset();
     }, [actionData]);
 
     return (
@@ -53,12 +59,110 @@ export default function EstruturaFisicaEmpreendimento() {
                 ) : (
                     <ol className="estrutura-fisica__lista">
                         {locais.map((local) => (
-                            <li key={local.id}>
-                                <span className="estrutura-fisica__ordem">{local.ordem}</span>
-                                <div>
-                                    <strong>{local.nome}</strong>
-                                    <span>{rotuloTipo[local.tipo]}</span>
+                            <li className="estrutura-fisica__raiz" key={local.id}>
+                                <div className="estrutura-fisica__local">
+                                    <span className="estrutura-fisica__ordem">{local.ordem}</span>
+                                    <div className="estrutura-fisica__identificacao">
+                                        <strong>{local.nome}</strong>
+                                        <span>{rotuloTipo[local.tipo as keyof typeof rotuloTipo]}</span>
+                                    </div>
+                                    <button
+                                        className="botao secundario estrutura-fisica__adicionar"
+                                        type="button"
+                                        aria-expanded={paiSelecionado === local.id}
+                                        onClick={() => setPaiSelecionado(
+                                            paiSelecionado === local.id ? null : local.id,
+                                        )}
+                                    >
+                                        Adicionar pavimento
+                                    </button>
                                 </div>
+
+                                {(pavimentosPorPai[local.id] ?? []).length > 0 ? (
+                                    <ol className="estrutura-fisica__pavimentos">
+                                        {(pavimentosPorPai[local.id] ?? []).map((pavimento) => (
+                                            <li key={pavimento.id}>
+                                                <span className="estrutura-fisica__ordem">{pavimento.ordem}</span>
+                                                <div className="estrutura-fisica__identificacao">
+                                                    <strong>{pavimento.nome}</strong>
+                                                    <span>Pavimento</span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                ) : (
+                                    <p className="estrutura-fisica__sem-pavimentos">Nenhum pavimento cadastrado.</p>
+                                )}
+
+                                {paiSelecionado === local.id && (
+                                    <Form
+                                        ref={formularioPavimentoRef}
+                                        method="post"
+                                        className="empreendimento-form estrutura-fisica__form-pavimento"
+                                        noValidate
+                                        aria-label={`Adicionar pavimento em ${local.nome}`}
+                                        aria-busy={enviandoPavimento}
+                                    >
+                                        <input type="hidden" name="intencao" value="adicionar-pavimento" />
+                                        <input type="hidden" name="parent_id" value={local.id} />
+                                        <div className="campo empreendimento-form__nome">
+                                            <label htmlFor={`pavimento-nome-${local.id}`}>
+                                                Nome <span aria-hidden="true">*</span>
+                                            </label>
+                                            <input
+                                                id={`pavimento-nome-${local.id}`}
+                                                name="nome"
+                                                type="text"
+                                                maxLength={200}
+                                                disabled={enviandoPavimento}
+                                                aria-invalid={Boolean(
+                                                    actionData?.intencao === "pavimento"
+                                                    && actionData.parentId === local.id
+                                                    && actionData.campos?.nome,
+                                                )}
+                                            />
+                                            {actionData?.intencao === "pavimento"
+                                                && actionData.parentId === local.id
+                                                && actionData.campos?.nome && (
+                                                <span role="alert">{actionData.campos.nome}</span>
+                                            )}
+                                        </div>
+                                        <div className="campo">
+                                            <label htmlFor={`pavimento-ordem-${local.id}`}>
+                                                Ordem <span aria-hidden="true">*</span>
+                                            </label>
+                                            <input
+                                                id={`pavimento-ordem-${local.id}`}
+                                                name="ordem"
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                defaultValue="0"
+                                                disabled={enviandoPavimento}
+                                            />
+                                            {actionData?.intencao === "pavimento"
+                                                && actionData.parentId === local.id
+                                                && actionData.campos?.ordem && (
+                                                <span role="alert">{actionData.campos.ordem}</span>
+                                            )}
+                                        </div>
+                                        <button className="botao primario" type="submit" disabled={enviandoPavimento}>
+                                            {enviandoPavimento ? "Adicionando..." : "Adicionar pavimento"}
+                                        </button>
+                                        {actionData?.intencao === "pavimento"
+                                            && actionData.parentId === local.id
+                                            && actionData.ok && (
+                                            <p className="empreendimento-form__sucesso" role="status">
+                                                Pavimento “{actionData.local.nome}” adicionado com sucesso.
+                                            </p>
+                                        )}
+                                        {actionData?.intencao === "pavimento"
+                                            && actionData.parentId === local.id
+                                            && actionData.erro && (
+                                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                                        )}
+                                    </Form>
+                                )}
                             </li>
                         ))}
                     </ol>
@@ -75,7 +179,7 @@ export default function EstruturaFisicaEmpreendimento() {
                 </header>
 
                 <Form
-                    ref={formularioRef}
+                    ref={formularioRaizRef}
                     method="post"
                     className="empreendimento-form"
                     noValidate
@@ -89,10 +193,10 @@ export default function EstruturaFisicaEmpreendimento() {
                             type="text"
                             maxLength={200}
                             disabled={enviando}
-                            aria-invalid={Boolean(actionData?.campos?.nome)}
-                            aria-describedby={actionData?.campos?.nome ? "local-nome-erro" : undefined}
+                            aria-invalid={Boolean(actionData?.intencao === "raiz" && actionData.campos?.nome)}
+                            aria-describedby={actionData?.intencao === "raiz" && actionData.campos?.nome ? "local-nome-erro" : undefined}
                         />
-                        {actionData?.campos?.nome && (
+                        {actionData?.intencao === "raiz" && actionData.campos?.nome && (
                             <span id="local-nome-erro" role="alert">{actionData.campos.nome}</span>
                         )}
                     </div>
@@ -103,7 +207,7 @@ export default function EstruturaFisicaEmpreendimento() {
                             <option value="TORRE">Torre</option>
                             <option value="BLOCO">Bloco</option>
                         </select>
-                        {actionData?.campos?.tipo && <span role="alert">{actionData.campos.tipo}</span>}
+                        {actionData?.intencao === "raiz" && actionData.campos?.tipo && <span role="alert">{actionData.campos.tipo}</span>}
                     </div>
 
                     <div className="campo">
@@ -116,17 +220,17 @@ export default function EstruturaFisicaEmpreendimento() {
                             step="1"
                             defaultValue="0"
                             disabled={enviando}
-                            aria-invalid={Boolean(actionData?.campos?.ordem)}
+                            aria-invalid={Boolean(actionData?.intencao === "raiz" && actionData.campos?.ordem)}
                         />
-                        {actionData?.campos?.ordem && <span role="alert">{actionData.campos.ordem}</span>}
+                        {actionData?.intencao === "raiz" && actionData.campos?.ordem && <span role="alert">{actionData.campos.ordem}</span>}
                     </div>
 
-                    {actionData?.ok && (
+                    {actionData?.ok && actionData.intencao === "raiz" && (
                         <p className="empreendimento-form__sucesso" role="status">
-                            {rotuloTipo[actionData.local.tipo]} “{actionData.local.nome}” adicionada com sucesso.
+                            {rotuloTipo[actionData.local.tipo as keyof typeof rotuloTipo]} “{actionData.local.nome}” adicionada com sucesso.
                         </p>
                     )}
-                    {actionData?.erro && (
+                    {actionData?.intencao === "raiz" && actionData.erro && (
                         <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
                     )}
 

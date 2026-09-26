@@ -8,8 +8,10 @@ import {
   atualizarEmpreendimento,
   criarEmpreendimento,
   criarLocalRaiz,
+  criarPavimento,
   listarEmpreendimentos,
   listarLocaisRaiz,
+  listarPavimentos,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../services/api";
@@ -29,8 +31,10 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   atualizarEmpreendimento: vi.fn(),
   criarEmpreendimento: vi.fn(),
   criarLocalRaiz: vi.fn(),
+  criarPavimento: vi.fn(),
   listarEmpreendimentos: vi.fn(),
   listarLocaisRaiz: vi.fn(),
+  listarPavimentos: vi.fn(),
   obterEmpreendimento: vi.fn(),
 }));
 
@@ -48,8 +52,10 @@ const loginUserMock = vi.mocked(loginUser);
 const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
 const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
+const criarPavimentoMock = vi.mocked(criarPavimento);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const listarLocaisRaizMock = vi.mocked(listarLocaisRaiz);
+const listarPavimentosMock = vi.mocked(listarPavimentos);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -95,6 +101,7 @@ describe("novo sistema de rotas", () => {
     getUsersMock.mockResolvedValue([]);
     listarEmpreendimentosMock.mockResolvedValue([]);
     listarLocaisRaizMock.mockResolvedValue([]);
+    listarPavimentosMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
@@ -371,6 +378,48 @@ describe("novo sistema de rotas", () => {
     expect(itemCriado).not.toBeNull();
     expect(within(itemCriado!).getByText(rotulo)).toBeInTheDocument();
     expect(screen.getByText(`${rotulo} “${nome}” adicionada com sucesso.`)).toBeInTheDocument();
+  });
+
+  it("cadastra um pavimento na torre selecionada e atualiza a árvore", async () => {
+    const user = userEvent.setup();
+    const torre = {
+      id: 31,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Torre A",
+      tipo: "TORRE" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    const pavimento = {
+      ...torre,
+      id: 41,
+      parent_id: torre.id,
+      nome: "1º pavimento",
+      tipo: "PAVIMENTO" as const,
+      ordem: 2,
+    };
+    listarLocaisRaizMock.mockResolvedValue([torre]);
+    listarPavimentosMock.mockResolvedValueOnce([]).mockResolvedValue([pavimento]);
+    criarPavimentoMock.mockResolvedValue(pavimento);
+    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+
+    await user.click(await screen.findByRole("button", { name: "Adicionar pavimento" }));
+    const formulario = screen.getByRole("form", { name: "Adicionar pavimento em Torre A" });
+    await user.type(within(formulario).getByLabelText(/^Nome/), "1º pavimento");
+    await user.clear(within(formulario).getByLabelText(/^Ordem/));
+    await user.type(within(formulario).getByLabelText(/^Ordem/), "2");
+    await user.click(within(formulario).getByRole("button", { name: "Adicionar pavimento" }));
+
+    expect(criarPavimentoMock).toHaveBeenCalledWith(
+      12,
+      torre.id,
+      { nome: "1º pavimento", ordem: 2 },
+      expect.anything(),
+    );
+    expect(await screen.findByText("1º pavimento")).toBeInTheDocument();
+    expect(screen.getByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
   });
 
   it("trata empreendimento inexistente", async () => {
