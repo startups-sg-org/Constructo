@@ -117,7 +117,23 @@ async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
     local = LocalObra(**dados.model_dump())
     session.add(local)
     await session.flush()
+    await session.refresh(local)
     return local
+
+
+async def buscar_local(session: AsyncSession, local_id: int) -> LocalObra:
+    return await _exigir(session, LocalObra, local_id)
+
+
+async def listar_locais(
+    session: AsyncSession, empreendimento_id: int, *, parent_id: int | None = None
+) -> list[LocalObra]:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    consulta = select(LocalObra).where(
+        LocalObra.empreendimento_id == empreendimento_id,
+        LocalObra.parent_id == parent_id,
+    )
+    return list((await session.scalars(consulta.order_by(LocalObra.ordem, LocalObra.id))).all())
 
 
 async def mover_local(session: AsyncSession, local_id: int, parent_id: int | None) -> LocalObra:

@@ -10,6 +10,7 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import selectinload
 
 from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio.esquemas import (
@@ -18,6 +19,7 @@ from backend.modulos.dominio.esquemas import (
     EtapaCriar,
     EvidenciaCriar,
     LocalCriar,
+    LocalLer,
     ProgressoMarcoCriar,
     PublicacaoCriar,
 )
@@ -31,6 +33,7 @@ from backend.modulos.dominio.regras import EstadoMarco, TipoLocal
 from backend.modulos.dominio.servicos import (
     alterar_estado,
     atualizar_empreendimento,
+    buscar_local,
     calcular_progresso_empreendimento,
     calcular_progresso_unidade,
     criar_empreendimento,
@@ -38,6 +41,7 @@ from backend.modulos.dominio.servicos import (
     criar_local,
     criar_progresso,
     criar_publicacao,
+    listar_locais,
     mover_etapa,
     mover_local,
     pode_ler_unidade,
@@ -157,6 +161,71 @@ def test_hierarquias_vinculos_e_ciclos():
                 assert await pode_ler_unidade(session, comprador.id, unidade.id)
                 assert not await pode_ler_unidade(session, comprador.id, pavimento.id)
                 await session.rollback()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_local_obra_persiste_campos_e_relacionamentos():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                _, _, _, obra, _, _, _ = await base(session)
+                torre = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome=" Torre A ",
+                        tipo=TipoLocal.TORRE,
+                        ordem=2,
+                    ),
+                )
+                bloco = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome="Bloco B",
+                        tipo=TipoLocal.BLOCO,
+                        ordem=1,
+                    ),
+                )
+                pavimento = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        parent_id=bloco.id,
+                        nome="1º pavimento",
+                        tipo=TipoLocal.PAVIMENTO,
+                    ),
+                )
+                await session.commit()
+
+            async with factory() as session:
+                raizes = await listar_locais(session, obra.id)
+                assert [local.id for local in raizes] == [bloco.id, torre.id]
+
+                encontrado = await buscar_local(session, pavimento.id)
+                assert encontrado.tipo is TipoLocal.PAVIMENTO
+                assert encontrado.ordem == 0
+                assert encontrado.criado_em is not None
+                assert encontrado.atualizado_em is not None
+                assert LocalLer.model_validate(encontrado).nome == "1º pavimento"
+
+                empreendimento = await session.scalar(
+                    select(Empreendimento)
+                    .where(Empreendimento.id == obra.id)
+                    .options(
+                        selectinload(Empreendimento.locais_obra).selectinload(LocalObra.filhos),
+                        selectinload(Empreendimento.locais_obra).selectinload(LocalObra.pai),
+                    )
+                )
+                assert empreendimento is not None
+                locais = {local.id: local for local in empreendimento.locais_obra}
+                assert locais[bloco.id].filhos == [locais[pavimento.id]]
+                assert locais[pavimento.id].pai is locais[bloco.id]
+                assert all(local.empreendimento is empreendimento for local in locais.values())
         finally:
             await engine.dispose()
 

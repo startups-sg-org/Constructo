@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
+    Enum,
     ForeignKey,
     ForeignKeyConstraint,
     Integer,
@@ -14,6 +15,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.banco_de_dados.connections.database_postgres import Base
+
+from .regras import TipoLocal
 
 
 class Empreendimento(Base):
@@ -30,6 +33,7 @@ class Empreendimento(Base):
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
+    locais_obra: Mapped[list["LocalObra"]] = relationship(back_populates="empreendimento")
     __table_args__ = (
         CheckConstraint(
             "status IN ('PLANEJADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'INATIVO')",
@@ -48,8 +52,11 @@ class LocalObra(Base):
             name="fk_locais_pai_mesmo_empreendimento",
             ondelete="RESTRICT",
         ),
-        CheckConstraint("tipo IN ('TORRE', 'PAVIMENTO', 'UNIDADE')", name="ck_locais_tipo"),
+        CheckConstraint(
+            "tipo IN ('TORRE', 'BLOCO', 'PAVIMENTO', 'UNIDADE')", name="ck_locais_tipo"
+        ),
         CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_locais_sem_auto_pai"),
+        CheckConstraint("ordem >= 0", name="ck_locais_ordem"),
         UniqueConstraint("empreendimento_id", "parent_id", "nome", name="uq_locais_irmaos_nome"),
     )
 
@@ -59,10 +66,21 @@ class LocalObra(Base):
     )
     parent_id: Mapped[int | None] = mapped_column(Integer, index=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
-    tipo: Mapped[str] = mapped_column(String(20), nullable=False)
-    filhos: Mapped[list["LocalObra"]] = relationship(back_populates="pai")
+    tipo: Mapped[TipoLocal] = mapped_column(
+        Enum(TipoLocal, name="tipo_local", native_enum=False, create_constraint=False),
+        nullable=False,
+    )
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    empreendimento: Mapped["Empreendimento"] = relationship(back_populates="locais_obra")
+    filhos: Mapped[list["LocalObra"]] = relationship(back_populates="pai", foreign_keys=[parent_id])
     pai: Mapped["LocalObra | None"] = relationship(
-        back_populates="filhos", remote_side=[id, empreendimento_id]
+        back_populates="filhos", remote_side=[id], foreign_keys=[parent_id]
     )
 
 
