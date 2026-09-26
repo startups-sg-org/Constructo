@@ -30,6 +30,10 @@ export default function DetalhesEmpreendimento() {
                     <dt>Data de criação</dt>
                     <dd>{formatarDataEmpreendimento(empreendimento.criado_em)}</dd>
                 </div>
+                <div>
+                    <dt>Data de atualização</dt>
+                    <dd>{formatarDataEmpreendimento(empreendimento.atualizado_em)}</dd>
+                </div>
                 <div className="detalhes-empreendimento__descricao">
                     <dt>Descrição</dt>
                     <dd>{empreendimento.descricao || "Descrição não informada"}</dd>
@@ -38,6 +42,9 @@ export default function DetalhesEmpreendimento() {
 
             <footer className="detalhes-empreendimento__acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
+                <Link className="botao secundario" to="estrutura-fisica">
+                    Gerenciar estrutura física
+                </Link>
                 <Link className="botao primario" to="editar">Editar empreendimento</Link>
             </footer>
         </article>

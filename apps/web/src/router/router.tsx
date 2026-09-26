@@ -7,6 +7,7 @@ import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
+import EstruturaFisicaEmpreendimento from "../modulos/empreendimentos/componentes/EstruturaFisicaEmpreendimento";
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
@@ -95,7 +96,7 @@ export const rotas: RouteObject[] = [
             ),
           },
           {
-            path: "obras/:empreendimentoId",
+            path: "empreendimentos/:empreendimentoId",
             loader: carregarEmpreendimento,
             element: (
               <PaginaPainel
@@ -107,7 +108,7 @@ export const rotas: RouteObject[] = [
             ),
           },
           {
-            path: "obras/:empreendimentoId/editar",
+            path: "empreendimentos/:empreendimentoId/editar",
             loader: carregarEmpreendimento,
             action: editarEmpreendimento,
             element: (
@@ -116,6 +117,18 @@ export const rotas: RouteObject[] = [
                 subtitulo="Atualize os dados gerais sem alterar a estrutura física da obra."
               >
                 <FormularioEdicaoEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId/estrutura-fisica",
+            loader: carregarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Estrutura física"
+                subtitulo="Gerencie a organização física do empreendimento selecionado."
+              >
+                <EstruturaFisicaEmpreendimento />
               </PaginaPainel>
             ),
           },

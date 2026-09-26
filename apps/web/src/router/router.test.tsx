@@ -10,6 +10,7 @@ import {
   listarEmpreendimentos,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
+import { ApiError } from "../services/api";
 import {
   createUser,
   getUsers,
@@ -272,11 +273,11 @@ describe("novo sistema de rotas", () => {
     expect(within(card!).getByText(/25.*2026/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Visualizar" })).toHaveAttribute(
       "href",
-      "/admin/obras/12",
+      "/admin/empreendimentos/12",
     );
     expect(screen.getByRole("link", { name: "Editar" })).toHaveAttribute(
       "href",
-      "/admin/obras/12/editar",
+      "/admin/empreendimentos/12/editar",
     );
   });
 
@@ -298,8 +299,75 @@ describe("novo sistema de rotas", () => {
     expect(
       await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
     expect(screen.getByText("Duas torres")).toBeInTheDocument();
+    expect(screen.getByText("Avenida Central, 100")).toBeInTheDocument();
+    expect(screen.getByText("Planejado")).toBeInTheDocument();
+    expect(screen.getByText("Data de criação")).toBeInTheDocument();
+    expect(screen.getByText("Data de atualização")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Editar empreendimento" })).toHaveAttribute(
+      "href",
+      "/admin/empreendimentos/12/editar",
+    );
+    expect(screen.getByRole("link", { name: "Gerenciar estrutura física" })).toHaveAttribute(
+      "href",
+      "/admin/empreendimentos/12/estrutura-fisica",
+    );
     expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
+  });
+
+  it("acessa a gestão da estrutura física pelo detalhe", async () => {
+    const user = userEvent.setup();
+    montarRota("/admin/empreendimentos/12");
+
+    await user.click(
+      await screen.findByRole("link", { name: "Gerenciar estrutura física" }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Estrutura física" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
+  });
+
+  it("trata empreendimento inexistente", async () => {
+    obterEmpreendimentoMock.mockRejectedValue(
+      new ApiError("Empreendimento não encontrado", 404, "Not Found"),
+    );
+
+    montarRota("/admin/empreendimentos/999");
+
+    expect(
+      await screen.findByRole("heading", { name: "Página não encontrada" }),
+    ).toBeInTheDocument();
+  });
+
+  it("trata erro ao carregar um empreendimento", async () => {
+    obterEmpreendimentoMock.mockRejectedValue(new TypeError("Failed to fetch"));
+
+    montarRota("/admin/empreendimentos/12");
+
+    expect(
+      await screen.findByRole("heading", { name: "Não foi possível acessar o serviço" }),
+    ).toBeInTheDocument();
+  });
+
+  it("apresenta loading enquanto carrega um empreendimento", async () => {
+    let concluirCarregamento!: (valor: typeof empreendimento) => void;
+    obterEmpreendimentoMock.mockImplementation(
+      () => new Promise((resolve) => { concluirCarregamento = resolve; }),
+    );
+    listarEmpreendimentosMock.mockResolvedValue([empreendimento]);
+    const user = userEvent.setup();
+    montarRota("/admin/obras");
+
+    await user.click(await screen.findByRole("link", { name: "Visualizar" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Carregando página...");
+    concluirCarregamento(empreendimento);
+    expect(
+      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+    ).toBeInTheDocument();
   });
 
   it("trata erro ao carregar os empreendimentos", async () => {
@@ -356,7 +424,7 @@ describe("novo sistema de rotas", () => {
       nome: "Residencial Aurora Norte",
       atualizado_em: "2026-09-25T13:00:00Z",
     });
-    montarRota("/admin/obras/12/editar");
+    montarRota("/admin/empreendimentos/12/editar");
 
     expect(await screen.findByLabelText(/^Nome/)).toHaveValue("Residencial Aurora");
     expect(screen.getByLabelText("Descrição")).toHaveValue("Duas torres");
@@ -385,7 +453,7 @@ describe("novo sistema de rotas", () => {
     atualizarEmpreendimentoMock.mockRejectedValue(
       new Error("Não foi possível atualizar o empreendimento"),
     );
-    montarRota("/admin/obras/12/editar");
+    montarRota("/admin/empreendimentos/12/editar");
 
     const descricao = await screen.findByLabelText("Descrição");
     await user.clear(descricao);
