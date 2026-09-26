@@ -7,10 +7,12 @@ import "./StructureTree.css";
 type StructureTreeProps = {
   locais: LocalObra[];
   onSelect?: (local: LocalObra) => void;
+  selecionadoId?: string | null;
 };
 
-export default function StructureTree({ locais, onSelect }: StructureTreeProps) {
-  const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
+export default function StructureTree({ locais, onSelect, selecionadoId: selecionadoIdControlado }: StructureTreeProps) {
+  const [selecionadoIdInterno, setSelecionadoIdInterno] = useState<string | null>(null);
+  const selecionadoId = selecionadoIdControlado === undefined ? selecionadoIdInterno : selecionadoIdControlado;
   const [expandidos, setExpandidos] = useState<Set<string>>(
     () => new Set(locais.filter((local) => local.parent_id === null).map((local) => local.id)),
   );
@@ -38,7 +40,7 @@ export default function StructureTree({ locais, onSelect }: StructureTreeProps) 
   };
 
   const selecionar = (local: LocalObra) => {
-    setSelecionadoId(local.id);
+    setSelecionadoIdInterno(local.id);
     onSelect?.(local);
   };
 

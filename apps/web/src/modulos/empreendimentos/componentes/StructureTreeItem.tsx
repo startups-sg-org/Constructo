@@ -48,6 +48,7 @@ export default function StructureTreeItem({
         <button
           type="button"
           className={`structure-tree__select${selecionadoId === local.id ? " selecionado" : ""}`}
+          aria-current={selecionadoId === local.id ? "true" : undefined}
           onClick={() => onSelect(local)}
         >
           <span className={`structure-tree__tipo structure-tree__tipo--${local.tipo.toLowerCase()}`}>
