@@ -14,6 +14,7 @@ from .esquemas import (
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
     Pavimento_FromRequest_Schema,
+    Unidade_FromRequest_Schema,
 )
 from .modelos import Empreendimento, LocalObra, StatusEmpreendimento, TipoLocalObra
 
@@ -56,6 +57,24 @@ class EmpreendimentoRepo:
             empreendimento_id=empreendimento_id,
             parent_id=parent_id,
             tipo=TipoLocalObra.PAVIMENTO,
+            **payload.model_dump(),
+        )
+        db.add(local)
+        await db.flush()
+        await db.refresh(local)
+        return LocalObra_FromDB_Schema.model_validate(local)
+
+    async def create_unidade(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        parent_id: uuid.UUID,
+        payload: Unidade_FromRequest_Schema,
+    ) -> LocalObra_FromDB_Schema:
+        local = LocalObra(
+            empreendimento_id=empreendimento_id,
+            parent_id=parent_id,
+            tipo=TipoLocalObra.UNIDADE,
             **payload.model_dump(),
         )
         db.add(local)

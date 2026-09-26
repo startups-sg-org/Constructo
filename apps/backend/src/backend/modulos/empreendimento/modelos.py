@@ -32,6 +32,7 @@ class TipoLocalObra(str, enum.Enum):
     TORRE = "TORRE"
     BLOCO = "BLOCO"
     PAVIMENTO = "PAVIMENTO"
+    UNIDADE = "UNIDADE"
 
 
 class Empreendimento(Base):

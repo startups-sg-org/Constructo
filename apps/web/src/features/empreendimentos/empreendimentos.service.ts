@@ -17,12 +17,33 @@ export type Empreendimento = {
   atualizado_em: string;
 };
 
+export type TipoLocalObra = "TORRE" | "BLOCO" | "PAVIMENTO" | "UNIDADE";
+
+export type LocalObra = {
+  id: string;
+  empreendimento_id: string;
+  parent_id: string | null;
+  nome: string;
+  tipo: TipoLocalObra;
+  ordem: number;
+};
+
 export function getEmpreendimentoPorId(
   empreendimentoId: string,
   options?: ServiceRequestOptions,
 ): Promise<Empreendimento> {
   return apiRequest<Empreendimento>(
     `/empreendimentos/${encodeURIComponent(empreendimentoId)}`,
+    { signal: options?.signal },
+  );
+}
+
+export function getLocaisObra(
+  empreendimentoId: string,
+  options?: ServiceRequestOptions,
+): Promise<LocalObra[]> {
+  return apiRequest<LocalObra[]>(
+    `/empreendimentos/${encodeURIComponent(empreendimentoId)}/locais`,
     { signal: options?.signal },
   );
 }

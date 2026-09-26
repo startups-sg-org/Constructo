@@ -7,6 +7,7 @@ import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
+import EstruturaEmpreendimento from "../modulos/empreendimentos/componentes/EstruturaEmpreendimento";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
@@ -20,7 +21,10 @@ import { executarAcaoAdministrativa } from "../features/auth/logout.action";
 import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
 import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
-import { carregarEmpreendimento } from "../features/empreendimentos/empreendimento.loader";
+import {
+  carregarEmpreendimento,
+  carregarEstruturaEmpreendimento,
+} from "../features/empreendimentos/empreendimento.loader";
 
 export const rotas: RouteObject[] = [
   {
@@ -83,7 +87,14 @@ export const rotas: RouteObject[] = [
           {
             path: "empreendimentos/:empreendimentoId",
             loader: carregarEmpreendimento,
-            element: <DetalhesEmpreendimento />,
+            children: [
+              { index: true, element: <DetalhesEmpreendimento /> },
+              {
+                path: "estrutura",
+                loader: carregarEstruturaEmpreendimento,
+                element: <EstruturaEmpreendimento />,
+              },
+            ],
           },
           {
             path: "contratos",

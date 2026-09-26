@@ -11,6 +11,7 @@ from .esquemas import (
     Empreendimento_StatusRequest_Schema,
     Empreendimento_UpdateRequest_Schema,
     Pavimento_FromRequest_Schema,
+    Unidade_FromRequest_Schema,
 )
 from .modelos import Empreendimento, StatusEmpreendimento, TipoLocalObra
 from .servicos import EmpreendimentoService
@@ -205,6 +206,16 @@ class RepoLocalFalso:
             ordem=payload.ordem,
         )
 
+    async def create_unidade(self, _db, empreendimento_id, parent_id, payload):
+        self.criacao = (empreendimento_id, parent_id, payload)
+        return SimpleNamespace(
+            empreendimento_id=empreendimento_id,
+            parent_id=parent_id,
+            tipo=TipoLocalObra.UNIDADE,
+            nome=payload.nome,
+            ordem=payload.ordem,
+        )
+
 
 def usuario_com_acesso():
     return SimpleNamespace(papel="COMPRADOR", empreendimento="Residencial Ipê")
@@ -253,6 +264,56 @@ def test_pavimento_nao_aceita_pai_pavimento():
                 empreendimento_id,
                 pai.empreendimento_id,
                 Pavimento_FromRequest_Schema(nome="Térreo"),
+                usuario_com_acesso(),
+            )
+        )
+
+    assert erro.value.status_code == 400
+
+
+def test_schema_de_unidade_nao_recebe_tipo_ou_pai():
+    with pytest.raises(ValidationError):
+        Unidade_FromRequest_Schema.model_validate(
+            {"nome": "101", "ordem": 0, "tipo": "UNIDADE"}
+        )
+
+
+def test_cria_unidade_sob_pavimento():
+    empreendimento_id = uuid.uuid4()
+    empreendimento = SimpleNamespace(
+        nome="Residencial Ipê", status=StatusEmpreendimento.PLANEJADO
+    )
+    pai = SimpleNamespace(
+        empreendimento_id=empreendimento_id, tipo=TipoLocalObra.PAVIMENTO
+    )
+    resultado = asyncio.run(
+        service_com(RepoLocalFalso(empreendimento, pai)).create_unidade(
+            None,
+            empreendimento_id,
+            uuid.uuid4(),
+            Unidade_FromRequest_Schema(nome="101", ordem=1),
+            usuario_com_acesso(),
+        )
+    )
+
+    assert resultado.tipo is TipoLocalObra.UNIDADE
+    assert resultado.parent_id != empreendimento_id
+
+
+def test_unidade_nao_aceita_pai_torre():
+    empreendimento_id = uuid.uuid4()
+    empreendimento = SimpleNamespace(
+        nome="Residencial Ipê", status=StatusEmpreendimento.PLANEJADO
+    )
+    pai = SimpleNamespace(empreendimento_id=empreendimento_id, tipo=TipoLocalObra.TORRE)
+
+    with pytest.raises(HTTPException) as erro:
+        asyncio.run(
+            service_com(RepoLocalFalso(empreendimento, pai)).create_unidade(
+                None,
+                empreendimento_id,
+                uuid.uuid4(),
+                Unidade_FromRequest_Schema(nome="101"),
                 usuario_com_acesso(),
             )
         )

@@ -1,0 +1,65 @@
+.structure-tree,
+.structure-tree__filhos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.structure-tree__filhos {
+  margin-left: 1.5rem;
+}
+
+.structure-tree__linha {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  min-height: 2.5rem;
+}
+
+.structure-tree__toggle,
+.structure-tree__toggle-placeholder {
+  align-items: center;
+  display: inline-flex;
+  height: 1.75rem;
+  justify-content: center;
+  width: 1.75rem;
+}
+
+.structure-tree__toggle {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.structure-tree__select {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.structure-tree__select:hover,
+.structure-tree__select.selecionado {
+  background: #eef4ff;
+}
+
+.structure-tree__tipo {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  text-transform: uppercase;
+}
+
+.structure-tree__tipo--torre,
+.structure-tree__tipo--bloco { background: #e3efff; color: #164b8c; }
+.structure-tree__tipo--pavimento { background: #fff0d8; color: #80520d; }
+.structure-tree__tipo--unidade { background: #e3f5e8; color: #1c6634; }
+
+.structure-tree__vazio { color: #687386; }

@@ -17,6 +17,7 @@ from .esquemas import (
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
     Pavimento_FromRequest_Schema,
+    Unidade_FromRequest_Schema,
 )
 from .servicos import EmpreendimentoService
 
@@ -110,5 +111,22 @@ async def create_pavimento(
     usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> LocalObra_FromDB_Schema:
     return await empreendimento_service.create_pavimento(
+        db, id, parent_id, payload, usuario
+    )
+
+
+@router.post(
+    "/{id}/locais/{parent_id}/unidades",
+    response_model=LocalObra_FromDB_Schema,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_unidade(
+    id: uuid.UUID,
+    parent_id: uuid.UUID,
+    payload: Unidade_FromRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> LocalObra_FromDB_Schema:
+    return await empreendimento_service.create_unidade(
         db, id, parent_id, payload, usuario
     )
