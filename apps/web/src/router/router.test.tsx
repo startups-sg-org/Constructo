@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getAuthenticatedUser, loginUser } from "../features/auth/auth.service";
+import { criarEmpreendimento } from "../features/empreendimentos/empreendimentos.service";
 import {
   createUser,
   getUsers,
@@ -16,6 +17,10 @@ vi.mock("../features/auth/auth.service", () => ({
   loginUser: vi.fn(),
   logoutUser: vi.fn(),
 }));
+vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
+  criarEmpreendimento: vi.fn(),
+}));
+
 
 vi.mock("../features/usuarios/usuarios.service", () => ({
   createUser: vi.fn(),
@@ -27,6 +32,7 @@ vi.mock("../features/usuarios/usuarios.service", () => ({
 
 const getAuthenticatedUserMock = vi.mocked(getAuthenticatedUser);
 const loginUserMock = vi.mocked(loginUser);
+const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
 const getUsersCountMock = vi.mocked(getUsersCount);
@@ -88,7 +94,7 @@ describe("novo sistema de rotas", () => {
   it.each([
     ["/admin", "Painel Administrativo"],
     ["/admin/usuarios", "Usuários"],
-    ["/admin/obras", "Obras"],
+    ["/admin/obras", "Empreendimentos"],
     ["/admin/contratos", "Contratos"],
     ["/admin/medicoes", "Medições"],
     ["/admin/perfil", "Perfil"],
@@ -144,7 +150,7 @@ describe("novo sistema de rotas", () => {
     await user.click(screen.getByRole("button", { name: "Entrar" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Obras" }),
+      await screen.findByRole("heading", { name: "Empreendimentos" }),
     ).toBeInTheDocument();
     expect(loginUserMock).toHaveBeenCalledWith(
       "maria@constructo.dev",
@@ -191,5 +197,63 @@ describe("novo sistema de rotas", () => {
     expect(screen.getByLabelText("Nome")).toHaveValue("Maria");
     expect(screen.getByLabelText("E-mail")).toHaveValue("maria@constructo.dev");
     expect(getUsersMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("cadastra um empreendimento e apresenta feedback de sucesso", async () => {
+    const user = userEvent.setup();
+    criarEmpreendimentoMock.mockResolvedValue({
+      id: 12,
+      nome: "Residencial Aurora",
+      descricao: "Duas torres",
+      endereco: "Avenida Central, 100",
+      status: "EM_ANDAMENTO",
+      criado_em: "2026-09-25T12:00:00Z",
+    });
+    montarRota("/admin/obras");
+
+    await user.type(await screen.findByLabelText(/^Nome/), "Residencial Aurora");
+    await user.selectOptions(screen.getByLabelText(/^Status/), "EM_ANDAMENTO");
+    await user.type(screen.getByLabelText("Endereço"), "Avenida Central, 100");
+    await user.type(screen.getByLabelText("Descrição"), "Duas torres");
+    await user.click(screen.getByRole("button", { name: "Cadastrar empreendimento" }));
+
+    expect(
+      await screen.findByText(
+        "Empreendimento “Residencial Aurora” cadastrado com sucesso.",
+      ),
+    ).toBeInTheDocument();
+    expect(criarEmpreendimentoMock).toHaveBeenCalledWith(
+      {
+        nome: "Residencial Aurora",
+        descricao: "Duas torres",
+        endereco: "Avenida Central, 100",
+        status: "EM_ANDAMENTO",
+      },
+      expect.anything(),
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^Nome/)).toHaveValue("");
+    });
+  });
+
+  it("valida o nome e exibe erros retornados pela API", async () => {
+    const user = userEvent.setup();
+    montarRota("/admin/obras");
+
+    await user.click(
+      await screen.findByRole("button", { name: "Cadastrar empreendimento" }),
+    );
+    expect(await screen.findByText("Nome é obrigatório")).toBeInTheDocument();
+    expect(criarEmpreendimentoMock).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText(/^Nome/), "Residencial Aurora");
+    criarEmpreendimentoMock.mockRejectedValue(
+      new Error("Não foi possível salvar o empreendimento"),
+    );
+    await user.click(screen.getByRole("button", { name: "Cadastrar empreendimento" }));
+
+    expect(
+      await screen.findByText("Não foi possível salvar o empreendimento"),
+    ).toBeInTheDocument();
   });
 });

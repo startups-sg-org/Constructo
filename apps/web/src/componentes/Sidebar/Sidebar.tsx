@@ -19,7 +19,7 @@ type SidebarProps = {
 const itensNavegacao: ItemNavegacao[] = [
     { rotulo: "Home", rota: "/admin", icone: IconeHome, exato: true },
     { rotulo: "Usuários", rota: "/admin/usuarios", icone: IconeUsuarios },
-    { rotulo: "Obras", rota: "/admin/obras", icone: IconeObras },
+    { rotulo: "Empreendimentos", rota: "/admin/obras", icone: IconeObras },
     { rotulo: "Contratos", rota: "/admin/contratos", icone: IconeContratos },
     { rotulo: "Medições", rota: "/admin/medicoes", icone: IconeMedicoes }
 ];

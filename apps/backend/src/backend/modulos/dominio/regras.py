@@ -10,6 +10,13 @@ class Papel(StrEnum):
     COMPRADOR = "COMPRADOR"
 
 
+class StatusEmpreendimento(StrEnum):
+    PLANEJADO = "PLANEJADO"
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDO = "CONCLUIDO"
+    INATIVO = "INATIVO"
+
+
 class TipoLocal(StrEnum):
     TORRE = "TORRE"
     PAVIMENTO = "PAVIMENTO"

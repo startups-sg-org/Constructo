@@ -8,11 +8,12 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy import event
+from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio.esquemas import (
+    EmpreendimentoCriar,
     EtapaCriar,
     EvidenciaCriar,
     LocalCriar,
@@ -29,6 +30,7 @@ from backend.modulos.dominio.servicos import (
     alterar_estado,
     calcular_progresso_empreendimento,
     calcular_progresso_unidade,
+    criar_empreendimento,
     criar_etapa,
     criar_local,
     criar_progresso,
@@ -266,6 +268,38 @@ def test_progresso_publicacao_e_isolamento_de_empreendimento():
                 assert progresso.concluido_em is None
                 assert await calcular_progresso_unidade(session, unidade.id) == 0
                 await session.rollback()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_cria_e_persiste_empreendimento():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                criado = await criar_empreendimento(
+                    session,
+                    EmpreendimentoCriar(
+                        nome="  Residencial Aurora  ",
+                        descricao="  Duas torres  ",
+                        endereco="  Avenida Central, 100  ",
+                        status="EM_ANDAMENTO",
+                    ),
+                )
+                identificador = criado.id
+                await session.commit()
+
+            async with factory() as session:
+                persistido = await session.scalar(
+                    select(Empreendimento).where(Empreendimento.id == identificador)
+                )
+                assert persistido is not None
+                assert persistido.nome == "Residencial Aurora"
+                assert persistido.descricao == "Duas torres"
+                assert persistido.endereco == "Avenida Central, 100"
+                assert persistido.status == "EM_ANDAMENTO"
         finally:
             await engine.dispose()
 

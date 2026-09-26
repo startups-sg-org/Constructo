@@ -4,6 +4,7 @@ import FeedbackNavegacao from "../componentes/FeedbackNavegacao/FeedbackNavegaca
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
+import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
@@ -12,6 +13,7 @@ import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "../features/auth/auth.loader";
+import { cadastrarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -76,7 +78,15 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "obras",
-            element: <PaginaPainel titulo="Obras" subtitulo="Gerencie as obras cadastradas." />,
+            action: cadastrarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Empreendimentos"
+                subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
+              >
+                <FormularioEmpreendimento />
+              </PaginaPainel>
+            ),
           },
           {
             path: "contratos",

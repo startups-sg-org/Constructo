@@ -2,9 +2,9 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .regras import EstadoMarco, TipoLocal
+from .regras import EstadoMarco, StatusEmpreendimento, TipoLocal
 
 
 class Leitura(BaseModel):
@@ -14,12 +14,27 @@ class Leitura(BaseModel):
 
 class EmpreendimentoCriar(BaseModel):
     nome: str = Field(min_length=1, max_length=200)
-    descricao: str | None = None
+    descricao: str | None = Field(default=None, max_length=1000)
     endereco: str | None = Field(default=None, max_length=500)
+    status: StatusEmpreendimento = StatusEmpreendimento.PLANEJADO
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao", "endereco")
+    @classmethod
+    def normalizar_opcional(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
 
 
 class EmpreendimentoLer(Leitura, EmpreendimentoCriar):
-    status: str
     criado_em: datetime
 
 
