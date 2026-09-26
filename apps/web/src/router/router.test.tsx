@@ -343,6 +343,99 @@ describe("novo sistema de rotas", () => {
     expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
   });
 
+  it("seleciona um local, exibe seus dados e preserva a seleção na navegação", async () => {
+    const user = userEvent.setup();
+    const torre = {
+      id: 31,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Torre A",
+      tipo: "TORRE" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    const pavimento = {
+      ...torre,
+      id: 41,
+      parent_id: torre.id,
+      nome: "7º Pavimento",
+      tipo: "PAVIMENTO" as const,
+      ordem: 2,
+    };
+    const unidade = {
+      ...pavimento,
+      id: 51,
+      parent_id: pavimento.id,
+      nome: "Unidade 704",
+      tipo: "UNIDADE" as const,
+      ordem: 3,
+    };
+    obterEstruturaFisicaMock.mockResolvedValue([{
+      ...torre,
+      filhos: [{
+        ...pavimento,
+        filhos: [{ ...unidade, filhos: [] }],
+      }],
+    }]);
+    const router = montarRota("/admin/empreendimentos/12/estrutura-fisica");
+
+    expect(await screen.findByRole("heading", { name: "Selecione um local" })).toBeInTheDocument();
+    await user.click(screen.getByRole("treeitem", { name: /Unidade 704/ }));
+
+    await waitFor(() => {
+      expect(router.state.location.search).toBe("?localId=51");
+    });
+    const unidadeSelecionada = screen.getByRole("treeitem", { name: /Unidade 704/ });
+    expect(unidadeSelecionada).toHaveAttribute("aria-selected", "true");
+
+    const painel = screen.getByRole("complementary", { name: "Unidade 704" });
+    expect(within(painel).getByText("51")).toBeInTheDocument();
+    expect(within(painel).getByText("Unidade")).toBeInTheDocument();
+    expect(within(painel).getAllByText("Residencial Aurora")).toHaveLength(2);
+    expect(
+      within(painel)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([
+      "Residencial Aurora",
+      "Torre A",
+      "7º Pavimento",
+      "Unidade 704",
+    ]);
+
+    await router.navigate("/admin/obras");
+    await screen.findByRole("heading", { name: "Empreendimentos" });
+    await router.navigate(-1);
+
+    expect(
+      await screen.findByRole("treeitem", { name: /Unidade 704/ }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(router.state.location.search).toBe("?localId=51");
+  });
+
+  it("restaura uma seleção compartilhada diretamente pela URL", async () => {
+    const local = {
+      id: 32,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Bloco Norte",
+      tipo: "BLOCO" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+      filhos: [],
+    };
+    obterEstruturaFisicaMock.mockResolvedValue([local]);
+
+    montarRota("/admin/empreendimentos/12/estrutura-fisica?localId=32");
+
+    expect(await screen.findByRole("treeitem", { name: /Bloco Norte/ }))
+      .toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("complementary", { name: "Bloco Norte" }))
+      .toHaveTextContent("Bloco");
+  });
+
   it.each([
     ["TORRE", "Torre A", "Torre"],
     ["BLOCO", "Bloco Norte", "Bloco"],

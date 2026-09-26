@@ -12,15 +12,10 @@
     font-size: 1.1rem;
 }
 
-.estrutura-fisica__cabecalho-lista p,
-.estrutura-fisica__selecao {
+.estrutura-fisica__cabecalho-lista p {
     color: #62706d;
     font-size: 0.82rem;
     font-weight: 600;
-}
-
-.estrutura-fisica__selecao {
-    margin: 10px 0 0 4px;
 }
 
 .estrutura-fisica__vazia {

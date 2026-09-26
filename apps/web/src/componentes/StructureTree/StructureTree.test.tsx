@@ -74,10 +74,20 @@ describe("StructureTree", () => {
         await user.click(unidade);
         expect(unidade).toHaveAttribute("aria-selected", "true");
 
+        await user.click(screen.getByRole("button", { name: "Recolher Torre A" }));
+        await user.click(screen.getByRole("button", { name: "Expandir Torre A" }));
+        expect(screen.getByRole("treeitem", { name: /Unidade 101/ })).toHaveAttribute(
+            "aria-selected",
+            "true",
+        );
+
         const pavimento = screen.getByRole("treeitem", { name: /1º Pavimento/ });
         pavimento.focus();
         await user.keyboard("{Enter}");
         expect(pavimento).toHaveAttribute("aria-selected", "true");
-        expect(unidade).toHaveAttribute("aria-selected", "false");
+        expect(screen.getByRole("treeitem", { name: /Unidade 101/ })).toHaveAttribute(
+            "aria-selected",
+            "false",
+        );
     });
 });

@@ -1,0 +1,100 @@
+.estrutura-fisica__conteudo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+    align-items: start;
+    gap: 20px;
+}
+
+.estrutura-fisica__detalhes-local,
+.estrutura-fisica__detalhes-vazios {
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid #dce6e2;
+    border-radius: 12px;
+    background: #f8fbfa;
+}
+
+.estrutura-fisica__detalhes-local h3,
+.estrutura-fisica__detalhes-vazios h3 {
+    margin-top: 5px;
+    color: #153b36;
+    font-size: 1.1rem;
+}
+
+.estrutura-fisica__detalhes-local dl {
+    display: grid;
+    gap: 12px;
+    margin: 20px 0 0;
+}
+
+.estrutura-fisica__detalhes-local dl div {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 12px;
+}
+
+.estrutura-fisica__detalhes-local dt,
+.estrutura-fisica__caminho h4 {
+    color: #60716c;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.estrutura-fisica__detalhes-local dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #274640;
+    font-weight: 600;
+}
+
+.estrutura-fisica__caminho {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #dce6e2;
+}
+
+.estrutura-fisica__caminho ol {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.estrutura-fisica__caminho li {
+    position: relative;
+    padding-left: 18px;
+    color: #38554f;
+}
+
+.estrutura-fisica__caminho li::before {
+    position: absolute;
+    left: 2px;
+    color: #61a98e;
+    content: "›";
+}
+
+.estrutura-fisica__caminho li:first-child {
+    padding-left: 0;
+    font-weight: 700;
+}
+
+.estrutura-fisica__caminho li:first-child::before {
+    content: none;
+}
+
+.estrutura-fisica__detalhes-vazios {
+    color: #62706d;
+}
+
+.estrutura-fisica__detalhes-vazios p {
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    .estrutura-fisica__conteudo {
+        grid-template-columns: 1fr;
+    }
+}

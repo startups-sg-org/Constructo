@@ -1,10 +1,24 @@
 import type { EstruturaLocal } from "@constructo/shared";
-import { useEffect, useRef, useState } from "react";
-import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    Form,
+    Link,
+    useActionData,
+    useLoaderData,
+    useLocation,
+    useNavigation,
+    useSearchParams,
+} from "react-router-dom";
 
 import StructureTree from "../../../componentes/StructureTree/StructureTree";
 import type { LocalRaizActionData } from "../../../features/empreendimentos/empreendimentos.action";
 import { carregarEstruturaFisica } from "../../../features/empreendimentos/empreendimentos.loader";
+import {
+    encontrarLocalSelecionado,
+    LOCAL_SELECIONADO_PARAM,
+    obterLocalSelecionadoId,
+} from "../../../features/empreendimentos/localSelecionado";
+import DetalhesLocalSelecionado from "./DetalhesLocalSelecionado";
 import "./EstruturaFisicaEmpreendimento.css";
 
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
@@ -13,12 +27,20 @@ export default function EstruturaFisicaEmpreendimento() {
     const { empreendimento, estrutura } = useLoaderData<typeof carregarEstruturaFisica>();
     const actionData = useActionData<LocalRaizActionData>();
     const navigation = useNavigation();
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
     const formularioRaizRef = useRef<HTMLFormElement>(null);
     const formularioPavimentoRef = useRef<HTMLFormElement>(null);
     const formularioUnidadeRef = useRef<HTMLFormElement>(null);
-    const [selectedId, setSelectedId] = useState<number | null>(null);
     const [paiSelecionado, setPaiSelecionado] = useState<EstruturaLocal | null>(null);
     const [pavimentoSelecionado, setPavimentoSelecionado] = useState<EstruturaLocal | null>(null);
+    const selectedId = obterLocalSelecionadoId(
+        new URL(`${location.pathname}${location.search}`, window.location.origin),
+    );
+    const selecao = useMemo(
+        () => encontrarLocalSelecionado(estrutura, selectedId),
+        [estrutura, selectedId],
+    );
     const enviando = navigation.state !== "idle" && navigation.formData != null;
     const enviandoPavimento = enviando
         && navigation.formData?.get("intencao") === "adicionar-pavimento";
@@ -32,14 +54,20 @@ export default function EstruturaFisicaEmpreendimento() {
         else formularioRaizRef.current?.reset();
     }, [actionData]);
 
+    function selecionarLocal(item: EstruturaLocal) {
+        const proximosParametros = new URLSearchParams(searchParams);
+        proximosParametros.set(LOCAL_SELECIONADO_PARAM, String(item.id));
+        setSearchParams(proximosParametros, { preventScrollReset: true, replace: true });
+    }
+
     function abrirPavimento(item: EstruturaLocal) {
-        setSelectedId(item.id);
+        selecionarLocal(item);
         setPavimentoSelecionado(null);
         setPaiSelecionado((atual) => atual?.id === item.id ? null : item);
     }
 
     function abrirUnidade(item: EstruturaLocal) {
-        setSelectedId(item.id);
+        selecionarLocal(item);
         setPaiSelecionado(null);
         setPavimentoSelecionado((atual) => atual?.id === item.id ? null : item);
     }
@@ -79,45 +107,46 @@ export default function EstruturaFisicaEmpreendimento() {
                         <p>Adicione o primeiro local para iniciar a estrutura física da obra.</p>
                     </div>
                 ) : (
-                    <>
-                        <StructureTree
-                            items={estrutura}
-                            selectedId={selectedId}
-                            onSelect={(item) => setSelectedId(item.id)}
-                            renderActions={(item) => {
-                                if (item.tipo === "TORRE" || item.tipo === "BLOCO") {
-                                    return (
-                                        <button
-                                            className="botao secundario"
-                                            type="button"
-                                            aria-expanded={paiSelecionado?.id === item.id}
-                                            onClick={() => abrirPavimento(item)}
-                                        >
-                                            Adicionar pavimento
-                                        </button>
-                                    );
-                                }
-                                if (item.tipo === "PAVIMENTO") {
-                                    return (
-                                        <button
-                                            className="botao secundario"
-                                            type="button"
-                                            aria-expanded={pavimentoSelecionado?.id === item.id}
-                                            onClick={() => abrirUnidade(item)}
-                                        >
-                                            Adicionar unidade
-                                        </button>
-                                    );
-                                }
-                                return null;
-                            }}
+                    <div className="estrutura-fisica__conteudo">
+                        <div>
+                            <StructureTree
+                                items={estrutura}
+                                selectedId={selecao?.local.id ?? null}
+                                onSelect={selecionarLocal}
+                                renderActions={(item) => {
+                                    if (item.tipo === "TORRE" || item.tipo === "BLOCO") {
+                                        return (
+                                            <button
+                                                className="botao secundario"
+                                                type="button"
+                                                aria-expanded={paiSelecionado?.id === item.id}
+                                                onClick={() => abrirPavimento(item)}
+                                            >
+                                                Adicionar pavimento
+                                            </button>
+                                        );
+                                    }
+                                    if (item.tipo === "PAVIMENTO") {
+                                        return (
+                                            <button
+                                                className="botao secundario"
+                                                type="button"
+                                                aria-expanded={pavimentoSelecionado?.id === item.id}
+                                                onClick={() => abrirUnidade(item)}
+                                            >
+                                                Adicionar unidade
+                                            </button>
+                                        );
+                                    }
+                                    return null;
+                                }}
+                            />
+                        </div>
+                        <DetalhesLocalSelecionado
+                            selecao={selecao}
+                            empreendimentoNome={empreendimento.nome}
                         />
-                        {selectedId !== null && (
-                            <p className="estrutura-fisica__selecao" role="status">
-                                Item selecionado na estrutura.
-                            </p>
-                        )}
-                    </>
+                    </div>
                 )}
 
                 {paiSelecionado && (
