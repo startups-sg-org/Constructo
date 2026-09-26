@@ -72,10 +72,20 @@ class LocalCriar(BaseModel):
     parent_id: int | None = None
     nome: str = Field(min_length=1, max_length=200)
     tipo: TipoLocal
+    ordem: int = Field(default=0, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
 
 
 class LocalLer(Leitura, LocalCriar):
-    pass
+    criado_em: datetime
+    atualizado_em: datetime
 
 
 class TaxonomiaCriar(BaseModel):

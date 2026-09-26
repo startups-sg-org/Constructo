@@ -35,6 +35,8 @@ def test_mapeamento_e_tabelas():
 def test_arvore_e_transicoes():
     validar_local(TipoLocal.UNIDADE, TipoLocal.PAVIMENTO)
     validar_local(TipoLocal.TORRE, None)
+    validar_local(TipoLocal.BLOCO, None)
+    validar_local(TipoLocal.PAVIMENTO, TipoLocal.BLOCO)
     with pytest.raises(ValueError):
         validar_local(TipoLocal.UNIDADE, TipoLocal.TORRE)
     validar_transicao(EstadoMarco.NAO_INICIADO, EstadoMarco.EM_ANDAMENTO)
@@ -56,4 +58,10 @@ def test_esquemas_rejeitam_dados_invalidos():
     with pytest.raises(ValidationError):
         LocalCriar(empreendimento_id=1, nome="", tipo="UNIDADE")
     with pytest.raises(ValidationError):
+        LocalCriar(empreendimento_id=1, nome="Torre", tipo="TORRE", ordem=-1)
+    with pytest.raises(ValidationError):
         PublicacaoCriar(progresso_marco_id=1, titulo="", texto_cliente="")
+
+
+def test_enum_local_obra_contem_todos_os_tipos():
+    assert set(TipoLocal) == {"TORRE", "BLOCO", "PAVIMENTO", "UNIDADE"}

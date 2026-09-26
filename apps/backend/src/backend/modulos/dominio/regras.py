@@ -19,6 +19,7 @@ class StatusEmpreendimento(StrEnum):
 
 class TipoLocal(StrEnum):
     TORRE = "TORRE"
+    BLOCO = "BLOCO"
     PAVIMENTO = "PAVIMENTO"
     UNIDADE = "UNIDADE"
 
@@ -42,13 +43,15 @@ def validar_transicao(atual: EstadoMarco, proximo: EstadoMarco) -> None:
 
 
 def validar_local(tipo: TipoLocal, pai: TipoLocal | None) -> None:
-    esperado = {
-        TipoLocal.TORRE: None,
-        TipoLocal.PAVIMENTO: TipoLocal.TORRE,
-        TipoLocal.UNIDADE: TipoLocal.PAVIMENTO,
+    pais_permitidos = {
+        TipoLocal.TORRE: {None},
+        TipoLocal.BLOCO: {None},
+        TipoLocal.PAVIMENTO: {TipoLocal.TORRE, TipoLocal.BLOCO},
+        TipoLocal.UNIDADE: {TipoLocal.PAVIMENTO},
     }[tipo]
-    if pai != esperado:
-        raise ValueError(f"{tipo} requer pai {esperado}")
+    if pai not in pais_permitidos:
+        permitidos = ", ".join(str(item) for item in pais_permitidos if item is not None) or "raiz"
+        raise ValueError(f"{tipo} requer pai: {permitidos}")
 
 
 def calcular_progresso(estados: Iterable[EstadoMarco]) -> int:
