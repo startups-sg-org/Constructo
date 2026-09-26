@@ -106,6 +106,23 @@ class LocalObra_FromDB_Schema(BaseModel):
     ordem: int
 
 
+class LocalObra_UpdateRequest_Schema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    ordem: int | None = Field(default=None, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def remover_espacos_e_rejeitar_vazio(cls, valor: str | None) -> str | None:
+        if valor is None:
+            raise ValueError("campo não pode ser nulo")
+        valor = valor.strip()
+        if not valor:
+            raise ValueError("campo não pode ser vazio")
+        return valor
+
+
 class Pavimento_FromRequest_Schema(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

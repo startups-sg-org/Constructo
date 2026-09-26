@@ -13,6 +13,7 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    LocalObra_UpdateRequest_Schema,
     Pavimento_FromRequest_Schema,
     Unidade_FromRequest_Schema,
 )
@@ -45,6 +46,21 @@ class EmpreendimentoRepo:
         self, db: AsyncSession, local_id: uuid.UUID
     ) -> LocalObra | None:
         return await db.get(LocalObra, local_id)
+
+    async def update_local_obra(
+        self,
+        db: AsyncSession,
+        local_id: uuid.UUID,
+        payload: LocalObra_UpdateRequest_Schema,
+    ) -> LocalObra_FromDB_Schema | None:
+        local = await db.get(LocalObra, local_id)
+        if local is None:
+            return None
+        for campo, valor in payload.model_dump(exclude_unset=True).items():
+            setattr(local, campo, valor)
+        await db.flush()
+        await db.refresh(local)
+        return LocalObra_FromDB_Schema.model_validate(local)
 
     async def create_pavimento(
         self,

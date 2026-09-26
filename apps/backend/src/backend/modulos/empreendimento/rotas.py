@@ -16,6 +16,7 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    LocalObra_UpdateRequest_Schema,
     Pavimento_FromRequest_Schema,
     Unidade_FromRequest_Schema,
 )
@@ -96,6 +97,17 @@ async def list_locais_obra(
     usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> list[LocalObra_FromDB_Schema]:
     return await empreendimento_service.get_locais_obra(db, id, usuario)
+
+
+@router.patch("/{id}/locais/{local_id}", response_model=LocalObra_FromDB_Schema)
+async def update_local_obra(
+    id: uuid.UUID,
+    local_id: uuid.UUID,
+    payload: LocalObra_UpdateRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> LocalObra_FromDB_Schema:
+    return await empreendimento_service.update_local_obra(db, id, local_id, payload, usuario)
 
 
 @router.post(

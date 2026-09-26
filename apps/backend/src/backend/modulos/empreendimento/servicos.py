@@ -11,6 +11,7 @@ from .esquemas import (
     EmpreendimentoResumo_FromDB_Schema,
     LocalObra_FromDB_Schema,
     LocalObra_FromRequest_Schema,
+    LocalObra_UpdateRequest_Schema,
     Pavimento_FromRequest_Schema,
     Unidade_FromRequest_Schema,
 )
@@ -54,6 +55,33 @@ class EmpreendimentoService:
         ):
             raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
         return await self.repo.get_locais_obra(db, empreendimento_id)
+
+    async def update_local_obra(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        local_id: uuid.UUID,
+        payload: LocalObra_UpdateRequest_Schema,
+        usuario,
+    ) -> LocalObra_FromDB_Schema:
+        empreendimento = await self.repo.get_local_empreendimento(db, empreendimento_id)
+        if empreendimento is None:
+            raise HTTPException(status_code=404, detail="Empreendimento não encontrado.")
+        if getattr(usuario, "papel", None) not in {"ADMIN", "GESTOR"} and (
+            getattr(usuario, "empreendimento", None) != empreendimento.nome
+        ):
+            raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
+        if empreendimento.status is StatusEmpreendimento.INATIVO:
+            raise HTTPException(status_code=403, detail="Não é possível alterar um empreendimento inativo.")
+        local = await self.repo.get_local_obra(db, local_id)
+        if local is None:
+            raise HTTPException(status_code=404, detail="Local não encontrado.")
+        if local.empreendimento_id != empreendimento_id:
+            raise HTTPException(status_code=409, detail="O local pertence a outro empreendimento.")
+        atualizado = await self.repo.update_local_obra(db, local_id, payload)
+        if atualizado is None:
+            raise HTTPException(status_code=404, detail="Local não encontrado.")
+        return atualizado
 
     async def create_pavimento(
         self,
