@@ -10,7 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modulos.usuarios.modelos import Usuario
 
-from .esquemas import EtapaCriar, EvidenciaCriar, LocalCriar, ProgressoMarcoCriar, PublicacaoCriar
+from .esquemas import (
+    EmpreendimentoCriar,
+    EtapaCriar,
+    EvidenciaCriar,
+    LocalCriar,
+    ProgressoMarcoCriar,
+    PublicacaoCriar,
+)
 from .modelos import (
     Empreendimento,
     Etapa,
@@ -39,6 +46,14 @@ async def _exigir(session: AsyncSession, classe, identificador: int):
     if obj is None:
         raise ValueError(f"{classe.__name__} inexistente: {identificador}")
     return obj
+
+
+async def criar_empreendimento(session: AsyncSession, dados: EmpreendimentoCriar) -> Empreendimento:
+    empreendimento = Empreendimento(**dados.model_dump(mode="json"))
+    session.add(empreendimento)
+    await session.flush()
+    await session.refresh(empreendimento)
+    return empreendimento
 
 
 async def _validar_pai_local(

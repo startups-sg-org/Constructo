@@ -29,7 +29,7 @@ class Empreendimento(Base):
     )
     __table_args__ = (
         CheckConstraint(
-            "status IN ('PLANEJADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO')",
+            "status IN ('PLANEJADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'INATIVO')",
             name="ck_empreendimentos_status",
         ),
     )
