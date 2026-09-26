@@ -3,6 +3,7 @@ import {
     useFetcher,
     useLoaderData,
 } from "react-router-dom";
+import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
 import type { UsuariosActionData } from "../../../features/usuarios/usuarios.action";
 import { carregarUsuarios } from "../../../features/usuarios/usuarios.loader";
 import EditarUsuario from "./EditarUsuario";
@@ -85,11 +86,9 @@ export default function ListaUsuarios() {
                                             </fetcherExclusao.Form>
                                         </td>
                                         <td data-label="Status">
-                                            <span
-                                                className={`lista-usuarios__status lista-usuarios__status--${usuario.ativo ? "ativo" : "inativo"}`}
-                                            >
+                                            <BadgeStatus tom={usuario.ativo ? "sucesso" : "erro"}>
                                                 {usuario.ativo ? "Ativo" : "Inativo"}
-                                            </span>
+                                            </BadgeStatus>
                                         </td>
                                         <td data-label="Ações">
                                             <div className="lista-usuarios__acoes">

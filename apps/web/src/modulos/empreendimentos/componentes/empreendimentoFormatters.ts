@@ -7,6 +7,13 @@ const rotulosStatus: Record<Empreendimento["status"], string> = {
     INATIVO: "Inativo",
 };
 
+const tonsStatus = {
+    PLANEJADO: "informativo",
+    EM_ANDAMENTO: "alerta",
+    CONCLUIDO: "sucesso",
+    INATIVO: "neutro",
+} as const;
+
 export function formatarDataEmpreendimento(data: string): string {
     const dataCriacao = new Date(data);
 
@@ -22,4 +29,8 @@ export function formatarDataEmpreendimento(data: string): string {
 
 export function obterRotuloStatus(status: Empreendimento["status"]): string {
     return rotulosStatus[status];
+}
+
+export function obterTomStatus(status: Empreendimento["status"]) {
+    return tonsStatus[status];
 }

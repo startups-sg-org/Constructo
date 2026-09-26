@@ -49,25 +49,6 @@
     border-bottom: 0;
 }
 
-.lista-usuarios__status {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.lista-usuarios__status--ativo {
-    color: #147a55;
-    background: #e8f7f0;
-}
-
-.lista-usuarios__status--inativo {
-    color: #a0443b;
-    background: #fcecea;
-}
-
 .lista-usuarios__estado {
     display: flex;
     min-height: 132px;
@@ -145,9 +126,6 @@
         text-transform: uppercase;
     }
 
-    .lista-usuarios__status {
-        width: fit-content;
-    }
 }
 
 .lista-usuarios__editar {
@@ -238,11 +216,6 @@
 .editar-usuario__erro {
     color: #b91c1c;
     font-size: 0.875rem;
-}
-
-.botao:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
 }
 
 @media (max-width: 600px) {

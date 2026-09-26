@@ -1,7 +1,8 @@
 import type { Empreendimento } from "@constructo/shared";
 import { Link } from "react-router-dom";
 
-import { formatarDataEmpreendimento, obterRotuloStatus } from "./empreendimentoFormatters";
+import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
+import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
 
 type CardEmpreendimentoProps = {
     empreendimento: Empreendimento;
@@ -9,20 +10,18 @@ type CardEmpreendimentoProps = {
 
 export default function CardEmpreendimento({ empreendimento }: CardEmpreendimentoProps) {
     return (
-        <article className="card-empreendimento">
+        <article className="card-empreendimento superficie-painel">
             <header className="card-empreendimento__cabecalho">
                 <div>
                     <p className="card-empreendimento__legenda">Empreendimento</p>
                     <h3>{empreendimento.nome}</h3>
                 </div>
-                <span
-                    className={`card-empreendimento__status card-empreendimento__status--${empreendimento.status.toLowerCase()}`}
-                >
+                <BadgeStatus tom={obterTomStatus(empreendimento.status)}>
                     {obterRotuloStatus(empreendimento.status)}
-                </span>
+                </BadgeStatus>
             </header>
 
-            <dl className="card-empreendimento__dados">
+            <dl className="card-empreendimento__dados lista-dados">
                 <div>
                     <dt>Endereço</dt>
                     <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
@@ -33,7 +32,7 @@ export default function CardEmpreendimento({ empreendimento }: CardEmpreendiment
                 </div>
             </dl>
 
-            <footer className="card-empreendimento__acoes">
+            <footer className="card-empreendimento__acoes barra-acoes">
                 <Link
                     className="botao secundario"
                     to={`/admin/empreendimentos/${empreendimento.id}`}

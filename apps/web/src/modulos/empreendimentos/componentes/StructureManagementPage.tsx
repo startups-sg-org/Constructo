@@ -9,6 +9,8 @@ import {
     useSearchParams,
 } from "react-router-dom";
 
+import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
+import EstadoVazio from "../../../componentes/EstadoVazio/EstadoVazio";
 import StructureTree from "../../../componentes/StructureTree/StructureTree";
 import type { LocalRaizActionData } from "../../../features/empreendimentos/empreendimentos.action";
 import { carregarEstruturaFisica } from "../../../features/empreendimentos/empreendimentos.loader";
@@ -19,6 +21,7 @@ import {
 } from "../../../features/empreendimentos/localSelecionado";
 import LocationDetails from "./LocationDetails";
 import StructureHeader from "./StructureHeader";
+import "./FormularioEmpreendimento.css";
 import "./StructureManagementPage.css";
 
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
@@ -75,7 +78,7 @@ export default function StructureManagementPage() {
     return (
         <>
             <section
-                className="detalhes-empreendimento estrutura-fisica"
+                className="detalhes-empreendimento estrutura-fisica superficie-painel"
                 aria-labelledby="estrutura-fisica-empreendimento-titulo"
             >
                 <StructureHeader
@@ -83,21 +86,24 @@ export default function StructureManagementPage() {
                     empreendimentoNome={empreendimento.nome}
                 />
 
-                <div className="estrutura-fisica__cabecalho-lista">
-                    <div>
-                        <span className="subtitulo">Visão hierárquica</span>
-                        <h3>Torres, blocos, pavimentos e unidades</h3>
-                    </div>
-                    <p>
-                        {estrutura.length} {estrutura.length === 1 ? "local raiz" : "locais raiz"}
-                    </p>
-                </div>
+                <CabecalhoSecao
+                    className="estrutura-fisica__cabecalho-lista"
+                    etiqueta="Visão hierárquica"
+                    titulo="Torres, blocos, pavimentos e unidades"
+                    nivel={3}
+                    complemento={(
+                        <p className="cabecalho-secao__apoio">
+                            {estrutura.length} {estrutura.length === 1 ? "local raiz" : "locais raiz"}
+                        </p>
+                    )}
+                />
 
                 {estrutura.length === 0 ? (
-                    <div className="estrutura-fisica__vazia">
-                        <h3>Nenhuma torre ou bloco cadastrado</h3>
-                        <p>Adicione o primeiro local para iniciar a estrutura física da obra.</p>
-                    </div>
+                    <EstadoVazio
+                        className="estrutura-fisica__vazia"
+                        titulo="Nenhuma torre ou bloco cadastrado"
+                        descricao="Adicione o primeiro local para iniciar a estrutura física da obra."
+                    />
                 ) : (
                     <div className="estrutura-fisica__conteudo">
                         <div>
@@ -166,14 +172,14 @@ export default function StructureManagementPage() {
                         {actionData?.intencao === "pavimento"
                             && actionData.parentId === paiSelecionado.id
                             && actionData.ok && (
-                            <p className="empreendimento-form__sucesso" role="status">
+                            <p className="empreendimento-form__sucesso feedback-painel feedback-painel--sucesso" role="status">
                                 Pavimento “{actionData.local.nome}” adicionado com sucesso.
                             </p>
                         )}
                         {actionData?.intencao === "pavimento"
                             && actionData.parentId === paiSelecionado.id
                             && actionData.erro && (
-                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                            <p className="empreendimento-form__erro feedback-painel feedback-painel--erro" role="alert">{actionData.erro}</p>
                         )}
                     </Form>
                 )}
@@ -202,27 +208,27 @@ export default function StructureManagementPage() {
                         {actionData?.intencao === "unidade"
                             && actionData.parentId === pavimentoSelecionado.id
                             && actionData.ok && (
-                            <p className="empreendimento-form__sucesso" role="status">
+                            <p className="empreendimento-form__sucesso feedback-painel feedback-painel--sucesso" role="status">
                                 Unidade “{actionData.local.nome}” adicionada com sucesso.
                             </p>
                         )}
                         {actionData?.intencao === "unidade"
                             && actionData.parentId === pavimentoSelecionado.id
                             && actionData.erro && (
-                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                            <p className="empreendimento-form__erro feedback-painel feedback-painel--erro" role="alert">{actionData.erro}</p>
                         )}
                     </Form>
                 )}
             </section>
 
-            <section className="empreendimento-card" aria-labelledby="adicionar-local-titulo">
-                <header className="empreendimento-card__cabecalho">
-                    <div>
-                        <span className="subtitulo">Novo local</span>
-                        <h2 id="adicionar-local-titulo">Adicionar torre/bloco</h2>
-                    </div>
-                    <p>Cadastre uma raiz vinculada ao empreendimento {empreendimento.nome}.</p>
-                </header>
+            <section className="empreendimento-card superficie-painel" aria-labelledby="adicionar-local-titulo">
+                <CabecalhoSecao
+                    etiqueta="Novo local"
+                    titulo="Adicionar torre/bloco"
+                    tituloId="adicionar-local-titulo"
+                    descricao={`Cadastre uma raiz vinculada ao empreendimento ${empreendimento.nome}.`}
+                    comDivisor
+                />
 
                 <Form
                     ref={formularioRaizRef}
@@ -269,14 +275,14 @@ export default function StructureManagementPage() {
                         )}
                     </div>
                     {actionData?.ok && actionData.intencao === "raiz" && (
-                        <p className="empreendimento-form__sucesso" role="status">
+                        <p className="empreendimento-form__sucesso feedback-painel feedback-painel--sucesso" role="status">
                             {rotuloTipo[actionData.local.tipo as keyof typeof rotuloTipo]} “{actionData.local.nome}” adicionada com sucesso.
                         </p>
                     )}
                     {actionData?.intencao === "raiz" && actionData.erro && (
-                        <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                        <p className="empreendimento-form__erro feedback-painel feedback-painel--erro" role="alert">{actionData.erro}</p>
                     )}
-                    <div className="empreendimento-form__acoes">
+                    <div className="empreendimento-form__acoes barra-acoes">
                         <button className="botao primario" type="submit" disabled={enviando}>
                             {enviando ? "Adicionando..." : "Adicionar torre/bloco"}
                         </button>

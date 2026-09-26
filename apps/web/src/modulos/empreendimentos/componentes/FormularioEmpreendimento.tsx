@@ -13,6 +13,7 @@ import {
     empreendimentoSchema,
     type EmpreendimentoFormData,
 } from "@constructo/shared";
+import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import { exigirAcessoAoPainel } from "../../../features/auth/auth.loader";
 
 import type { EmpreendimentoActionData } from "../../../features/empreendimentos/empreendimentos.action";
@@ -62,14 +63,14 @@ export default function FormularioEmpreendimento() {
     if (usuario?.papel !== "ADMIN") return null;
 
     return (
-        <section className="empreendimento-card" aria-labelledby="novo-empreendimento-titulo">
-            <header className="empreendimento-card__cabecalho">
-                <div>
-                    <span className="subtitulo">Novo cadastro</span>
-                    <h2 id="novo-empreendimento-titulo">Cadastrar empreendimento</h2>
-                </div>
-                <p>Informe os dados que identificam a raiz da estrutura da obra.</p>
-            </header>
+        <section className="empreendimento-card superficie-painel" aria-labelledby="novo-empreendimento-titulo">
+            <CabecalhoSecao
+                etiqueta="Novo cadastro"
+                titulo="Cadastrar empreendimento"
+                tituloId="novo-empreendimento-titulo"
+                descricao="Informe os dados que identificam a raiz da estrutura da obra."
+                comDivisor
+            />
 
             <Form
                 method="post"
@@ -139,7 +140,7 @@ export default function FormularioEmpreendimento() {
                 </div>
 
                 {actionData?.ok && (
-                    <p className="empreendimento-form__sucesso" role="status">
+                    <p className="empreendimento-form__sucesso feedback-painel feedback-painel--sucesso" role="status">
                         Empreendimento “{actionData.empreendimento.nome}” cadastrado com sucesso.
                         {" "}
                         <Link to={`/admin/empreendimentos/${actionData.empreendimento.id}/editar`}>
@@ -148,10 +149,10 @@ export default function FormularioEmpreendimento() {
                     </p>
                 )}
                 {actionData?.erro && (
-                    <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                    <p className="empreendimento-form__erro feedback-painel feedback-painel--erro" role="alert">{actionData.erro}</p>
                 )}
 
-                <div className="empreendimento-form__acoes">
+                <div className="empreendimento-form__acoes barra-acoes">
                     <button className="botao primario" type="submit" disabled={enviando}>
                         {enviando ? "Cadastrando..." : "Cadastrar empreendimento"}
                     </button>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 
 type StructureHeaderProps = {
     empreendimentoId: number;
@@ -10,17 +11,19 @@ export default function StructureHeader({
     empreendimentoNome,
 }: StructureHeaderProps) {
     return (
-        <header className="detalhes-empreendimento__cabecalho">
-            <div>
-                <span className="subtitulo">Empreendimento</span>
-                <h2 id="estrutura-fisica-empreendimento-titulo">{empreendimentoNome}</h2>
-            </div>
-            <Link
-                className="botao secundario"
-                to={`/admin/empreendimentos/${empreendimentoId}`}
-            >
-                Voltar aos detalhes
-            </Link>
-        </header>
+        <CabecalhoSecao
+            etiqueta="Empreendimento"
+            titulo={empreendimentoNome}
+            tituloId="estrutura-fisica-empreendimento-titulo"
+            comDivisor
+            complemento={(
+                <Link
+                    className="botao secundario"
+                    to={`/admin/empreendimentos/${empreendimentoId}`}
+                >
+                    Voltar aos detalhes
+                </Link>
+            )}
+        />
     );
 }

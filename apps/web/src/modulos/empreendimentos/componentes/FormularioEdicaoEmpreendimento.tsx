@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Form, Link, useActionData, useLoaderData, useNavigation, useSubmit } from "react-router-dom";
 
+import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import type { EmpreendimentoActionData } from "../../../features/empreendimentos/empreendimentos.action";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import "./FormularioEmpreendimento.css";
@@ -52,14 +53,14 @@ export default function FormularioEdicaoEmpreendimento() {
     }, [actionData, reset, setError]);
 
     return (
-        <section className="empreendimento-card" aria-labelledby="editar-empreendimento-titulo">
-            <header className="empreendimento-card__cabecalho">
-                <div>
-                    <span className="subtitulo">Dados atuais</span>
-                    <h2 id="editar-empreendimento-titulo">Editar empreendimento</h2>
-                </div>
-                <p>Altere somente as informações gerais da obra.</p>
-            </header>
+        <section className="empreendimento-card superficie-painel" aria-labelledby="editar-empreendimento-titulo">
+            <CabecalhoSecao
+                etiqueta="Dados atuais"
+                titulo="Editar empreendimento"
+                tituloId="editar-empreendimento-titulo"
+                descricao="Altere somente as informações gerais da obra."
+                comDivisor
+            />
 
             <Form
                 method="patch"
@@ -104,13 +105,13 @@ export default function FormularioEdicaoEmpreendimento() {
                 </div>
 
                 {actionData?.ok && (
-                    <p className="empreendimento-form__sucesso" role="status">
+                    <p className="empreendimento-form__sucesso feedback-painel feedback-painel--sucesso" role="status">
                         Empreendimento “{actionData.empreendimento.nome}” atualizado com sucesso.
                     </p>
                 )}
-                {actionData?.erro && <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>}
+                {actionData?.erro && <p className="empreendimento-form__erro feedback-painel feedback-painel--erro" role="alert">{actionData.erro}</p>}
 
-                <div className="empreendimento-form__acoes">
+                <div className="empreendimento-form__acoes barra-acoes">
                     <Link className="botao secundario" to="/admin/obras">Cancelar</Link>
                     <button className="botao primario" type="submit" disabled={enviando}>
                         {enviando ? "Salvando..." : "Salvar alterações"}
