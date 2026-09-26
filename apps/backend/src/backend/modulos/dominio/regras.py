@@ -42,18 +42,6 @@ def validar_transicao(atual: EstadoMarco, proximo: EstadoMarco) -> None:
         raise ValueError(f"Transição inválida: {atual} → {proximo}")
 
 
-def validar_local(tipo: TipoLocal, pai: TipoLocal | None) -> None:
-    pais_permitidos = {
-        TipoLocal.TORRE: {None},
-        TipoLocal.BLOCO: {None},
-        TipoLocal.PAVIMENTO: {TipoLocal.TORRE, TipoLocal.BLOCO},
-        TipoLocal.UNIDADE: {TipoLocal.PAVIMENTO},
-    }[tipo]
-    if pai not in pais_permitidos:
-        permitidos = ", ".join(str(item) for item in pais_permitidos if item is not None) or "raiz"
-        raise ValueError(f"{tipo} requer pai: {permitidos}")
-
-
 def calcular_progresso(estados: Iterable[EstadoMarco]) -> int:
     """Percentual inteiro dos marcos aplicáveis à unidade; sem marcos, zero."""
     valores = list(estados)

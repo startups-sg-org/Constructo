@@ -9,7 +9,6 @@ from backend.modulos.dominio.regras import (
     EstadoMarco,
     TipoLocal,
     calcular_progresso,
-    validar_local,
     validar_transicao,
 )
 from backend.modulos.usuarios import modelos as usuarios  # noqa: F401
@@ -32,13 +31,7 @@ def test_mapeamento_e_tabelas():
     } <= set(Base.metadata.tables)
 
 
-def test_arvore_e_transicoes():
-    validar_local(TipoLocal.UNIDADE, TipoLocal.PAVIMENTO)
-    validar_local(TipoLocal.TORRE, None)
-    validar_local(TipoLocal.BLOCO, None)
-    validar_local(TipoLocal.PAVIMENTO, TipoLocal.BLOCO)
-    with pytest.raises(ValueError):
-        validar_local(TipoLocal.UNIDADE, TipoLocal.TORRE)
+def test_transicoes():
     validar_transicao(EstadoMarco.NAO_INICIADO, EstadoMarco.EM_ANDAMENTO)
     with pytest.raises(ValueError):
         validar_transicao(EstadoMarco.NAO_INICIADO, EstadoMarco.CONCLUIDO)

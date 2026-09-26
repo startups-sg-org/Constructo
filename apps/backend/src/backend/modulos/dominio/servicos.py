@@ -37,7 +37,6 @@ from .regras import (
     Papel,
     TipoLocal,
     calcular_progresso,
-    validar_local,
     validar_transicao,
 )
 
@@ -100,15 +99,34 @@ async def _validar_pai_local(
 ) -> None:
     pai = await _exigir(session, LocalObra, parent_id) if parent_id is not None else None
     if pai is not None and pai.empreendimento_id != empreendimento_id:
-        raise ValueError("Pai pertence a outro empreendimento")
-    validar_local(tipo, TipoLocal(pai.tipo) if pai else None)
+        raise ValueError("Pai e filho devem pertencer ao mesmo empreendimento")
+
     if movido_id is not None:
         visitados = {movido_id}
-        while pai is not None:
-            if pai.id in visitados:
-                raise ValueError("Ciclo na estrutura da obra")
-            visitados.add(pai.id)
-            pai = await _exigir(session, LocalObra, pai.parent_id) if pai.parent_id else None
+        ancestral = pai
+        while ancestral is not None:
+            if ancestral.id in visitados:
+                raise ValueError("Ciclo detectado na estrutura física do empreendimento")
+            if ancestral.empreendimento_id != empreendimento_id:
+                raise ValueError("Pai e filho devem pertencer ao mesmo empreendimento")
+            visitados.add(ancestral.id)
+            ancestral = (
+                await _exigir(session, LocalObra, ancestral.parent_id)
+                if ancestral.parent_id is not None
+                else None
+            )
+
+    tipo_pai = TipoLocal(pai.tipo) if pai is not None else None
+    if tipo_pai is TipoLocal.UNIDADE:
+        raise ValueError("Unidade não pode possuir filhos")
+    if tipo is TipoLocal.TORRE and tipo_pai is not None:
+        raise ValueError("Torre não pode possuir pai")
+    if tipo is TipoLocal.BLOCO and tipo_pai is not None:
+        raise ValueError("Bloco não pode possuir pai")
+    if tipo is TipoLocal.PAVIMENTO and tipo_pai not in {TipoLocal.TORRE, TipoLocal.BLOCO}:
+        raise ValueError("Pavimento deve possuir torre ou bloco como pai")
+    if tipo is TipoLocal.UNIDADE and tipo_pai is not TipoLocal.PAVIMENTO:
+        raise ValueError("Unidade deve possuir pavimento como pai")
 
 
 async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
