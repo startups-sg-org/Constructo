@@ -5,6 +5,7 @@ import {
     listarEmpreendimentos,
     listarLocaisRaiz,
     listarPavimentos,
+    listarUnidades,
     obterEmpreendimento,
 } from "./empreendimentos.service";
 
@@ -50,7 +51,18 @@ export async function carregarEstruturaFisica({ params, request }: LoaderFunctio
                 ] as const),
             ),
         );
-        return { empreendimento, locais, pavimentosPorPai };
+        const pavimentos = Object.values(pavimentosPorPai).flat();
+        const unidadesPorPavimento = Object.fromEntries(
+            await Promise.all(
+                pavimentos.map(async (pavimento) => [
+                    pavimento.id,
+                    await listarUnidades(empreendimentoId, pavimento.id, {
+                        signal: request.signal,
+                    }),
+                ] as const),
+            ),
+        );
+        return { empreendimento, locais, pavimentosPorPai, unidadesPorPavimento };
     } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
             throw new Response("Empreendimento não encontrado", { status: 404 });

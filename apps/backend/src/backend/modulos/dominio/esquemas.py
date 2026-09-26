@@ -111,6 +111,10 @@ class PavimentoCriar(BaseModel):
         return nome
 
 
+class UnidadeCriar(PavimentoCriar):
+    pass
+
+
 class LocalLer(Leitura, LocalCriar):
     criado_em: datetime
     atualizado_em: datetime

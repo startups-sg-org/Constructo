@@ -8,19 +8,25 @@ import "./EstruturaFisicaEmpreendimento.css";
 const rotuloTipo = { TORRE: "Torre", BLOCO: "Bloco" } as const;
 
 export default function EstruturaFisicaEmpreendimento() {
-    const { empreendimento, locais, pavimentosPorPai } = useLoaderData<typeof carregarEstruturaFisica>();
+    const { empreendimento, locais, pavimentosPorPai, unidadesPorPavimento } =
+        useLoaderData<typeof carregarEstruturaFisica>();
     const actionData = useActionData<LocalRaizActionData>();
     const navigation = useNavigation();
     const formularioRaizRef = useRef<HTMLFormElement>(null);
     const formularioPavimentoRef = useRef<HTMLFormElement>(null);
+    const formularioUnidadeRef = useRef<HTMLFormElement>(null);
     const [paiSelecionado, setPaiSelecionado] = useState<number | null>(null);
+    const [pavimentoSelecionado, setPavimentoSelecionado] = useState<number | null>(null);
     const enviando = navigation.state !== "idle" && navigation.formData != null;
     const enviandoPavimento = enviando
         && navigation.formData?.get("intencao") === "adicionar-pavimento";
+    const enviandoUnidade = enviando
+        && navigation.formData?.get("intencao") === "adicionar-unidade";
 
     useEffect(() => {
         if (!actionData?.ok) return;
         if (actionData.intencao === "pavimento") formularioPavimentoRef.current?.reset();
+        else if (actionData.intencao === "unidade") formularioUnidadeRef.current?.reset();
         else formularioRaizRef.current?.reset();
     }, [actionData]);
 
@@ -81,12 +87,116 @@ export default function EstruturaFisicaEmpreendimento() {
                                 {(pavimentosPorPai[local.id] ?? []).length > 0 ? (
                                     <ol className="estrutura-fisica__pavimentos">
                                         {(pavimentosPorPai[local.id] ?? []).map((pavimento) => (
-                                            <li key={pavimento.id}>
-                                                <span className="estrutura-fisica__ordem">{pavimento.ordem}</span>
-                                                <div className="estrutura-fisica__identificacao">
-                                                    <strong>{pavimento.nome}</strong>
-                                                    <span>Pavimento</span>
+                                            <li className="estrutura-fisica__pavimento" key={pavimento.id}>
+                                                <div className="estrutura-fisica__local">
+                                                    <span className="estrutura-fisica__ordem">{pavimento.ordem}</span>
+                                                    <div className="estrutura-fisica__identificacao">
+                                                        <strong>{pavimento.nome}</strong>
+                                                        <span>Pavimento</span>
+                                                    </div>
+                                                    <button
+                                                        className="botao secundario estrutura-fisica__adicionar"
+                                                        type="button"
+                                                        aria-expanded={pavimentoSelecionado === pavimento.id}
+                                                        onClick={() => setPavimentoSelecionado(
+                                                            pavimentoSelecionado === pavimento.id
+                                                                ? null
+                                                                : pavimento.id,
+                                                        )}
+                                                    >
+                                                        Adicionar unidade
+                                                    </button>
                                                 </div>
+
+                                                {(unidadesPorPavimento[pavimento.id] ?? []).length > 0 ? (
+                                                    <ol className="estrutura-fisica__unidades">
+                                                        {(unidadesPorPavimento[pavimento.id] ?? []).map((unidade) => (
+                                                            <li key={unidade.id}>
+                                                                <span className="estrutura-fisica__ordem">
+                                                                    {unidade.ordem}
+                                                                </span>
+                                                                <div className="estrutura-fisica__identificacao">
+                                                                    <strong>{unidade.nome}</strong>
+                                                                    <span>Unidade</span>
+                                                                </div>
+                                                            </li>
+                                                        ))}
+                                                    </ol>
+                                                ) : (
+                                                    <p className="estrutura-fisica__sem-unidades">
+                                                        Nenhuma unidade cadastrada.
+                                                    </p>
+                                                )}
+
+                                                {pavimentoSelecionado === pavimento.id && (
+                                                    <Form
+                                                        ref={formularioUnidadeRef}
+                                                        method="post"
+                                                        className="empreendimento-form estrutura-fisica__form-unidade"
+                                                        noValidate
+                                                        aria-label={`Adicionar unidade em ${pavimento.nome}`}
+                                                        aria-busy={enviandoUnidade}
+                                                    >
+                                                        <input type="hidden" name="intencao" value="adicionar-unidade" />
+                                                        <input type="hidden" name="parent_id" value={pavimento.id} />
+                                                        <div className="campo empreendimento-form__nome">
+                                                            <label htmlFor={`unidade-nome-${pavimento.id}`}>
+                                                                Nome <span aria-hidden="true">*</span>
+                                                            </label>
+                                                            <input
+                                                                id={`unidade-nome-${pavimento.id}`}
+                                                                name="nome"
+                                                                type="text"
+                                                                maxLength={200}
+                                                                disabled={enviandoUnidade}
+                                                                aria-invalid={Boolean(
+                                                                    actionData?.intencao === "unidade"
+                                                                    && actionData.parentId === pavimento.id
+                                                                    && actionData.campos?.nome,
+                                                                )}
+                                                            />
+                                                            {actionData?.intencao === "unidade"
+                                                                && actionData.parentId === pavimento.id
+                                                                && actionData.campos?.nome && (
+                                                                <span role="alert">{actionData.campos.nome}</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="campo">
+                                                            <label htmlFor={`unidade-ordem-${pavimento.id}`}>
+                                                                Ordem <span aria-hidden="true">*</span>
+                                                            </label>
+                                                            <input
+                                                                id={`unidade-ordem-${pavimento.id}`}
+                                                                name="ordem"
+                                                                type="number"
+                                                                min="0"
+                                                                step="1"
+                                                                defaultValue="0"
+                                                                disabled={enviandoUnidade}
+                                                            />
+                                                            {actionData?.intencao === "unidade"
+                                                                && actionData.parentId === pavimento.id
+                                                                && actionData.campos?.ordem && (
+                                                                <span role="alert">{actionData.campos.ordem}</span>
+                                                            )}
+                                                        </div>
+                                                        <button className="botao primario" type="submit" disabled={enviandoUnidade}>
+                                                            {enviandoUnidade ? "Adicionando..." : "Adicionar unidade"}
+                                                        </button>
+                                                        {actionData?.intencao === "unidade"
+                                                            && actionData.parentId === pavimento.id
+                                                            && actionData.ok && (
+                                                            <p className="empreendimento-form__sucesso" role="status">
+                                                                Unidade “{actionData.local.nome}” adicionada com sucesso.
+                                                            </p>
+                                                        )}
+                                                        {actionData?.intencao === "unidade"
+                                                            && actionData.parentId === pavimento.id
+                                                            && actionData.erro && (
+                                                            <p className="empreendimento-form__erro" role="alert">{actionData.erro}</p>
+                                                        )}
+                                                    </Form>
+                                                )}
                                             </li>
                                         ))}
                                     </ol>

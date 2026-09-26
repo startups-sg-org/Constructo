@@ -9,9 +9,11 @@ import {
   criarEmpreendimento,
   criarLocalRaiz,
   criarPavimento,
+  criarUnidade,
   listarEmpreendimentos,
   listarLocaisRaiz,
   listarPavimentos,
+  listarUnidades,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../services/api";
@@ -32,9 +34,11 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   criarEmpreendimento: vi.fn(),
   criarLocalRaiz: vi.fn(),
   criarPavimento: vi.fn(),
+  criarUnidade: vi.fn(),
   listarEmpreendimentos: vi.fn(),
   listarLocaisRaiz: vi.fn(),
   listarPavimentos: vi.fn(),
+  listarUnidades: vi.fn(),
   obterEmpreendimento: vi.fn(),
 }));
 
@@ -53,9 +57,11 @@ const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
 const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
 const criarPavimentoMock = vi.mocked(criarPavimento);
+const criarUnidadeMock = vi.mocked(criarUnidade);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const listarLocaisRaizMock = vi.mocked(listarLocaisRaiz);
 const listarPavimentosMock = vi.mocked(listarPavimentos);
+const listarUnidadesMock = vi.mocked(listarUnidades);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -102,6 +108,7 @@ describe("novo sistema de rotas", () => {
     listarEmpreendimentosMock.mockResolvedValue([]);
     listarLocaisRaizMock.mockResolvedValue([]);
     listarPavimentosMock.mockResolvedValue([]);
+    listarUnidadesMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
@@ -420,6 +427,60 @@ describe("novo sistema de rotas", () => {
     );
     expect(await screen.findByText("1º pavimento")).toBeInTheDocument();
     expect(screen.getByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
+  });
+
+  it("cadastra uma unidade no pavimento selecionado e atualiza a árvore", async () => {
+    const user = userEvent.setup();
+    const torre = {
+      id: 31,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Torre A",
+      tipo: "TORRE" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    const pavimento = {
+      ...torre,
+      id: 41,
+      parent_id: torre.id,
+      nome: "1º pavimento",
+      tipo: "PAVIMENTO" as const,
+      ordem: 2,
+    };
+    const unidade = {
+      ...pavimento,
+      id: 51,
+      parent_id: pavimento.id,
+      nome: "101",
+      tipo: "UNIDADE" as const,
+      ordem: 3,
+    };
+    listarLocaisRaizMock.mockResolvedValue([torre]);
+    listarPavimentosMock.mockResolvedValue([pavimento]);
+    listarUnidadesMock.mockResolvedValueOnce([]).mockResolvedValue([unidade]);
+    criarUnidadeMock.mockResolvedValue(unidade);
+    montarRota("/admin/empreendimentos/12/estrutura-fisica");
+
+    await user.click(await screen.findByRole("button", { name: "Adicionar unidade" }));
+    const formulario = screen.getByRole("form", { name: "Adicionar unidade em 1º pavimento" });
+    await user.type(within(formulario).getByLabelText(/^Nome/), "101");
+    await user.clear(within(formulario).getByLabelText(/^Ordem/));
+    await user.type(within(formulario).getByLabelText(/^Ordem/), "3");
+    await user.click(within(formulario).getByRole("button", { name: "Adicionar unidade" }));
+
+    expect(criarUnidadeMock).toHaveBeenCalledWith(
+      12,
+      pavimento.id,
+      { nome: "101", ordem: 3 },
+      expect.anything(),
+    );
+    const unidadeCriada = (await screen.findByText("101")).closest("li");
+    expect(unidadeCriada).not.toBeNull();
+    expect(within(unidadeCriada!).getByText("Unidade")).toBeInTheDocument();
+    expect(within(unidadeCriada!).queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByText("Unidade “101” adicionada com sucesso.")).toBeInTheDocument();
   });
 
   it("trata empreendimento inexistente", async () => {

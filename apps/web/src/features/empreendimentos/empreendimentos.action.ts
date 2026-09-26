@@ -4,6 +4,7 @@ import {
     type Empreendimento,
     localRaizSchema,
     pavimentoSchema,
+    unidadeSchema,
     type LocalObra,
 } from "@constructo/shared";
 import type { ActionFunctionArgs } from "react-router-dom";
@@ -14,6 +15,7 @@ import {
     criarEmpreendimento,
     criarLocalRaiz,
     criarPavimento,
+    criarUnidade,
 } from "./empreendimentos.service";
 
 export type EmpreendimentoActionData =
@@ -86,13 +88,13 @@ export async function editarEmpreendimento({ request, params }: ActionFunctionAr
 export type LocalRaizActionData =
     | (ActionError & {
         ok?: false;
-        intencao?: "raiz" | "pavimento";
+        intencao?: "raiz" | "pavimento" | "unidade";
         parentId?: number;
     })
     | {
         ok: true;
         local: LocalObra;
-        intencao: "raiz" | "pavimento";
+        intencao: "raiz" | "pavimento" | "unidade";
         parentId?: number;
         erro?: never;
         campos?: never;
@@ -106,6 +108,47 @@ export async function cadastrarLocalRaiz({ request, params }: ActionFunctionArgs
 
     const formulario = await request.formData();
     const intencao = formulario.get("intencao");
+
+    if (intencao === "adicionar-unidade") {
+        const parentId = Number(formulario.get("parent_id"));
+        if (!Number.isInteger(parentId) || parentId <= 0) {
+            return {
+                intencao: "unidade",
+                erro: "Pavimento inválido.",
+            } satisfies LocalRaizActionData;
+        }
+
+        const validacao = validarFormulario(unidadeSchema, Object.fromEntries(formulario));
+        if (validacao.erro) {
+            return {
+                ...validacao.erro,
+                intencao: "unidade",
+                parentId,
+            } satisfies LocalRaizActionData;
+        }
+
+        try {
+            const local = await criarUnidade(empreendimentoId, parentId, validacao.dados, {
+                signal: request.signal,
+            });
+            return {
+                ok: true,
+                local,
+                intencao: "unidade",
+                parentId,
+            } satisfies LocalRaizActionData;
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") throw error;
+            return {
+                intencao: "unidade",
+                parentId,
+                erro: mensagemDeErro(
+                    error,
+                    "Não foi possível adicionar a unidade. Tente novamente mais tarde.",
+                ),
+            } satisfies LocalRaizActionData;
+        }
+    }
 
     if (intencao === "adicionar-pavimento") {
         const parentId = Number(formulario.get("parent_id"));

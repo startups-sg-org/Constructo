@@ -120,6 +120,9 @@ def test_bloqueia_pai_de_outro_empreendimento():
                 session.add_all([empreendimento, outro])
                 await session.flush()
                 torre_alheia = await _criar_local(session, outro.id, "Torre A", TipoLocal.TORRE)
+                pavimento_alheio = await _criar_local(
+                    session, outro.id, "1º pavimento", TipoLocal.PAVIMENTO, torre_alheia
+                )
 
                 with pytest.raises(
                     ValueError,
@@ -131,6 +134,18 @@ def test_bloqueia_pai_de_outro_empreendimento():
                         "1º pavimento",
                         TipoLocal.PAVIMENTO,
                         torre_alheia,
+                    )
+
+                with pytest.raises(
+                    ValueError,
+                    match="Pai e filho devem pertencer ao mesmo empreendimento",
+                ):
+                    await _criar_local(
+                        session,
+                        empreendimento.id,
+                        "101",
+                        TipoLocal.UNIDADE,
+                        pavimento_alheio,
                     )
         finally:
             await engine.dispose()

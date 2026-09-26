@@ -129,6 +129,69 @@ def test_rejeita_pavimento_com_pai_invalido(cliente, monkeypatch, mensagem):
     assert resposta.json() == {"detail": mensagem}
 
 
+def test_cadastra_unidade_no_pavimento_informado(cliente, monkeypatch):
+    test_client, session = cliente
+    recebidos = []
+
+    async def criar(_session, dados):
+        recebidos.append((_session, dados))
+        return local_resposta(dados, identificador=10)
+
+    monkeypatch.setattr(rotas, "criar_local", criar)
+    resposta = test_client.post(
+        "/empreendimentos/42/locais/9/unidades",
+        json={"nome": "101", "ordem": 3},
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json()["tipo"] == "UNIDADE"
+    assert resposta.json()["parent_id"] == 9
+    assert recebidos[0][0] is session
+    assert recebidos[0][1].empreendimento_id == 42
+
+
+@pytest.mark.parametrize(
+    "mensagem",
+    [
+        "LocalObra inexistente",
+        "Unidade deve possuir pavimento como pai",
+        "Pai e filho devem pertencer ao mesmo empreendimento",
+    ],
+)
+def test_rejeita_unidade_com_pai_invalido(cliente, monkeypatch, mensagem):
+    async def criar(_session, _dados):
+        raise ValueError(mensagem)
+
+    monkeypatch.setattr(rotas, "criar_local", criar)
+    resposta = cliente[0].post(
+        "/empreendimentos/42/locais/9/unidades",
+        json={"nome": "101", "ordem": 3},
+    )
+
+    assert resposta.status_code == 400
+    assert resposta.json() == {"detail": mensagem}
+
+
+def test_lista_unidades_do_pavimento(cliente, monkeypatch):
+    async def listar(_session, empreendimento_id, *, parent_id=None):
+        assert empreendimento_id == 42
+        assert parent_id == 9
+        dados = SimpleNamespace(
+            empreendimento_id=42,
+            parent_id=9,
+            nome="101",
+            tipo="UNIDADE",
+            ordem=3,
+        )
+        return [local_resposta(dados, identificador=10)]
+
+    monkeypatch.setattr(rotas, "listar_locais", listar)
+    resposta = cliente[0].get("/empreendimentos/42/locais/9/unidades")
+
+    assert resposta.status_code == 200
+    assert [(item["nome"], item["parent_id"]) for item in resposta.json()] == [("101", 9)]
+
+
 def test_rejeita_usuario_sem_acesso_ao_empreendimento(cliente, monkeypatch):
     async def negar_acesso(_session, _usuario_id, _empreendimento_id):
         return False

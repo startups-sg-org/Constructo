@@ -22,6 +22,10 @@ export const pavimentoSchema = localRaizSchema.pick({ nome: true, ordem: true })
 
 export type PavimentoFormData = z.infer<typeof pavimentoSchema>;
 
+export const unidadeSchema = pavimentoSchema;
+
+export type UnidadeFormData = z.infer<typeof unidadeSchema>;
+
 export type LocalObra = PavimentoFormData & {
     id: number;
     empreendimento_id: number;
