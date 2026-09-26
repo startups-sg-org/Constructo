@@ -17,11 +17,17 @@ class SessaoEmMemoria:
 
     async def flush(self) -> None:
         empreendimento = self.empreendimentos[-1]
-        empreendimento.id = len(self.empreendimentos)
-        empreendimento.criado_em = datetime.now(UTC)
+        if empreendimento.id is None:
+            agora = datetime.now(UTC)
+            empreendimento.id = len(self.empreendimentos)
+            empreendimento.criado_em = agora
+            empreendimento.atualizado_em = agora
 
     async def refresh(self, _empreendimento) -> None:
         pass
+
+    async def get(self, _classe, empreendimento_id: int):
+        return next((item for item in self.empreendimentos if item.id == empreendimento_id), None)
 
 
 def configurar_sessao(session: SessaoEmMemoria) -> None:
@@ -58,6 +64,9 @@ def test_usuario_autenticado_cadastra_e_recebe_empreendimento():
         "endereco": "Avenida Central, 100",
         "status": "EM_ANDAMENTO",
         "criado_em": session.empreendimentos[0].criado_em.isoformat().replace("+00:00", "Z"),
+        "atualizado_em": session.empreendimentos[0]
+        .atualizado_em.isoformat()
+        .replace("+00:00", "Z"),
     }
     assert session.empreendimentos[0].nome == "Residencial Aurora"
 
@@ -81,6 +90,59 @@ def test_rejeita_nome_ausente_e_status_invalido():
     assert sem_nome.status_code == 422
     assert status_invalido.status_code == 422
     assert session.empreendimentos == []
+
+
+def test_carrega_e_atualiza_parcialmente_empreendimento():
+    session = SessaoEmMemoria()
+    configurar_sessao(session)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+
+    try:
+        with TestClient(app) as cliente:
+            criado = cliente.post(
+                "/empreendimentos/",
+                json={
+                    "nome": "Residencial Aurora",
+                    "descricao": "Duas torres",
+                    "endereco": "Avenida Central, 100",
+                    "status": "PLANEJADO",
+                },
+            )
+            data_anterior = criado.json()["atualizado_em"]
+            consulta = cliente.get("/empreendimentos/1")
+            resposta = cliente.patch(
+                "/empreendimentos/1",
+                json={"nome": "Residencial Aurora Norte", "status": "EM_ANDAMENTO"},
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert consulta.status_code == 200
+    assert consulta.json()["nome"] == "Residencial Aurora"
+    assert resposta.status_code == 200
+    assert resposta.json()["nome"] == "Residencial Aurora Norte"
+    assert resposta.json()["status"] == "EM_ANDAMENTO"
+    assert resposta.json()["descricao"] == "Duas torres"
+    assert resposta.json()["endereco"] == "Avenida Central, 100"
+    assert resposta.json()["atualizado_em"] != data_anterior
+
+
+def test_retorna_404_para_empreendimento_inexistente():
+    session = SessaoEmMemoria()
+    configurar_sessao(session)
+    app.dependency_overrides[get_usuario_autenticado] = lambda: SimpleNamespace(id=1, ativo=True)
+
+    try:
+        with TestClient(app) as cliente:
+            consulta = cliente.get("/empreendimentos/999")
+            atualizacao = cliente.patch("/empreendimentos/999", json={"nome": "Inexistente"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert consulta.status_code == 404
+    assert consulta.json() == {"detail": "Empreendimento não encontrado"}
+    assert atualizacao.status_code == 404
+    assert atualizacao.json() == {"detail": "Empreendimento não encontrado"}
 
 
 def test_rejeita_cadastro_sem_autenticacao():

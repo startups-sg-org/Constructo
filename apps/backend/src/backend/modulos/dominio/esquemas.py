@@ -34,8 +34,37 @@ class EmpreendimentoCriar(BaseModel):
         return valor.strip() or None
 
 
+class EmpreendimentoAtualizar(BaseModel):
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    descricao: str | None = Field(default=None, max_length=1000)
+    endereco: str | None = Field(default=None, max_length=500)
+    status: StatusEmpreendimento | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str | None) -> str:
+        if nome is None or not nome.strip():
+            raise ValueError("Nome é obrigatório")
+        return nome.strip()
+
+    @field_validator("status")
+    @classmethod
+    def validar_status(cls, status: StatusEmpreendimento | None) -> StatusEmpreendimento:
+        if status is None:
+            raise ValueError("Status é obrigatório")
+        return status
+
+    @field_validator("descricao", "endereco")
+    @classmethod
+    def normalizar_opcional(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
 class EmpreendimentoLer(Leitura, EmpreendimentoCriar):
     criado_em: datetime
+    atualizado_em: datetime
 
 
 class LocalCriar(BaseModel):

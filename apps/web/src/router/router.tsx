@@ -5,6 +5,7 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
+import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
@@ -13,7 +14,8 @@ import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "../features/auth/auth.loader";
-import { cadastrarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
+import { cadastrarEmpreendimento, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
+import { carregarEmpreendimento } from "../features/empreendimentos/empreendimentos.loader";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -85,6 +87,19 @@ export const rotas: RouteObject[] = [
                 subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
               >
                 <FormularioEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "obras/:empreendimentoId/editar",
+            loader: carregarEmpreendimento,
+            action: editarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Editar empreendimento"
+                subtitulo="Atualize os dados gerais sem alterar a estrutura física da obra."
+              >
+                <FormularioEdicaoEmpreendimento />
               </PaginaPainel>
             ),
           },
