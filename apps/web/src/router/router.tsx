@@ -6,6 +6,8 @@ import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
+import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
+import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
@@ -15,7 +17,7 @@ import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAutenticacao } from "../features/auth/auth.loader";
 import { cadastrarEmpreendimento, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
-import { carregarEmpreendimento } from "../features/empreendimentos/empreendimentos.loader";
+import { carregarEmpreendimento, carregarEmpreendimentos } from "../features/empreendimentos/empreendimentos.loader";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -80,13 +82,27 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "obras",
+            loader: carregarEmpreendimentos,
             action: cadastrarEmpreendimento,
             element: (
               <PaginaPainel
                 titulo="Empreendimentos"
                 subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
               >
+                <ListaEmpreendimentos />
                 <FormularioEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "obras/:empreendimentoId",
+            loader: carregarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Visualizar empreendimento"
+                subtitulo="Consulte os dados gerais da obra selecionada."
+              >
+                <DetalhesEmpreendimento />
               </PaginaPainel>
             ),
           },

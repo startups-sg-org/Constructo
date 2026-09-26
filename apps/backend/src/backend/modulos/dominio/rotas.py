@@ -8,7 +8,12 @@ from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import get_usuario_autenticado
 
 from .esquemas import EmpreendimentoAtualizar, EmpreendimentoCriar, EmpreendimentoLer
-from .servicos import atualizar_empreendimento, buscar_empreendimento, criar_empreendimento
+from .servicos import (
+    atualizar_empreendimento,
+    buscar_empreendimento,
+    criar_empreendimento,
+    listar_empreendimentos,
+)
 
 router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
 
@@ -20,6 +25,14 @@ async def cadastrar_empreendimento(
     _: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ):
     return await criar_empreendimento(session, dados)
+
+
+@router.get("/", response_model=list[EmpreendimentoLer])
+async def consultar_empreendimentos(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+):
+    return await listar_empreendimentos(session)
 
 
 @router.get("/{empreendimento_id}", response_model=EmpreendimentoLer)

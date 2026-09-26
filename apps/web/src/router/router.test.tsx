@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,6 +7,7 @@ import { getAuthenticatedUser, loginUser } from "../features/auth/auth.service";
 import {
   atualizarEmpreendimento,
   criarEmpreendimento,
+  listarEmpreendimentos,
   obterEmpreendimento,
 } from "../features/empreendimentos/empreendimentos.service";
 import {
@@ -24,6 +25,7 @@ vi.mock("../features/auth/auth.service", () => ({
 vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   atualizarEmpreendimento: vi.fn(),
   criarEmpreendimento: vi.fn(),
+  listarEmpreendimentos: vi.fn(),
   obterEmpreendimento: vi.fn(),
 }));
 
@@ -40,6 +42,7 @@ const getAuthenticatedUserMock = vi.mocked(getAuthenticatedUser);
 const loginUserMock = vi.mocked(loginUser);
 const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
+const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -83,6 +86,7 @@ describe("novo sistema de rotas", () => {
     getAuthenticatedUserMock.mockResolvedValue(usuario);
     getUsersCountMock.mockResolvedValue(8);
     getUsersMock.mockResolvedValue([]);
+    listarEmpreendimentosMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
@@ -254,6 +258,74 @@ describe("novo sistema de rotas", () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/^Nome/)).toHaveValue("");
     });
+  });
+
+  it("lista os dados dos empreendimentos e oferece as ações esperadas", async () => {
+    listarEmpreendimentosMock.mockResolvedValue([empreendimento]);
+    montarRota("/admin/obras");
+
+    const titulo = await screen.findByRole("heading", { name: "Residencial Aurora" });
+    const card = titulo.closest("article");
+    expect(card).not.toBeNull();
+    expect(within(card!).getByText("Planejado")).toBeInTheDocument();
+    expect(within(card!).getByText("Avenida Central, 100")).toBeInTheDocument();
+    expect(within(card!).getByText(/25.*2026/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Visualizar" })).toHaveAttribute(
+      "href",
+      "/admin/obras/12",
+    );
+    expect(screen.getByRole("link", { name: "Editar" })).toHaveAttribute(
+      "href",
+      "/admin/obras/12/editar",
+    );
+  });
+
+  it("trata a lista vazia de empreendimentos", async () => {
+    montarRota("/admin/obras");
+
+    expect(
+      await screen.findByRole("heading", { name: "Nenhum empreendimento cadastrado" }),
+    ).toBeInTheDocument();
+  });
+
+  it("permite visualizar um empreendimento", async () => {
+    listarEmpreendimentosMock.mockResolvedValue([empreendimento]);
+    const user = userEvent.setup();
+    montarRota("/admin/obras");
+
+    await user.click(await screen.findByRole("link", { name: "Visualizar" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Duas torres")).toBeInTheDocument();
+    expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
+  });
+
+  it("trata erro ao carregar os empreendimentos", async () => {
+    listarEmpreendimentosMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    montarRota("/admin/obras");
+
+    expect(
+      await screen.findByRole("heading", { name: "Não foi possível acessar o serviço" }),
+    ).toBeInTheDocument();
+  });
+
+  it("apresenta loading enquanto carrega os empreendimentos", async () => {
+    let concluirCarregamento!: (valor: typeof empreendimento[]) => void;
+    listarEmpreendimentosMock.mockImplementation(
+      () => new Promise((resolve) => { concluirCarregamento = resolve; }),
+    );
+    const user = userEvent.setup();
+    montarRota("/admin");
+
+    await user.click(await screen.findByRole("link", { name: "Empreendimentos" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Carregando página...");
+    concluirCarregamento([]);
+    expect(
+      await screen.findByRole("heading", { name: "Nenhum empreendimento cadastrado" }),
+    ).toBeInTheDocument();
   });
 
   it("valida o nome e exibe erros retornados pela API", async () => {

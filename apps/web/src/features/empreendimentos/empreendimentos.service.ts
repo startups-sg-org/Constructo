@@ -17,6 +17,14 @@ export function criarEmpreendimento(
     });
 }
 
+export function listarEmpreendimentos(
+    options?: ServiceRequestOptions,
+): Promise<Empreendimento[]> {
+    return apiRequest<Empreendimento[]>("/empreendimentos/", {
+        signal: options?.signal,
+    });
+}
+
 export function obterEmpreendimento(
     empreendimentoId: number,
     options?: ServiceRequestOptions,
