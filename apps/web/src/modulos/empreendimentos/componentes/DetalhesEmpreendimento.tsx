@@ -1,27 +1,28 @@
 import { Link, useLoaderData } from "react-router-dom";
 
+import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
+import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
-import { formatarDataEmpreendimento, obterRotuloStatus } from "./empreendimentoFormatters";
+import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
 import "./ListaEmpreendimentos.css";
 
 export default function DetalhesEmpreendimento() {
     const empreendimento = useLoaderData<typeof carregarEmpreendimento>();
 
     return (
-        <article className="detalhes-empreendimento">
-            <header className="detalhes-empreendimento__cabecalho">
-                <div>
-                    <span className="subtitulo">Dados da obra</span>
-                    <h2>{empreendimento.nome}</h2>
-                </div>
-                <span
-                    className={`card-empreendimento__status card-empreendimento__status--${empreendimento.status.toLowerCase()}`}
-                >
-                    {obterRotuloStatus(empreendimento.status)}
-                </span>
-            </header>
+        <article className="detalhes-empreendimento superficie-painel">
+            <CabecalhoSecao
+                etiqueta="Dados da obra"
+                titulo={empreendimento.nome}
+                comDivisor
+                complemento={(
+                    <BadgeStatus tom={obterTomStatus(empreendimento.status)}>
+                        {obterRotuloStatus(empreendimento.status)}
+                    </BadgeStatus>
+                )}
+            />
 
-            <dl className="detalhes-empreendimento__dados">
+            <dl className="detalhes-empreendimento__dados lista-dados">
                 <div>
                     <dt>Endereço</dt>
                     <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
@@ -40,7 +41,7 @@ export default function DetalhesEmpreendimento() {
                 </div>
             </dl>
 
-            <footer className="detalhes-empreendimento__acoes">
+            <footer className="detalhes-empreendimento__acoes barra-acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
                 <Link className="botao secundario" to="estrutura">
                     Gerenciar estrutura física

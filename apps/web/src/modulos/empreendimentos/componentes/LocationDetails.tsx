@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 
+import EstadoVazio from "../../../componentes/EstadoVazio/EstadoVazio";
 import type { LocalSelecionado } from "../../../features/empreendimentos/localSelecionado";
 import LocationForm from "./LocationForm";
 import "./LocationDetails.css";
@@ -22,16 +23,17 @@ export default function LocationDetails({ selecao, empreendimentoNome }: Locatio
 
     if (!selecao) {
         return (
-            <aside className="estrutura-fisica__detalhes-vazios">
-                <h3>Selecione um local</h3>
-                <p>Escolha uma torre, bloco, pavimento ou unidade para consultar os detalhes.</p>
-            </aside>
+            <EstadoVazio
+                className="estrutura-fisica__detalhes-vazios"
+                titulo="Selecione um local"
+                descricao="Escolha uma torre, bloco, pavimento ou unidade para consultar os detalhes."
+            />
         );
     }
 
     return (
         <aside
-            className="estrutura-fisica__detalhes-local"
+            className="estrutura-fisica__detalhes-local superficie-painel superficie-painel--interna"
             aria-labelledby="detalhes-local-titulo"
         >
             <span className="subtitulo">Local selecionado</span>

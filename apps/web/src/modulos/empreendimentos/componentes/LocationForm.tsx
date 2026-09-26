@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useFetcher } from "react-router-dom";
 
 import type { LocalRaizActionData } from "../../../features/empreendimentos/empreendimentos.action";
+import "./LocationDetails.css";
 
 type LocationFormProps = {
     local: EstruturaLocal;
@@ -68,9 +69,9 @@ export default function LocationForm({ local, onCancel, onSaved }: LocationFormP
                 )}
             </div>
             {!resposta?.ok && resposta?.erro && (
-                <p className="empreendimento-form__erro" role="alert">{resposta.erro}</p>
+                <p className="feedback-painel feedback-painel--erro" role="alert">{resposta.erro}</p>
             )}
-            <div className="location-form__acoes">
+            <div className="location-form__acoes barra-acoes">
                 <button className="botao secundario" type="button" onClick={onCancel} disabled={salvando}>
                     Cancelar
                 </button>

@@ -22,22 +22,22 @@
     inset: 0 auto 8px 8px;
     width: 2px;
     border-radius: 2px;
-    background: #dce9e4;
+    background: var(--cor-borda);
     content: "";
 }
 
 .structure-tree__item {
-    border-radius: 10px;
+    border-radius: var(--raio-campo);
     outline: none;
 }
 
 .structure-tree__item:focus-visible > .structure-tree__row {
-    box-shadow: 0 0 0 3px rgb(20 122 85 / 18%);
+    box-shadow: 0 0 0 3px rgb(47 118 104 / 18%);
 }
 
 .structure-tree__item[aria-selected="true"] > .structure-tree__row {
-    border-color: #61a98e;
-    background: #eef8f4;
+    border-color: #7fa59b;
+    background: #eef6f3;
 }
 
 .structure-tree__row {
@@ -46,9 +46,9 @@
     align-items: center;
     gap: 10px;
     padding: 9px 12px;
-    border: 1px solid #e2e8e6;
-    border-radius: 10px;
-    background: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-campo);
+    background: var(--cor-superficie);
     cursor: pointer;
 }
 
@@ -60,8 +60,8 @@
     place-items: center;
     border: 0;
     border-radius: 7px;
-    color: #147a55;
-    background: #e8f7f0;
+    color: var(--cor-sucesso);
+    background: var(--cor-sucesso-fundo);
     font-size: 1.15rem;
     cursor: pointer;
 }
@@ -76,7 +76,7 @@
     height: 10px;
     flex: none;
     border-radius: 50%;
-    background: #147a55;
+    background: var(--cor-sucesso);
 }
 
 .structure-tree__item--pavimento > .structure-tree__row .structure-tree__icon {
@@ -90,7 +90,7 @@
 }
 
 .structure-tree__name {
-    color: #274640;
+    color: var(--cor-texto-forte);
     font-weight: 700;
 }
 
