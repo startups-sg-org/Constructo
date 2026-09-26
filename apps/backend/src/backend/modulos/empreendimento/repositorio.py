@@ -11,11 +11,44 @@ from .esquemas import (
     Empreendimento_StatusRequest_Schema,
     Empreendimento_UpdateRequest_Schema,
     EmpreendimentoResumo_FromDB_Schema,
+    LocalObra_FromDB_Schema,
+    LocalObra_FromRequest_Schema,
 )
-from .modelos import Empreendimento, StatusEmpreendimento
+from .modelos import Empreendimento, LocalObra, StatusEmpreendimento
 
 
 class EmpreendimentoRepo:
+    async def get_local_empreendimento(
+        self, db: AsyncSession, empreendimento_id: uuid.UUID
+    ) -> Empreendimento | None:
+        return await db.get(Empreendimento, empreendimento_id)
+
+    async def create_local_obra(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        payload: LocalObra_FromRequest_Schema,
+    ) -> LocalObra_FromDB_Schema:
+        local = LocalObra(
+            empreendimento_id=empreendimento_id,
+            parent_id=None,
+            **payload.model_dump(),
+        )
+        db.add(local)
+        await db.flush()
+        await db.refresh(local)
+        return LocalObra_FromDB_Schema.model_validate(local)
+
+    async def get_locais_obra(
+        self, db: AsyncSession, empreendimento_id: uuid.UUID
+    ) -> list[LocalObra_FromDB_Schema]:
+        resultado = await db.execute(
+            select(LocalObra)
+            .where(LocalObra.empreendimento_id == empreendimento_id)
+            .order_by(LocalObra.ordem, LocalObra.nome)
+        )
+        return [LocalObra_FromDB_Schema.model_validate(local) for local in resultado.scalars()]
+
     async def get_empresa_by_id(self, db: AsyncSession, empresa_id: uuid.UUID) -> Empresa | None:
         return await db.get(Empresa, empresa_id)
 

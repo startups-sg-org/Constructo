@@ -14,6 +14,8 @@ from .esquemas import (
     Empreendimento_StatusRequest_Schema,
     Empreendimento_UpdateRequest_Schema,
     EmpreendimentoResumo_FromDB_Schema,
+    LocalObra_FromDB_Schema,
+    LocalObra_FromRequest_Schema,
 )
 from .servicos import EmpreendimentoService
 
@@ -69,3 +71,26 @@ async def update_status(
     _: Annotated[Usuario, Depends(get_usuario_autenticado)],
 ) -> Empreendimento_FromDB_Schema:
     return await empreendimento_service.update_status(db, id, payload)
+
+
+@router.post(
+    "/{id}/locais",
+    response_model=LocalObra_FromDB_Schema,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_local_obra(
+    id: uuid.UUID,
+    payload: LocalObra_FromRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> LocalObra_FromDB_Schema:
+    return await empreendimento_service.create_local_obra(db, id, payload, usuario)
+
+
+@router.get("/{id}/locais", response_model=list[LocalObra_FromDB_Schema])
+async def list_locais_obra(
+    id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> list[LocalObra_FromDB_Schema]:
+    return await empreendimento_service.get_locais_obra(db, id, usuario)

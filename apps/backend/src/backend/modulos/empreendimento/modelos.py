@@ -3,10 +3,13 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    CheckConstraint,
     DateTime,
     ForeignKey,
+    Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy import Enum as SAEnum
@@ -22,6 +25,11 @@ class StatusEmpreendimento(str, enum.Enum):
     EM_ANDAMENTO = "EM_ANDAMENTO"
     CONCLUIDO = "CONCLUIDO"
     INATIVO = "INATIVO"
+
+
+class TipoLocalObra(str, enum.Enum):
+    TORRE = "TORRE"
+    BLOCO = "BLOCO"
 
 
 class Empreendimento(Base):
@@ -54,3 +62,28 @@ class Empreendimento(Base):
     )
 
     empresa: Mapped[Empresa] = relationship(Empresa)
+
+
+class LocalObra(Base):
+    __tablename__ = "locais_obra"
+    __table_args__ = (
+        CheckConstraint("ordem >= 0", name="ck_locais_obra_ordem"),
+        CheckConstraint("parent_id IS NULL", name="ck_locais_obra_primeiro_nivel"),
+        UniqueConstraint("empreendimento_id", "nome", name="uq_locais_obra_empreendimento_nome"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    empreendimento_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("empreendimentos.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    nome: Mapped[str] = mapped_column(String(200), nullable=False)
+    tipo: Mapped[TipoLocalObra] = mapped_column(
+        SAEnum(TipoLocalObra, name="tipo_local_obra_enum"), nullable=False
+    )
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+    empreendimento: Mapped[Empreendimento] = relationship()

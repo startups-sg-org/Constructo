@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .modelos import StatusEmpreendimento
+from .modelos import StatusEmpreendimento, TipoLocalObra
 
 
 class Empreendimento_FromRequest_Schema(BaseModel):
@@ -77,3 +77,30 @@ class EmpreendimentoResumo_FromDB_Schema(BaseModel):
     empresa_id: uuid.UUID
     nome: str
     status: StatusEmpreendimento
+
+
+class LocalObra_FromRequest_Schema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nome: str = Field(min_length=1, max_length=200)
+    tipo: TipoLocalObra
+    ordem: int = Field(default=0, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def remover_espacos_e_rejeitar_vazio(cls, valor: str) -> str:
+        valor = valor.strip()
+        if not valor:
+            raise ValueError("campo obrigatório")
+        return valor
+
+
+class LocalObra_FromDB_Schema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    empreendimento_id: uuid.UUID
+    parent_id: uuid.UUID | None
+    nome: str
+    tipo: TipoLocalObra
+    ordem: int

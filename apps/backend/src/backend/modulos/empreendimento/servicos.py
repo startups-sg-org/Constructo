@@ -9,6 +9,8 @@ from .esquemas import (
     Empreendimento_StatusRequest_Schema,
     Empreendimento_UpdateRequest_Schema,
     EmpreendimentoResumo_FromDB_Schema,
+    LocalObra_FromDB_Schema,
+    LocalObra_FromRequest_Schema,
 )
 from .modelos import StatusEmpreendimento
 from .repositorio import EmpreendimentoRepo
@@ -17,6 +19,39 @@ from .repositorio import EmpreendimentoRepo
 class EmpreendimentoService:
     def __init__(self) -> None:
         self.repo = EmpreendimentoRepo()
+
+    async def create_local_obra(
+        self,
+        db: AsyncSession,
+        empreendimento_id: uuid.UUID,
+        payload: LocalObra_FromRequest_Schema,
+        usuario,
+    ) -> LocalObra_FromDB_Schema:
+        empreendimento = await self.repo.get_local_empreendimento(db, empreendimento_id)
+        if empreendimento is None:
+            raise HTTPException(status_code=404, detail="Empreendimento não encontrado.")
+        if getattr(usuario, "papel", None) not in {"ADMIN", "GESTOR"} and (
+            getattr(usuario, "empreendimento", None) != empreendimento.nome
+        ):
+            raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
+        if empreendimento.status is StatusEmpreendimento.INATIVO:
+            raise HTTPException(
+                status_code=403,
+                detail="Não é possível alterar um empreendimento inativo.",
+            )
+        return await self.repo.create_local_obra(db, empreendimento_id, payload)
+
+    async def get_locais_obra(
+        self, db: AsyncSession, empreendimento_id: uuid.UUID, usuario
+    ) -> list[LocalObra_FromDB_Schema]:
+        empreendimento = await self.repo.get_local_empreendimento(db, empreendimento_id)
+        if empreendimento is None:
+            raise HTTPException(status_code=404, detail="Empreendimento não encontrado.")
+        if getattr(usuario, "papel", None) not in {"ADMIN", "GESTOR"} and (
+            getattr(usuario, "empreendimento", None) != empreendimento.nome
+        ):
+            raise HTTPException(status_code=403, detail="Usuário sem acesso ao empreendimento.")
+        return await self.repo.get_locais_obra(db, empreendimento_id)
 
     async def create_empreendimento(
         self,
