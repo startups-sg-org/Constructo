@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modulos.usuarios.modelos import Usuario
 
 from .esquemas import (
+    EmpreendimentoAtualizar,
     EmpreendimentoCriar,
     EtapaCriar,
     EvidenciaCriar,
@@ -51,6 +52,27 @@ async def _exigir(session: AsyncSession, classe, identificador: int):
 async def criar_empreendimento(session: AsyncSession, dados: EmpreendimentoCriar) -> Empreendimento:
     empreendimento = Empreendimento(**dados.model_dump(mode="json"))
     session.add(empreendimento)
+    await session.flush()
+    await session.refresh(empreendimento)
+    return empreendimento
+
+
+async def buscar_empreendimento(session: AsyncSession, empreendimento_id: int) -> Empreendimento:
+    return await _exigir(session, Empreendimento, empreendimento_id)
+
+
+async def atualizar_empreendimento(
+    session: AsyncSession,
+    empreendimento_id: int,
+    dados: EmpreendimentoAtualizar,
+) -> Empreendimento:
+    empreendimento = await buscar_empreendimento(session, empreendimento_id)
+    alteracoes = dados.model_dump(exclude_unset=True, mode="json")
+
+    for campo, valor in alteracoes.items():
+        setattr(empreendimento, campo, valor)
+
+    empreendimento.atualizado_em = datetime.now(UTC)
     await session.flush()
     await session.refresh(empreendimento)
     return empreendimento

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, useActionData, useNavigation, useSubmit } from "react-router-dom";
+import { Form, Link, useActionData, useNavigation, useSubmit } from "react-router-dom";
 import {
     empreendimentoSchema,
     type EmpreendimentoFormData,
@@ -131,6 +131,8 @@ export default function FormularioEmpreendimento() {
                 {actionData?.ok && (
                     <p className="empreendimento-form__sucesso" role="status">
                         Empreendimento “{actionData.empreendimento.nome}” cadastrado com sucesso.
+                        {" "}
+                        <Link to={`${actionData.empreendimento.id}/editar`}>Editar empreendimento</Link>
                     </p>
                 )}
                 {actionData?.erro && (

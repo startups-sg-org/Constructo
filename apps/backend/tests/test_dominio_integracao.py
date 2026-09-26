@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio.esquemas import (
+    EmpreendimentoAtualizar,
     EmpreendimentoCriar,
     EtapaCriar,
     EvidenciaCriar,
@@ -22,12 +23,14 @@ from backend.modulos.dominio.esquemas import (
 )
 from backend.modulos.dominio.modelos import (
     Empreendimento,
+    LocalObra,
     Marco,
     Taxonomia,
 )
 from backend.modulos.dominio.regras import EstadoMarco, TipoLocal
 from backend.modulos.dominio.servicos import (
     alterar_estado,
+    atualizar_empreendimento,
     calcular_progresso_empreendimento,
     calcular_progresso_unidade,
     criar_empreendimento,
@@ -300,6 +303,55 @@ def test_cria_e_persiste_empreendimento():
                 assert persistido.descricao == "Duas torres"
                 assert persistido.endereco == "Avenida Central, 100"
                 assert persistido.status == "EM_ANDAMENTO"
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_atualiza_empreendimento_sem_alterar_campos_ausentes_ou_estrutura():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                obra = await criar_empreendimento(
+                    session,
+                    EmpreendimentoCriar(
+                        nome="Aurora",
+                        descricao="Duas torres",
+                        endereco="Avenida Central, 100",
+                        status="PLANEJADO",
+                    ),
+                )
+                local = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome="Torre A",
+                        tipo=TipoLocal.TORRE,
+                    ),
+                )
+                atualizado_em_anterior = obra.atualizado_em
+
+                atualizado = await atualizar_empreendimento(
+                    session,
+                    obra.id,
+                    EmpreendimentoAtualizar(nome="Aurora Norte"),
+                )
+
+                assert atualizado.nome == "Aurora Norte"
+                assert atualizado.descricao == "Duas torres"
+                assert atualizado.endereco == "Avenida Central, 100"
+                assert atualizado.status == "PLANEJADO"
+                assert atualizado.atualizado_em != atualizado_em_anterior
+                locais = (
+                    await session.scalars(
+                        select(LocalObra).where(LocalObra.empreendimento_id == obra.id)
+                    )
+                ).all()
+                assert [(item.id, item.nome, item.parent_id) for item in locais] == [
+                    (local.id, "Torre A", None)
+                ]
         finally:
             await engine.dispose()
 

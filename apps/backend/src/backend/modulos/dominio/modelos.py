@@ -27,6 +27,9 @@ class Empreendimento(Base):
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
     __table_args__ = (
         CheckConstraint(
             "status IN ('PLANEJADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'INATIVO')",

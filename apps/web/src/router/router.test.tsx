@@ -4,7 +4,11 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getAuthenticatedUser, loginUser } from "../features/auth/auth.service";
-import { criarEmpreendimento } from "../features/empreendimentos/empreendimentos.service";
+import {
+  atualizarEmpreendimento,
+  criarEmpreendimento,
+  obterEmpreendimento,
+} from "../features/empreendimentos/empreendimentos.service";
 import {
   createUser,
   getUsers,
@@ -18,7 +22,9 @@ vi.mock("../features/auth/auth.service", () => ({
   logoutUser: vi.fn(),
 }));
 vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
+  atualizarEmpreendimento: vi.fn(),
   criarEmpreendimento: vi.fn(),
+  obterEmpreendimento: vi.fn(),
 }));
 
 
@@ -32,7 +38,9 @@ vi.mock("../features/usuarios/usuarios.service", () => ({
 
 const getAuthenticatedUserMock = vi.mocked(getAuthenticatedUser);
 const loginUserMock = vi.mocked(loginUser);
+const atualizarEmpreendimentoMock = vi.mocked(atualizarEmpreendimento);
 const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
+const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
 const getUsersCountMock = vi.mocked(getUsersCount);
@@ -51,6 +59,16 @@ const usuario = {
   ativo: true,
 };
 
+const empreendimento = {
+  id: 12,
+  nome: "Residencial Aurora",
+  descricao: "Duas torres",
+  endereco: "Avenida Central, 100",
+  status: "PLANEJADO" as const,
+  criado_em: "2026-09-25T12:00:00Z",
+  atualizado_em: "2026-09-25T12:00:00Z",
+};
+
 function montarRota(entrada: string) {
   const router = createMemoryRouter(rotasAplicacao, {
     initialEntries: [entrada],
@@ -65,6 +83,7 @@ describe("novo sistema de rotas", () => {
     getAuthenticatedUserMock.mockResolvedValue(usuario);
     getUsersCountMock.mockResolvedValue(8);
     getUsersMock.mockResolvedValue([]);
+    obterEmpreendimentoMock.mockResolvedValue(empreendimento);
   });
 
   it("renderiza a rota pública principal", async () => {
@@ -208,6 +227,7 @@ describe("novo sistema de rotas", () => {
       endereco: "Avenida Central, 100",
       status: "EM_ANDAMENTO",
       criado_em: "2026-09-25T12:00:00Z",
+      atualizado_em: "2026-09-25T12:00:00Z",
     });
     montarRota("/admin/obras");
 
@@ -254,6 +274,54 @@ describe("novo sistema de rotas", () => {
 
     expect(
       await screen.findByText("Não foi possível salvar o empreendimento"),
+    ).toBeInTheDocument();
+  });
+
+  it("carrega dados atuais e envia somente campos alterados na edição", async () => {
+    const user = userEvent.setup();
+    atualizarEmpreendimentoMock.mockResolvedValue({
+      ...empreendimento,
+      nome: "Residencial Aurora Norte",
+      atualizado_em: "2026-09-25T13:00:00Z",
+    });
+    montarRota("/admin/obras/12/editar");
+
+    expect(await screen.findByLabelText(/^Nome/)).toHaveValue("Residencial Aurora");
+    expect(screen.getByLabelText("Descrição")).toHaveValue("Duas torres");
+    expect(screen.getByLabelText("Endereço")).toHaveValue("Avenida Central, 100");
+    expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
+
+    const nome = screen.getByLabelText(/^Nome/);
+    await user.clear(nome);
+    await user.type(nome, "Residencial Aurora Norte");
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    expect(atualizarEmpreendimentoMock).toHaveBeenCalledWith(
+      12,
+      { nome: "Residencial Aurora Norte" },
+      expect.anything(),
+    );
+    expect(
+      await screen.findByText(
+        "Empreendimento “Residencial Aurora Norte” atualizado com sucesso.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("informa erro ao falhar a edição do empreendimento", async () => {
+    const user = userEvent.setup();
+    atualizarEmpreendimentoMock.mockRejectedValue(
+      new Error("Não foi possível atualizar o empreendimento"),
+    );
+    montarRota("/admin/obras/12/editar");
+
+    const descricao = await screen.findByLabelText("Descrição");
+    await user.clear(descricao);
+    await user.type(descricao, "Descrição revisada");
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    expect(
+      await screen.findByText("Não foi possível atualizar o empreendimento"),
     ).toBeInTheDocument();
   });
 });

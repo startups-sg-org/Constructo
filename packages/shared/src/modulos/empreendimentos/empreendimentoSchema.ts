@@ -26,9 +26,16 @@ export const empreendimentoSchema = z.object({
     status: z.enum(statusEmpreendimento),
 });
 
+export const atualizacaoEmpreendimentoSchema = empreendimentoSchema.partial().refine(
+    (dados) => Object.keys(dados).length > 0,
+    { message: "Altere pelo menos um campo" },
+);
+
 export type EmpreendimentoFormData = z.infer<typeof empreendimentoSchema>;
+export type AtualizacaoEmpreendimentoData = z.infer<typeof atualizacaoEmpreendimentoSchema>;
 
 export type Empreendimento = EmpreendimentoFormData & {
     id: number;
     criado_em: string;
+    atualizado_em: string;
 };
