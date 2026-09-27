@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.modulos.dominio.rotas import router as dominio_router
 from backend.modulos.usuarios.rotas import router as usuarios_router
-
+from backend.modulos.contracts.routes import empresas_router, contratos_router, itens_contratuais_router
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -21,6 +21,13 @@ app.add_middleware(
 
 app.include_router(usuarios_router)
 app.include_router(dominio_router)
+
+#--------------------------------------
+# Rotas do módulo contracts
+#--------------------------------------
+app.include_router(empresas_router)
+app.include_router(contratos_router)
+app.include_router(itens_contratuais_router)
 
 
 @app.get("/health", tags=["health"])
