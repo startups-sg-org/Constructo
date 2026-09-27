@@ -48,3 +48,20 @@ class Sessao(Base):
     expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     usuario: Mapped[Usuario] = relationship(back_populates="sessoes")
+
+
+class AuditoriaPapelUsuario(Base):
+    __tablename__ = "auditorias_papeis_usuario"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int | None] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    alterado_por_id: Mapped[int | None] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    papel_anterior: Mapped[str] = mapped_column(String(20), nullable=False)
+    papel_novo: Mapped[str] = mapped_column(String(20), nullable=False)
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

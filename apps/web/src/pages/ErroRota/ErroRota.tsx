@@ -2,7 +2,12 @@ import { Link, isRouteErrorResponse, useRouteError } from "react-router-dom";
 import { ApiError } from "../../services/api";
 import "./ErroRota.css";
 
-type TipoErro = "nao-encontrado" | "carregamento" | "comunicacao" | "inesperado";
+type TipoErro =
+    | "nao-encontrado"
+    | "proibido"
+    | "carregamento"
+    | "comunicacao"
+    | "inesperado";
 
 type ConteudoErro = {
     codigo: string;
@@ -15,6 +20,11 @@ const CONTEUDOS: Record<TipoErro, ConteudoErro> = {
         codigo: "404",
         titulo: "Página não encontrada",
         mensagem: "O endereço informado não existe ou a página foi movida.",
+    },
+    proibido: {
+        codigo: "403",
+        titulo: "Acesso negado",
+        mensagem: "Você não tem permissão para acessar esta página ou recurso.",
     },
     carregamento: {
         codigo: "Ops!",
@@ -39,18 +49,21 @@ const MENSAGEM_ERRO_REDE = /failed to fetch|network\s?error|load failed|fetch fa
 function classificarErro(erro: unknown): TipoErro {
     if (erro instanceof ApiError) {
         if (erro.status === 0 || STATUS_COMUNICACAO_API.has(erro.status)) return "comunicacao";
+        if (erro.status === 403) return "proibido";
         return "carregamento";
     }
 
     if (isRouteErrorResponse(erro)) {
         if (erro.status === 404) return "nao-encontrado";
         if (STATUS_COMUNICACAO_API.has(erro.status)) return "comunicacao";
+        if (erro.status === 403) return "proibido";
         return "carregamento";
     }
 
     if (erro instanceof Response) {
         if (erro.status === 404) return "nao-encontrado";
         if (STATUS_COMUNICACAO_API.has(erro.status)) return "comunicacao";
+        if (erro.status === 403) return "proibido";
         return "carregamento";
     }
 
@@ -63,7 +76,8 @@ function classificarErro(erro: unknown): TipoErro {
 
 function PaginaErro({ tipo }: { tipo: TipoErro }) {
     const conteudo = CONTEUDOS[tipo];
-    const permiteTentarNovamente = tipo !== "nao-encontrado";
+    const permiteTentarNovamente =
+        tipo !== "nao-encontrado" && tipo !== "proibido";
 
     return (
         <main className="erro-rota">

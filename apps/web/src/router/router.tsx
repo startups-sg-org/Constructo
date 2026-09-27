@@ -1,9 +1,19 @@
-import { createBrowserRouter, type RouteObject } from "react-router-dom";
+import {
+  createBrowserRouter,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type RouteObject,
+} from "react-router-dom";
 
 import FeedbackNavegacao from "../componentes/FeedbackNavegacao/FeedbackNavegacao";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import PublicLayout from "../layouts/PublicLayout/PublicLayout";
+import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
+import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
+import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
+import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
+import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
@@ -11,7 +21,9 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
-import { exigirAutenticacao } from "../features/auth/auth.loader";
+import { exigirAcessoAoPainel, exigirAdmin } from "../features/auth/auth.loader";
+import { cadastrarEmpreendimento, cadastrarLocalRaiz, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
+import { carregarEmpreendimento, carregarEmpreendimentos, carregarEstruturaFisica } from "../features/empreendimentos/empreendimentos.loader";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -20,6 +32,15 @@ import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
 import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
 
+async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
+  await exigirAdmin(args);
+  return carregarUsuarios(args);
+}
+
+async function alterarUsuarioComoAdmin(args: ActionFunctionArgs) {
+  await exigirAdmin(args);
+  return alterarUsuario(args);
+}
 export const rotas: RouteObject[] = [
   {
     element: <PublicLayout />,
@@ -41,7 +62,7 @@ export const rotas: RouteObject[] = [
   },
   {
     id: "admin-autenticado",
-    loader: exigirAutenticacao,
+    loader: exigirAcessoAoPainel,
     errorElement: <ErroRota />,
     children: [
       {
@@ -63,8 +84,8 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "usuarios",
-            loader: carregarUsuarios,
-            action: alterarUsuario,
+            loader: carregarUsuariosComoAdmin,
+            action: alterarUsuarioComoAdmin,
             element: (
               <PaginaPainel
                 titulo="Usuários"
@@ -76,7 +97,55 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "obras",
-            element: <PaginaPainel titulo="Obras" subtitulo="Gerencie as obras cadastradas." />,
+            loader: carregarEmpreendimentos,
+            action: cadastrarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Empreendimentos"
+                subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
+              >
+                <ListaEmpreendimentos />
+                <FormularioEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId",
+            loader: carregarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Visualizar empreendimento"
+                subtitulo="Consulte os dados gerais da obra selecionada."
+              >
+                <DetalhesEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId/editar",
+            loader: carregarEmpreendimento,
+            action: editarEmpreendimento,
+            element: (
+              <PaginaPainel
+                titulo="Editar empreendimento"
+                subtitulo="Atualize os dados gerais sem alterar a estrutura física da obra."
+              >
+                <FormularioEdicaoEmpreendimento />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId/estrutura",
+            loader: carregarEstruturaFisica,
+            action: cadastrarLocalRaiz,
+            element: (
+              <PaginaPainel
+                titulo="Estrutura física"
+                subtitulo="Gerencie a organização física do empreendimento selecionado."
+              >
+                <StructureManagementPage />
+              </PaginaPainel>
+            ),
           },
           {
             path: "contratos",

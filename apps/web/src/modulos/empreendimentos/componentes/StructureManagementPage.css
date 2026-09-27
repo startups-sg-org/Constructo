@@ -1,0 +1,33 @@
+.estrutura-fisica__cabecalho-lista {
+    align-items: flex-end;
+    margin-top: 28px;
+}
+
+.estrutura-fisica__vazia {
+    margin-top: 18px;
+}
+
+.estrutura-fisica__form-filho {
+    grid-template-columns: minmax(180px, 1fr) minmax(100px, 160px) auto;
+    align-items: end;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #dce6e2;
+    border-radius: var(--raio-campo);
+    background: var(--cor-superficie-sutil);
+}
+
+.estrutura-fisica__form-filho > p {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+    .estrutura-fisica__cabecalho-lista {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .estrutura-fisica__form-filho {
+        grid-template-columns: 1fr;
+    }
+}

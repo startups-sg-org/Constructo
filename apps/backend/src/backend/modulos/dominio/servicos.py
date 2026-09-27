@@ -10,7 +10,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modulos.usuarios.modelos import Usuario
 
-from .esquemas import EtapaCriar, EvidenciaCriar, LocalCriar, ProgressoMarcoCriar, PublicacaoCriar
+from .esquemas import (
+    EmpreendimentoAtualizar,
+    EmpreendimentoCriar,
+    EtapaCriar,
+    EvidenciaCriar,
+    LocalAtualizar,
+    LocalCriar,
+    LocalHierarquiaLer,
+    LocalLer,
+    ProgressoMarcoCriar,
+    PublicacaoCriar,
+)
 from .modelos import (
     Empreendimento,
     Etapa,
@@ -29,7 +40,6 @@ from .regras import (
     Papel,
     TipoLocal,
     calcular_progresso,
-    validar_local,
     validar_transicao,
 )
 
@@ -39,6 +49,59 @@ async def _exigir(session: AsyncSession, classe, identificador: int):
     if obj is None:
         raise ValueError(f"{classe.__name__} inexistente: {identificador}")
     return obj
+
+
+async def criar_empreendimento(session: AsyncSession, dados: EmpreendimentoCriar) -> Empreendimento:
+    empreendimento = Empreendimento(**dados.model_dump(mode="json"))
+    session.add(empreendimento)
+    await session.flush()
+    await session.refresh(empreendimento)
+    return empreendimento
+
+
+async def listar_empreendimentos(session: AsyncSession) -> list[Empreendimento]:
+    return list(
+        (
+            await session.scalars(
+                select(Empreendimento).order_by(
+                    Empreendimento.criado_em.desc(), Empreendimento.id.desc()
+                )
+            )
+        ).all()
+    )
+
+
+async def listar_empreendimentos_do_gestor(
+    session: AsyncSession, usuario_id: int
+) -> list[Empreendimento]:
+    consulta = (
+        select(Empreendimento)
+        .join(UsuarioEmpreendimento)
+        .where(UsuarioEmpreendimento.usuario_id == usuario_id)
+        .order_by(Empreendimento.criado_em.desc(), Empreendimento.id.desc())
+    )
+    return list((await session.scalars(consulta)).all())
+
+
+async def buscar_empreendimento(session: AsyncSession, empreendimento_id: int) -> Empreendimento:
+    return await _exigir(session, Empreendimento, empreendimento_id)
+
+
+async def atualizar_empreendimento(
+    session: AsyncSession,
+    empreendimento_id: int,
+    dados: EmpreendimentoAtualizar,
+) -> Empreendimento:
+    empreendimento = await buscar_empreendimento(session, empreendimento_id)
+    alteracoes = dados.model_dump(exclude_unset=True, mode="json")
+
+    for campo, valor in alteracoes.items():
+        setattr(empreendimento, campo, valor)
+
+    empreendimento.atualizado_em = datetime.now(UTC)
+    await session.flush()
+    await session.refresh(empreendimento)
+    return empreendimento
 
 
 async def _validar_pai_local(
@@ -51,15 +114,34 @@ async def _validar_pai_local(
 ) -> None:
     pai = await _exigir(session, LocalObra, parent_id) if parent_id is not None else None
     if pai is not None and pai.empreendimento_id != empreendimento_id:
-        raise ValueError("Pai pertence a outro empreendimento")
-    validar_local(tipo, TipoLocal(pai.tipo) if pai else None)
+        raise ValueError("Pai e filho devem pertencer ao mesmo empreendimento")
+
     if movido_id is not None:
         visitados = {movido_id}
-        while pai is not None:
-            if pai.id in visitados:
-                raise ValueError("Ciclo na estrutura da obra")
-            visitados.add(pai.id)
-            pai = await _exigir(session, LocalObra, pai.parent_id) if pai.parent_id else None
+        ancestral = pai
+        while ancestral is not None:
+            if ancestral.id in visitados:
+                raise ValueError("Ciclo detectado na estrutura física do empreendimento")
+            if ancestral.empreendimento_id != empreendimento_id:
+                raise ValueError("Pai e filho devem pertencer ao mesmo empreendimento")
+            visitados.add(ancestral.id)
+            ancestral = (
+                await _exigir(session, LocalObra, ancestral.parent_id)
+                if ancestral.parent_id is not None
+                else None
+            )
+
+    tipo_pai = TipoLocal(pai.tipo) if pai is not None else None
+    if tipo_pai is TipoLocal.UNIDADE:
+        raise ValueError("Unidade não pode possuir filhos")
+    if tipo is TipoLocal.TORRE and tipo_pai is not None:
+        raise ValueError("Torre não pode possuir pai")
+    if tipo is TipoLocal.BLOCO and tipo_pai is not None:
+        raise ValueError("Bloco não pode possuir pai")
+    if tipo is TipoLocal.PAVIMENTO and tipo_pai not in {TipoLocal.TORRE, TipoLocal.BLOCO}:
+        raise ValueError("Pavimento deve possuir torre ou bloco como pai")
+    if tipo is TipoLocal.UNIDADE and tipo_pai is not TipoLocal.PAVIMENTO:
+        raise ValueError("Unidade deve possuir pavimento como pai")
 
 
 async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
@@ -68,7 +150,75 @@ async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
     local = LocalObra(**dados.model_dump())
     session.add(local)
     await session.flush()
+    await session.refresh(local)
     return local
+
+
+async def buscar_local(session: AsyncSession, local_id: int) -> LocalObra:
+    return await _exigir(session, LocalObra, local_id)
+
+
+async def atualizar_local(
+    session: AsyncSession,
+    empreendimento_id: int,
+    local_id: int,
+    dados: LocalAtualizar,
+) -> LocalObra:
+    local = await buscar_local(session, local_id)
+    if local.empreendimento_id != empreendimento_id:
+        raise ValueError("Local não pertence ao empreendimento")
+
+    local.nome = dados.nome
+    local.ordem = dados.ordem
+    local.atualizado_em = datetime.now(UTC)
+    await session.flush()
+    await session.refresh(local)
+    return local
+
+
+async def listar_locais(
+    session: AsyncSession, empreendimento_id: int, *, parent_id: int | None = None
+) -> list[LocalObra]:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    consulta = select(LocalObra).where(
+        LocalObra.empreendimento_id == empreendimento_id,
+        LocalObra.parent_id == parent_id,
+    )
+    return list((await session.scalars(consulta.order_by(LocalObra.ordem, LocalObra.id))).all())
+
+
+async def listar_estrutura_fisica(
+    session: AsyncSession, empreendimento_id: int
+) -> list[LocalHierarquiaLer]:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    locais = list(
+        (
+            await session.scalars(
+                select(LocalObra)
+                .where(LocalObra.empreendimento_id == empreendimento_id)
+                .order_by(LocalObra.ordem, LocalObra.id)
+            )
+        ).all()
+    )
+    nos = {
+        local.id: LocalHierarquiaLer(
+            **LocalLer.model_validate(local).model_dump(),
+            filhos=[],
+        )
+        for local in locais
+    }
+    raizes: list[LocalHierarquiaLer] = []
+
+    for local in locais:
+        no = nos[local.id]
+        if local.parent_id is None:
+            raizes.append(no)
+        else:
+            pai = nos.get(local.parent_id)
+            if pai is not None:
+                pai.filhos.append(no)
+
+    return raizes
 
 
 async def mover_local(session: AsyncSession, local_id: int, parent_id: int | None) -> LocalObra:

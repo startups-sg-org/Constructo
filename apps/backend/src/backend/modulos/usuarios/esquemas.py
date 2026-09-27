@@ -2,8 +2,12 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from backend.modulos.dominio.regras import Papel
+
 
 class CreateUser(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     cpf: str
     nome: str
     sobrenome: str
@@ -14,7 +18,6 @@ class CreateUser(BaseModel):
     receber_atualizacoes: bool = True
     empreendimento: str
     unidade: str
-    ativo: bool = True
 
 
 class LoginUser(BaseModel):
@@ -49,6 +52,13 @@ class UserReturn(BaseModel):
     empreendimento: str
     unidade: str
     ativo: bool
+    papel: Papel
+
+
+class PapelUsuarioAtualizar(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    papel: Papel
 
 
 class UserCount(BaseModel):

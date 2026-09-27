@@ -8,31 +8,40 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy import event
+from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import selectinload
 
 from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio.esquemas import (
+    EmpreendimentoAtualizar,
+    EmpreendimentoCriar,
     EtapaCriar,
     EvidenciaCriar,
     LocalCriar,
+    LocalLer,
     ProgressoMarcoCriar,
     PublicacaoCriar,
 )
 from backend.modulos.dominio.modelos import (
     Empreendimento,
+    LocalObra,
     Marco,
     Taxonomia,
 )
 from backend.modulos.dominio.regras import EstadoMarco, TipoLocal
 from backend.modulos.dominio.servicos import (
     alterar_estado,
+    atualizar_empreendimento,
+    buscar_local,
     calcular_progresso_empreendimento,
     calcular_progresso_unidade,
+    criar_empreendimento,
     criar_etapa,
     criar_local,
     criar_progresso,
     criar_publicacao,
+    listar_locais,
     mover_etapa,
     mover_local,
     pode_ler_unidade,
@@ -158,6 +167,71 @@ def test_hierarquias_vinculos_e_ciclos():
     asyncio.run(executar())
 
 
+def test_local_obra_persiste_campos_e_relacionamentos():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                _, _, _, obra, _, _, _ = await base(session)
+                torre = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome=" Torre A ",
+                        tipo=TipoLocal.TORRE,
+                        ordem=2,
+                    ),
+                )
+                bloco = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome="Bloco B",
+                        tipo=TipoLocal.BLOCO,
+                        ordem=1,
+                    ),
+                )
+                pavimento = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        parent_id=bloco.id,
+                        nome="1º pavimento",
+                        tipo=TipoLocal.PAVIMENTO,
+                    ),
+                )
+                await session.commit()
+
+            async with factory() as session:
+                raizes = await listar_locais(session, obra.id)
+                assert [local.id for local in raizes] == [bloco.id, torre.id]
+
+                encontrado = await buscar_local(session, pavimento.id)
+                assert encontrado.tipo is TipoLocal.PAVIMENTO
+                assert encontrado.ordem == 0
+                assert encontrado.criado_em is not None
+                assert encontrado.atualizado_em is not None
+                assert LocalLer.model_validate(encontrado).nome == "1º pavimento"
+
+                empreendimento = await session.scalar(
+                    select(Empreendimento)
+                    .where(Empreendimento.id == obra.id)
+                    .options(
+                        selectinload(Empreendimento.locais_obra).selectinload(LocalObra.filhos),
+                        selectinload(Empreendimento.locais_obra).selectinload(LocalObra.pai),
+                    )
+                )
+                assert empreendimento is not None
+                locais = {local.id: local for local in empreendimento.locais_obra}
+                assert locais[bloco.id].filhos == [locais[pavimento.id]]
+                assert locais[pavimento.id].pai is locais[bloco.id]
+                assert all(local.empreendimento is empreendimento for local in locais.values())
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
 def test_progresso_publicacao_e_isolamento_de_empreendimento():
     async def executar():
         engine, factory = await cenario()
@@ -266,6 +340,87 @@ def test_progresso_publicacao_e_isolamento_de_empreendimento():
                 assert progresso.concluido_em is None
                 assert await calcular_progresso_unidade(session, unidade.id) == 0
                 await session.rollback()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_cria_e_persiste_empreendimento():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                criado = await criar_empreendimento(
+                    session,
+                    EmpreendimentoCriar(
+                        nome="  Residencial Aurora  ",
+                        descricao="  Duas torres  ",
+                        endereco="  Avenida Central, 100  ",
+                        status="EM_ANDAMENTO",
+                    ),
+                )
+                identificador = criado.id
+                await session.commit()
+
+            async with factory() as session:
+                persistido = await session.scalar(
+                    select(Empreendimento).where(Empreendimento.id == identificador)
+                )
+                assert persistido is not None
+                assert persistido.nome == "Residencial Aurora"
+                assert persistido.descricao == "Duas torres"
+                assert persistido.endereco == "Avenida Central, 100"
+                assert persistido.status == "EM_ANDAMENTO"
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_atualiza_empreendimento_sem_alterar_campos_ausentes_ou_estrutura():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                obra = await criar_empreendimento(
+                    session,
+                    EmpreendimentoCriar(
+                        nome="Aurora",
+                        descricao="Duas torres",
+                        endereco="Avenida Central, 100",
+                        status="PLANEJADO",
+                    ),
+                )
+                local = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        nome="Torre A",
+                        tipo=TipoLocal.TORRE,
+                    ),
+                )
+                atualizado_em_anterior = obra.atualizado_em
+
+                atualizado = await atualizar_empreendimento(
+                    session,
+                    obra.id,
+                    EmpreendimentoAtualizar(nome="Aurora Norte"),
+                )
+
+                assert atualizado.nome == "Aurora Norte"
+                assert atualizado.descricao == "Duas torres"
+                assert atualizado.endereco == "Avenida Central, 100"
+                assert atualizado.status == "PLANEJADO"
+                assert atualizado.atualizado_em != atualizado_em_anterior
+                locais = (
+                    await session.scalars(
+                        select(LocalObra).where(LocalObra.empreendimento_id == obra.id)
+                    )
+                ).all()
+                assert [(item.id, item.nome, item.parent_id) for item in locais] == [
+                    (local.id, "Torre A", None)
+                ]
         finally:
             await engine.dispose()
 
