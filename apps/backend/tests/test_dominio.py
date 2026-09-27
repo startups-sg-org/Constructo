@@ -4,7 +4,7 @@ from sqlalchemy.orm import configure_mappers
 
 from backend.banco_de_dados.connections.database_postgres import Base
 from backend.modulos.dominio import modelos as dominio  # noqa: F401
-from backend.modulos.dominio.esquemas import LocalCriar, PublicacaoCriar
+from backend.modulos.dominio.esquemas import LocalCriar, PublicacaoCriar, TaxonomiaCriar, TaxonomiaLer
 from backend.modulos.dominio.regras import (
     EstadoMarco,
     TipoLocal,
@@ -57,3 +57,18 @@ def test_esquemas_rejeitam_dados_invalidos():
         LocalCriar(empreendimento_id=1, nome="", tipo="UNIDADE")
     with pytest.raises(ValidationError):
         PublicacaoCriar(progresso_marco_id=1, titulo="", texto_cliente="")
+
+
+def test_schema_taxonomia_tem_campos_de_padrao_e_auditoria():
+    criar = TaxonomiaCriar(empreendimento_id=1, nome="Padrão", is_padrao=True)
+    assert criar.is_padrao is True
+    leitura = TaxonomiaLer(
+        id=1,
+        empreendimento_id=1,
+        nome="Padrão",
+        descricao=None,
+        is_padrao=True,
+        criado_em="2026-09-27T00:00:00Z",
+        atualizado_em="2026-09-27T00:00:00Z",
+    )
+    assert leitura.is_padrao is True

@@ -18,6 +18,7 @@ from backend.modulos.dominio.esquemas import (
     LocalCriar,
     ProgressoMarcoCriar,
     PublicacaoCriar,
+    TaxonomiaCriar,
 )
 from backend.modulos.dominio.modelos import (
     Empreendimento,
@@ -30,6 +31,7 @@ from backend.modulos.dominio.servicos import (
     calcular_progresso_empreendimento,
     calcular_progresso_unidade,
     criar_etapa,
+    criar_taxonomia,
     criar_local,
     criar_progresso,
     criar_publicacao,
@@ -154,6 +156,34 @@ def test_hierarquias_vinculos_e_ciclos():
                 await session.rollback()
         finally:
             await engine.dispose()
+
+
+def test_criar_taxonomia_valida_empreendimento_e_persiste_campos():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                obra = Empreendimento(nome="Aurora")
+                session.add(obra)
+                await session.flush()
+                taxonomia = await criar_taxonomia(
+                    session,
+                    TaxonomiaCriar(
+                        empreendimento_id=obra.id,
+                        nome="Padrão",
+                        descricao="Estrutura principal",
+                        is_padrao=True,
+                    ),
+                )
+                assert taxonomia.is_padrao is True
+                assert taxonomia.criado_em is not None
+                assert taxonomia.atualizado_em is not None
+                assert taxonomia.empreendimento_id == obra.id
+                await session.rollback()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
 
     asyncio.run(executar())
 

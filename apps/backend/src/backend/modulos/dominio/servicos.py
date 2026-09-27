@@ -10,7 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modulos.usuarios.modelos import Usuario
 
-from .esquemas import EtapaCriar, EvidenciaCriar, LocalCriar, ProgressoMarcoCriar, PublicacaoCriar
+from .esquemas import (
+    EtapaCriar,
+    EvidenciaCriar,
+    LocalCriar,
+    ProgressoMarcoCriar,
+    PublicacaoCriar,
+    TaxonomiaCriar,
+)
 from .modelos import (
     Empreendimento,
     Etapa,
@@ -69,6 +76,14 @@ async def criar_local(session: AsyncSession, dados: LocalCriar) -> LocalObra:
     session.add(local)
     await session.flush()
     return local
+
+
+async def criar_taxonomia(session: AsyncSession, dados: TaxonomiaCriar) -> Taxonomia:
+    await _exigir(session, Empreendimento, dados.empreendimento_id)
+    taxonomia = Taxonomia(**dados.model_dump())
+    session.add(taxonomia)
+    await session.flush()
+    return taxonomia
 
 
 async def mover_local(session: AsyncSession, local_id: int, parent_id: int | None) -> LocalObra:

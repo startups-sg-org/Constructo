@@ -65,12 +65,21 @@ class LocalObra(Base):
 
 class Taxonomia(Base):
     __tablename__ = "taxonomias"
+
     id: Mapped[int] = mapped_column(primary_key=True)
     empreendimento_id: Mapped[int] = mapped_column(
         ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=False, unique=True
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
+    is_padrao: Mapped[bool] = mapped_column(nullable=False, server_default="false")
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    etapas: Mapped[list["Etapa"]] = relationship(back_populates="taxonomia")
 
 
 class Etapa(Base):
@@ -95,6 +104,7 @@ class Etapa(Base):
     descricao_tecnica: Mapped[str | None] = mapped_column(Text)
     descricao_cliente: Mapped[str | None] = mapped_column(Text)
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    taxonomia: Mapped[Taxonomia] = relationship(back_populates="etapas")
 
 
 class Marco(Base):

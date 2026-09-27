@@ -38,10 +38,12 @@ class TaxonomiaCriar(BaseModel):
     empreendimento_id: int
     nome: str = Field(min_length=1, max_length=200)
     descricao: str | None = None
+    is_padrao: bool = False
 
 
 class TaxonomiaLer(Leitura, TaxonomiaCriar):
-    pass
+    criado_em: datetime
+    atualizado_em: datetime
 
 
 class EtapaCriar(BaseModel):
