@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .empresas_schema import EmpresaLite_FromDB_Schema
 
@@ -65,8 +65,7 @@ class Contrato_FromDB_Schema(BaseModel):
     atualizado_em: datetime
     finalizado_em: datetime | None  
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ContratoResumo_FromDB_Schema(BaseModel):
@@ -79,5 +78,4 @@ class ContratoResumo_FromDB_Schema(BaseModel):
     valor_total: Decimal
     status: StatusContratoEnum
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

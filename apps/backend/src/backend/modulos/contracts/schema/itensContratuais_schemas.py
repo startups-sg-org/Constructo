@@ -1,7 +1,7 @@
 import uuid
 from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ItemContratual_FromRequest_Schema(BaseModel):
@@ -49,5 +49,4 @@ class ItemContratual_FromDB_Schema(BaseModel):
     criado_em: datetime
     atualizado_em: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, field_validator, EmailStr
 import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
+
+
 
 
 
@@ -76,8 +78,7 @@ class Empresa_FromDB_Schema(BaseModel):
     criado_em: datetime
     atualizado_em: datetime
  
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
  
  
 class EmpresaResumo_FromDB_Schema(BaseModel):
@@ -90,8 +91,7 @@ class EmpresaResumo_FromDB_Schema(BaseModel):
     cnpj: str
     ativo: bool
  
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
  
  
 class EmpresaLite_FromDB_Schema(BaseModel):
@@ -102,5 +102,5 @@ class EmpresaLite_FromDB_Schema(BaseModel):
     id: uuid.UUID
     nome_fantasia: str
  
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
