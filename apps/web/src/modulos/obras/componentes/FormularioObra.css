@@ -1,0 +1,114 @@
+.obra-form-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.obra-form {
+    display: grid;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.obra-form__secao {
+    display: grid;
+    gap: 16px;
+}
+
+.obra-form__secao h3 {
+    color: #20453f;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.obra-form__grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.obra-form__campo--largo {
+    grid-column: 1 / -1;
+}
+
+.obra-form__campo--largo textarea {
+    resize: vertical;
+    min-height: 80px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.obra-form__campo--largo textarea:focus {
+    border-color: #2563eb;
+    outline: 3px solid rgb(37 99 235 / 12%);
+}
+
+.obra-form__erro {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0;
+    padding: 11px 12px;
+    border-radius: 8px;
+    background: #fef2f2;
+}
+
+.obra-form__erro-icone {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    border-radius: 50%;
+    color: #fff;
+    background: #b44338;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.obra-form__acoes {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+}
+
+.obra-form__acoes .botao {
+    min-width: 180px;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+}
+
+.obra-form__acoes .botao:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .obra-form {
+        gap: 20px;
+    }
+
+    .obra-form__grade {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .obra-form__campo--largo {
+        grid-column: auto;
+    }
+
+    .obra-form__acoes {
+        justify-content: stretch;
+    }
+
+    .obra-form__acoes .botao {
+        width: 100%;
+    }
+}

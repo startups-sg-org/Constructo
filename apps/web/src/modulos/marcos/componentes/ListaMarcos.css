@@ -1,0 +1,78 @@
+.lista-marcos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lista-marcos-filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.lista-marcos-filtro-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lista-marcos-filtro-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.lista-marcos-filtro-btn.ativo {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.lista-marcos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lista-marcos-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.lista-marcos-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lista-marcos-item-titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.lista-marcos-item-link {
+  font-size: 0.85rem;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lista-marcos-item-link:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,376 @@
+/* ==========================================================================
+   IndicadorProtocolo - Design Tokens & Styles
+   ========================================================================== */
+
+.indicador-protocolo {
+  --ip-radius: 10px;
+  --ip-radius-sm: 6px;
+  --ip-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Status Colors & Variations
+   -------------------------------------------------------------------------- */
+.indicador-protocolo--completo {
+  --status-bg: #ecfdf5;
+  --status-border: #a7f3d0;
+  --status-text: #065f46;
+  --status-badge-bg: #d1fae5;
+  --status-badge-text: #047857;
+  --status-accent: #10b981;
+  --status-icon-bg: #10b981;
+}
+
+.indicador-protocolo--incompleto {
+  --status-bg: #fffbeb;
+  --status-border: #fde68a;
+  --status-text: #92400e;
+  --status-badge-bg: #fef3c7;
+  --status-badge-text: #b45309;
+  --status-accent: #f59e0b;
+  --status-icon-bg: #f59e0b;
+}
+
+.indicador-protocolo--sem-protocolo {
+  --status-bg: #f8fafc;
+  --status-border: #e2e8f0;
+  --status-text: #475569;
+  --status-badge-bg: #f1f5f9;
+  --status-badge-text: #64748b;
+  --status-accent: #94a3b8;
+  --status-icon-bg: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+   Badge Variant
+   -------------------------------------------------------------------------- */
+.indicador-protocolo__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background-color: var(--status-badge-bg);
+  color: var(--status-badge-text);
+  border: 1px solid var(--status-border);
+  transition: var(--ip-transition);
+}
+
+.indicador-protocolo__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--status-accent);
+}
+
+.indicador-protocolo__badge-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding-left: 4px;
+  border-left: 1px solid var(--status-border);
+  opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   Compact / Row Variant (Lista de Marcos)
+   -------------------------------------------------------------------------- */
+.indicador-protocolo--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--ip-radius);
+  transition: var(--ip-transition);
+}
+
+.indicador-protocolo--compact:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.indicador-protocolo__compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.indicador-protocolo__compact-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.indicador-protocolo__compact-quantidades {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.indicador-protocolo__toggle-pendencias {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--ip-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: var(--ip-transition);
+}
+
+.indicador-protocolo__toggle-pendencias:hover {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* --------------------------------------------------------------------------
+   Card / Detalhado Variant (Página do Marco / Painel)
+   -------------------------------------------------------------------------- */
+.indicador-protocolo--card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.indicador-protocolo__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.indicador-protocolo__marco-titulo {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.indicador-protocolo__marco-subtitulo {
+  font-size: 0.825rem;
+  color: #64748b;
+}
+
+/* Progress bar */
+.indicador-protocolo__progresso-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.indicador-protocolo__progresso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.indicador-protocolo__barra-trilho {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.indicador-protocolo__barra-preenchimento {
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--status-accent);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Pendências & Checklist List
+   -------------------------------------------------------------------------- */
+.indicador-protocolo__pendencias-container {
+  background-color: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-radius: var(--ip-radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: ipFadeIn 0.2s ease-out;
+}
+
+.indicador-protocolo__pendencias-titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--status-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.indicador-protocolo__lista-pendencias {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.indicador-protocolo__item-pendencia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--ip-radius-sm);
+  font-size: 0.85rem;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.indicador-protocolo__item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indicador-protocolo__item-status-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+
+.indicador-protocolo__item-status-icone--pendente {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.indicador-protocolo__item-status-icone--atendido {
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.indicador-protocolo__botao-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--ip-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ip-transition);
+}
+
+.indicador-protocolo__botao-upload:hover {
+  background-color: #1d4ed8;
+}
+
+.indicador-protocolo__botao-upload:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Checklist Variant (Checklist de Captura)
+   -------------------------------------------------------------------------- */
+.indicador-protocolo--checklist {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.indicador-protocolo__checklist-resumo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-radius: var(--ip-radius);
+}
+
+.indicador-protocolo__checklist-itens {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.indicador-protocolo__checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--ip-radius);
+  background-color: #ffffff;
+  transition: var(--ip-transition);
+}
+
+.indicador-protocolo__checklist-item--atendido {
+  border-color: #a7f3d0;
+  background-color: #f0fdf4;
+}
+
+.indicador-protocolo__checklist-item--pendente {
+  border-color: #fde68a;
+  background-color: #fffdf5;
+}
+
+.indicador-protocolo__checklist-item-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.indicador-protocolo__checklist-item-nome {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.indicador-protocolo__checklist-item-subtexto {
+  font-size: 0.775rem;
+  color: #64748b;
+}
+
+@keyframes ipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

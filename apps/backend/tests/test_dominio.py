@@ -7,7 +7,9 @@ from backend.modulos.dominio import modelos as dominio  # noqa: F401
 from backend.modulos.dominio.esquemas import LocalCriar, PublicacaoCriar
 from backend.modulos.dominio.regras import (
     EstadoMarco,
+    EstadoProtocolo,
     TipoLocal,
+    calcular_estado_protocolo,
     calcular_progresso,
     validar_local,
     validar_transicao,
@@ -52,8 +54,17 @@ def test_progresso_conta_todos_os_marcos_e_caso_vazio():
     )
 
 
+def test_estado_protocolo():
+    assert calcular_estado_protocolo(0, 0) == EstadoProtocolo.SEM_PROTOCOLO
+    assert calcular_estado_protocolo(5, 0) == EstadoProtocolo.INCOMPLETO
+    assert calcular_estado_protocolo(5, 3) == EstadoProtocolo.INCOMPLETO
+    assert calcular_estado_protocolo(5, 5) == EstadoProtocolo.COMPLETO
+    assert calcular_estado_protocolo(5, 6) == EstadoProtocolo.COMPLETO
+
+
 def test_esquemas_rejeitam_dados_invalidos():
     with pytest.raises(ValidationError):
         LocalCriar(empreendimento_id=1, nome="", tipo="UNIDADE")
     with pytest.raises(ValidationError):
         PublicacaoCriar(progresso_marco_id=1, titulo="", texto_cliente="")
+

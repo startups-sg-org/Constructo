@@ -44,6 +44,24 @@ def validar_local(tipo: TipoLocal, pai: TipoLocal | None) -> None:
         raise ValueError(f"{tipo} requer pai {esperado}")
 
 
+class EstadoProtocolo(StrEnum):
+    SEM_PROTOCOLO = "SEM_PROTOCOLO"
+    INCOMPLETO = "INCOMPLETO"
+    COMPLETO = "COMPLETO"
+
+
+def calcular_estado_protocolo(
+    total_necessario: int,
+    total_registrado: int,
+) -> EstadoProtocolo:
+    """Calcula o estado do protocolo de evidências."""
+    if total_necessario <= 0:
+        return EstadoProtocolo.SEM_PROTOCOLO
+    if total_registrado >= total_necessario:
+        return EstadoProtocolo.COMPLETO
+    return EstadoProtocolo.INCOMPLETO
+
+
 def calcular_progresso(estados: Iterable[EstadoMarco]) -> int:
     """Percentual inteiro dos marcos aplicáveis à unidade; sem marcos, zero."""
     valores = list(estados)
@@ -52,3 +70,4 @@ def calcular_progresso(estados: Iterable[EstadoMarco]) -> int:
         if valores
         else 0
     )
+

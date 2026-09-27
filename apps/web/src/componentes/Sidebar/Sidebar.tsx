@@ -20,9 +20,11 @@ const itensNavegacao: ItemNavegacao[] = [
     { rotulo: "Home", rota: "/admin", icone: IconeHome, exato: true },
     { rotulo: "Usuários", rota: "/admin/usuarios", icone: IconeUsuarios },
     { rotulo: "Obras", rota: "/admin/obras", icone: IconeObras },
+    { rotulo: "Marcos", rota: "/admin/marcos", icone: IconeChecklist },
     { rotulo: "Contratos", rota: "/admin/contratos", icone: IconeContratos },
     { rotulo: "Medições", rota: "/admin/medicoes", icone: IconeMedicoes }
 ];
+
 
 export default function Sidebar({ className = "" }: SidebarProps) {
     const [aberta, setAberta] = useState(true);
@@ -146,3 +148,15 @@ function IconeMedicoes(props: IconeProps) {
         </svg>
     );
 }
+
+function IconeChecklist(props: IconeProps) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            <path d="M9 7h3" />
+            <path d="M9 17h8" />
+        </svg>
+    );
+}
+
