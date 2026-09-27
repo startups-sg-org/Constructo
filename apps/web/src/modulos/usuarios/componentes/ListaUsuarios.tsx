@@ -3,6 +3,7 @@ import {
     useFetcher,
     useLoaderData,
 } from "react-router-dom";
+import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
 import type { UsuariosActionData } from "../../../features/usuarios/usuarios.action";
 import { carregarUsuarios } from "../../../features/usuarios/usuarios.loader";
 import EditarUsuario from "./EditarUsuario";
@@ -20,16 +21,16 @@ export default function ListaUsuarios() {
         fetcherExclusao.formData?.get("intent") === "delete"
             ? Number(fetcherExclusao.formData.get("usuarioId"))
             : null;
-    const erroExclusao =
-        fetcherExclusao.data?.intent === "delete" && "erro" in fetcherExclusao.data
+    const erroAcao =
+        fetcherExclusao.data && "erro" in fetcherExclusao.data
             ? fetcherExclusao.data.erro
             : undefined;
 
     return (
         <div className="lista-usuarios">
-            {erroExclusao && (
+            {erroAcao && (
                 <div className="lista-usuarios__erro" role="alert">
-                    {erroExclusao}
+                    {erroAcao}
                 </div>
             )}
 
@@ -49,6 +50,7 @@ export default function ListaUsuarios() {
                                     <th>Telefone</th>
                                     <th>E-mail</th>
                                     <th>Status</th>
+                                    <th>Papel</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -59,12 +61,34 @@ export default function ListaUsuarios() {
                                         <td data-label="Sobrenome">{usuario.sobrenome}</td>
                                         <td data-label="Telefone">{formatarTelefone(usuario.telefone)}</td>
                                         <td data-label="E-mail">{usuario.email}</td>
-                                        <td data-label="Status">
-                                            <span
-                                                className={`lista-usuarios__status lista-usuarios__status--${usuario.ativo ? "ativo" : "inativo"}`}
+                                        <td data-label="Papel">
+                                            <fetcherExclusao.Form
+                                                method="post"
+                                                className="lista-usuarios__papel"
                                             >
+                                                <input name="intent" type="hidden" value="update-role" />
+                                                <input name="usuarioId" type="hidden" value={usuario.id} />
+                                                <select
+                                                    name="papel"
+                                                    defaultValue={usuario.papel}
+                                                    aria-label={`Papel de ${usuario.nome}`}
+                                                >
+                                                    <option value="ADMIN">Administrador</option>
+                                                    <option value="GESTOR">Gestor</option>
+                                                    <option value="COMPRADOR">Comprador</option>
+                                                </select>
+                                                <button
+                                                    className="botao secundario"
+                                                    type="submit"
+                                                >
+                                                    Salvar
+                                                </button>
+                                            </fetcherExclusao.Form>
+                                        </td>
+                                        <td data-label="Status">
+                                            <BadgeStatus tom={usuario.ativo ? "sucesso" : "erro"}>
                                                 {usuario.ativo ? "Ativo" : "Inativo"}
-                                            </span>
+                                            </BadgeStatus>
                                         </td>
                                         <td data-label="Ações">
                                             <div className="lista-usuarios__acoes">

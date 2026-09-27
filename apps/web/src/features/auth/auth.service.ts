@@ -1,17 +1,17 @@
-import type { UserReponse } from "@constructo/shared";
+import type { UserResponse } from "@constructo/shared";
 
 import { apiRequest, type ServiceRequestOptions } from "../../services/api";
 
 type LoginResponse = {
     mensagem: string;
-    usuario: UserReponse;
+    usuario: UserResponse;
 };
 
 export async function loginUser(
     email: string,
     senha: string,
     options?: ServiceRequestOptions,
-): Promise<UserReponse> {
+): Promise<UserResponse> {
     const result = await apiRequest<LoginResponse>("/login", {
         method: "POST",
         body: JSON.stringify({ email, senha }),
@@ -23,8 +23,8 @@ export async function loginUser(
 
 export function getAuthenticatedUser(
     options?: ServiceRequestOptions,
-): Promise<UserReponse> {
-    return apiRequest<UserReponse>("/sessao", { signal: options?.signal });
+): Promise<UserResponse> {
+    return apiRequest<UserResponse>("/sessao", { signal: options?.signal });
 }
 
 export function logoutUser(options?: ServiceRequestOptions): Promise<void> {

@@ -1,0 +1,124 @@
+.structure-tree,
+.structure-tree__group {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.structure-tree {
+    margin-top: 18px;
+}
+
+.structure-tree__group {
+    position: relative;
+    margin: 6px 0 0 21px;
+    padding-left: 26px;
+}
+
+.structure-tree__group::before {
+    position: absolute;
+    inset: 0 auto 8px 8px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--cor-borda);
+    content: "";
+}
+
+.structure-tree__item {
+    border-radius: var(--raio-campo);
+    outline: none;
+}
+
+.structure-tree__item:focus-visible > .structure-tree__row {
+    box-shadow: 0 0 0 3px rgb(47 118 104 / 18%);
+}
+
+.structure-tree__item[aria-selected="true"] > .structure-tree__row {
+    border-color: #7fa59b;
+    background: #eef6f3;
+}
+
+.structure-tree__row {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-campo);
+    background: var(--cor-superficie);
+    cursor: pointer;
+}
+
+.structure-tree__toggle {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    place-items: center;
+    border: 0;
+    border-radius: 7px;
+    color: var(--cor-sucesso);
+    background: var(--cor-sucesso-fundo);
+    font-size: 1.15rem;
+    cursor: pointer;
+}
+
+.structure-tree__leaf {
+    width: 28px;
+    flex: none;
+}
+
+.structure-tree__icon {
+    width: 10px;
+    height: 10px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--cor-sucesso);
+}
+
+.structure-tree__item--pavimento > .structure-tree__row .structure-tree__icon {
+    border-radius: 2px;
+    background: #547f76;
+}
+
+.structure-tree__item--unidade > .structure-tree__row .structure-tree__icon {
+    border: 2px solid #82958f;
+    background: transparent;
+}
+
+.structure-tree__name {
+    color: var(--cor-texto-forte);
+    font-weight: 700;
+}
+
+.structure-tree__type {
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: #526762;
+    background: #edf2f0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.structure-tree__actions {
+    margin-left: auto;
+}
+
+@media (max-width: 700px) {
+    .structure-tree__row {
+        flex-wrap: wrap;
+    }
+
+    .structure-tree__actions {
+        width: 100%;
+        margin-left: 48px;
+    }
+
+    .structure-tree__actions .botao {
+        width: 100%;
+    }
+}

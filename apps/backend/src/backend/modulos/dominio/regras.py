@@ -10,8 +10,16 @@ class Papel(StrEnum):
     COMPRADOR = "COMPRADOR"
 
 
+class StatusEmpreendimento(StrEnum):
+    PLANEJADO = "PLANEJADO"
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDO = "CONCLUIDO"
+    INATIVO = "INATIVO"
+
+
 class TipoLocal(StrEnum):
     TORRE = "TORRE"
+    BLOCO = "BLOCO"
     PAVIMENTO = "PAVIMENTO"
     UNIDADE = "UNIDADE"
 
@@ -32,16 +40,6 @@ TRANSICOES = {
 def validar_transicao(atual: EstadoMarco, proximo: EstadoMarco) -> None:
     if proximo not in TRANSICOES[atual]:
         raise ValueError(f"Transição inválida: {atual} → {proximo}")
-
-
-def validar_local(tipo: TipoLocal, pai: TipoLocal | None) -> None:
-    esperado = {
-        TipoLocal.TORRE: None,
-        TipoLocal.PAVIMENTO: TipoLocal.TORRE,
-        TipoLocal.UNIDADE: TipoLocal.PAVIMENTO,
-    }[tipo]
-    if pai != esperado:
-        raise ValueError(f"{tipo} requer pai {esperado}")
 
 
 def calcular_progresso(estados: Iterable[EstadoMarco]) -> int:

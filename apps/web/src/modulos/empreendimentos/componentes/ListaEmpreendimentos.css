@@ -1,0 +1,101 @@
+.lista-empreendimentos {
+    margin-top: 32px;
+}
+
+.card-empreendimento__cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.lista-empreendimentos__grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.card-empreendimento {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 22px;
+}
+
+.card-empreendimento__legenda {
+    margin-bottom: 5px;
+    color: #7a8784;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.card-empreendimento h3 {
+    color: #153b36;
+    font-size: 1.08rem;
+    overflow-wrap: anywhere;
+}
+
+.card-empreendimento__dados {
+    display: grid;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.card-empreendimento__acoes,
+.detalhes-empreendimento__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid #edf0ef;
+}
+
+.card-empreendimento__acoes .botao {
+    padding: 8px 13px;
+    font-size: 0.82rem;
+}
+
+.lista-empreendimentos__vazia {
+    margin-top: 18px;
+}
+
+.detalhes-empreendimento {
+    margin-top: 32px;
+    padding: clamp(22px, 4vw, 32px);
+}
+
+.detalhes-empreendimento__dados {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin: 26px 0;
+}
+
+.detalhes-empreendimento__descricao {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+    .lista-empreendimentos__grade,
+    .detalhes-empreendimento__dados {
+        grid-template-columns: 1fr;
+    }
+
+    .card-empreendimento__cabecalho {
+        flex-direction: column;
+    }
+
+    .detalhes-empreendimento__descricao {
+        grid-column: auto;
+    }
+
+    .card-empreendimento__acoes .botao,
+    .detalhes-empreendimento__acoes .botao {
+        width: 100%;
+    }
+}

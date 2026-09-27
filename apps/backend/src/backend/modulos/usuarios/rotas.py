@@ -3,10 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from sqlalchemy.exc import IntegrityError
 
+from backend.modulos.dominio.regras import Papel
 from backend.modulos.usuarios.esquemas import (
     CreateUser,
     LoginReturn,
     LoginUser,
+    PapelUsuarioAtualizar,
     UpdateUser,
     UserCount,
     UserReturn,
@@ -18,7 +20,7 @@ from backend.modulos.usuarios.repositorio import (
 )
 from backend.modulos.usuarios.senhas import gerar_senha_hash, verificar_senha
 
-router = APIRouter(prefix="/users", tags=["Usuários"])
+router = APIRouter()
 
 
 async def get_usuario_autenticado(
@@ -33,6 +35,22 @@ async def get_usuario_autenticado(
     if not usuario or not usuario.ativo:
         raise HTTPException(status_code=401, detail="Sessão inválida")
 
+    return usuario
+
+
+async def get_admin(
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Usuario:
+    if usuario.papel != Papel.ADMIN:
+        raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
+    return usuario
+
+
+async def get_admin_ou_gestor(
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+) -> Usuario:
+    if usuario.papel not in {Papel.ADMIN, Papel.GESTOR}:
+        raise HTTPException(status_code=403, detail="Acesso restrito ao painel administrativo")
     return usuario
 
 
@@ -103,7 +121,6 @@ async def criar_usuario(
             receber_atualizacoes=usuario.receber_atualizacoes,
             empreendimento=usuario.empreendimento,
             unidade=usuario.unidade,
-            ativo=usuario.ativo,
         )
     except IntegrityError as erro:
         await repositorio.session.rollback()
@@ -113,7 +130,7 @@ async def criar_usuario(
 @router.get("/usuarios/quantidade", response_model=UserCount)
 async def consultar_quantidade_de_usuarios(
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    _: Annotated[Usuario, Depends(get_admin)],
 ) -> UserCount:
     return UserCount(total=await repositorio.contar_usuarios())
 
@@ -121,7 +138,7 @@ async def consultar_quantidade_de_usuarios(
 @router.get("/usuarios/", response_model=list[UserReturn])
 async def listar_usuarios(
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    _: Annotated[Usuario, Depends(get_admin)],
 ) -> list[Usuario]:
     return await repositorio.listar_usuarios()
 
@@ -130,7 +147,7 @@ async def listar_usuarios(
 async def consultar_usuario(
     usuario_id: int,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    _: Annotated[Usuario, Depends(get_admin)],
 ) -> Usuario:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
@@ -142,11 +159,20 @@ async def consultar_usuario(
 async def excluir_usuario(
     usuario_id: int,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    _: Annotated[Usuario, Depends(get_admin)],
 ) -> Response:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if (
+        usuario.papel == Papel.ADMIN
+        and usuario.ativo
+        and await repositorio.contar_administradores_ativos() <= 1
+    ):
+        raise HTTPException(
+            status_code=400, detail="O último administrador ativo não pode ser excluído"
+        )
 
     await repositorio.excluir_usuario(usuario)
     return Response(status_code=204)
@@ -157,7 +183,7 @@ async def atualizar_usuario(
     usuario_id: int,
     dados: UpdateUser,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    _: Annotated[Usuario, Depends(get_admin)],
 ) -> Usuario:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
@@ -166,6 +192,16 @@ async def atualizar_usuario(
     usuario_com_email = await repositorio.buscar_usuario_por_email(str(dados.email))
     if usuario_com_email and usuario_com_email.id != usuario_id:
         raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+
+    if (
+        usuario.papel == Papel.ADMIN
+        and usuario.ativo
+        and not dados.ativo
+        and await repositorio.contar_administradores_ativos() <= 1
+    ):
+        raise HTTPException(
+            status_code=400, detail="O último administrador ativo não pode ser desativado"
+        )
 
     try:
         return await repositorio.atualizar_usuario(
@@ -184,3 +220,35 @@ async def atualizar_usuario(
     except IntegrityError as erro:
         await repositorio.session.rollback()
         raise HTTPException(status_code=400, detail="E-mail já cadastrado") from erro
+
+
+@router.patch("/usuarios/{usuario_id}/papel", response_model=UserReturn)
+async def atualizar_papel_usuario(
+    usuario_id: int,
+    dados: PapelUsuarioAtualizar,
+    repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
+    admin: Annotated[Usuario, Depends(get_admin)],
+) -> Usuario:
+    usuario = await repositorio.buscar_usuario_por_id(usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if usuario.papel == dados.papel:
+        return usuario
+
+    if (
+        usuario.papel == Papel.ADMIN
+        and usuario.ativo
+        and dados.papel != Papel.ADMIN
+        and await repositorio.contar_administradores_ativos() <= 1
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="O último administrador ativo não pode ser rebaixado",
+        )
+
+    return await repositorio.alterar_papel(
+        usuario,
+        dados.papel,
+        alterado_por_id=admin.id,
+    )

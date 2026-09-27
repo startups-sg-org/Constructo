@@ -83,6 +83,22 @@ POSTGRES_PORT=5432
 
 ---
 
+## 🔑 Primeiro administrador
+
+O cadastro público sempre cria usuários com o papel `COMPRADOR` e rejeita campos
+administrativos enviados manualmente. Depois de cadastrar a conta que administrará o
+ambiente, promova-a explicitamente com os serviços em execução:
+
+```bash
+docker compose exec backend python scripts/promover_admin.py --email admin@empresa.com
+```
+
+Fora do Docker, execute `uv run python scripts/promover_admin.py --email admin@empresa.com`.
+O comando registra a promoção na auditoria de papéis. Depois do bootstrap, alterações de
+papel devem ser feitas por um administrador autenticado na tela de usuários. O sistema
+impede rebaixar, desativar ou excluir o último administrador ativo.
+
+
 ## 🏃 Como Rodar a Aplicação
 
 ### 1. Modo Recomendado: Docker Compose Watch (Hot-Reload & Auto-Rebuild)
