@@ -3,7 +3,6 @@ from datetime import datetime
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    Enum,
     ForeignKey,
     ForeignKeyConstraint,
     Integer,
@@ -13,10 +12,26 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from backend.banco_de_dados.connections.database_postgres import Base
 
 from .regras import TipoLocal
+
+
+class TipoLocalBanco(TypeDecorator[TipoLocal]):
+    impl = String(20)
+    cache_ok = True
+
+    def process_bind_param(self, value: TipoLocal | str | None, dialect) -> str | None:
+        if value is None:
+            return None
+        return value.value if isinstance(value, TipoLocal) else value
+
+    def process_result_value(self, value: str | None, dialect) -> TipoLocal | None:
+        if value is None:
+            return None
+        return TipoLocal(value)
 
 
 class Empreendimento(Base):
@@ -67,7 +82,7 @@ class LocalObra(Base):
     parent_id: Mapped[int | None] = mapped_column(Integer, index=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     tipo: Mapped[TipoLocal] = mapped_column(
-        Enum(TipoLocal, name="tipo_local", native_enum=False, create_constraint=False),
+        TipoLocalBanco(),
         nullable=False,
     )
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
