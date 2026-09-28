@@ -17,6 +17,7 @@ from sqlalchemy.types import TypeDecorator
 from backend.banco_de_dados.connections.database_postgres import Base
 
 from .regras import TipoLocal
+from .regras import ProgressStatus
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):
@@ -93,6 +94,7 @@ class LocalObra(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
     empreendimento: Mapped["Empreendimento"] = relationship(back_populates="locais_obra")
+    progressos_marco: Mapped[list["ProgressoMarco"]] = relationship(back_populates="local_obra")
     filhos: Mapped[list["LocalObra"]] = relationship(back_populates="pai", foreign_keys=[parent_id])
     pai: Mapped["LocalObra | None"] = relationship(
         back_populates="filhos", remote_side=[id], foreign_keys=[parent_id]
@@ -158,6 +160,7 @@ class Marco(Base):
     descricao_tecnica: Mapped[str | None] = mapped_column(Text)
     descricao_cliente: Mapped[str | None] = mapped_column(Text)
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    progressos_marco: Mapped[list["ProgressoMarco"]] = relationship(back_populates="marco")
 
 
 class ProgressoMarco(Base):
@@ -188,9 +191,19 @@ class ProgressoMarco(Base):
     marco_id: Mapped[int] = mapped_column(
         ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="NAO_INICIADO")
+    status: Mapped[ProgressStatus] = mapped_column(
+        String(20), nullable=False, server_default=ProgressStatus.NAO_INICIADO.value
+    )
     iniciado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     concluido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    local_obra: Mapped[LocalObra] = relationship(back_populates="progressos_marco")
+    marco: Mapped[Marco] = relationship(back_populates="progressos_marco")
 
 
 class Evidencia(Base):

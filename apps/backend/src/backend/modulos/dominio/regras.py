@@ -24,10 +24,14 @@ class TipoLocal(StrEnum):
     UNIDADE = "UNIDADE"
 
 
-class EstadoMarco(StrEnum):
+class ProgressStatus(StrEnum):
     NAO_INICIADO = "NAO_INICIADO"
     EM_ANDAMENTO = "EM_ANDAMENTO"
     CONCLUIDO = "CONCLUIDO"
+
+
+# Compatibilidade com o nome usado pelos services e contratos existentes.
+EstadoMarco = ProgressStatus
 
 
 TRANSICOES = {

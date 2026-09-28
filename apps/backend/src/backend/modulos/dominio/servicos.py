@@ -594,6 +594,7 @@ async def criar_progresso(session: AsyncSession, dados: ProgressoMarcoCriar) -> 
     progresso = ProgressoMarco(**dados.model_dump())
     session.add(progresso)
     await session.flush()
+    await session.refresh(progresso)
     return progresso
 
 

@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .regras import EstadoMarco, StatusEmpreendimento, TipoLocal
+from .regras import ProgressStatus, StatusEmpreendimento, TipoLocal
 
 
 class Leitura(BaseModel):
@@ -364,9 +364,11 @@ class ProgressoMarcoCriar(BaseModel):
 
 
 class ProgressoMarcoLer(Leitura, ProgressoMarcoCriar):
-    status: EstadoMarco
+    status: ProgressStatus
     iniciado_em: datetime | None
     concluido_em: datetime | None
+    criado_em: datetime
+    atualizado_em: datetime
 
 
 class EvidenciaCriar(BaseModel):

@@ -30,6 +30,40 @@ Garantir que:
 - [ ] API retorna status válidos;
 - [ ] frontend consegue interpretar os status corretamente.
 
+## Relatório de execução
+
+Implementação concluída em 2026-09-27.
+
+### Alterações realizadas
+
+- `ProgressStatus` foi criado em `regras.py` com os valores válidos da V1.
+- `EstadoMarco` foi mantido como alias de compatibilidade para os services e
+  imports existentes.
+- `ProgressoMarco.status` passou a utilizar `ProgressStatus` na tipagem do
+  model, preservando a coluna textual e a constraint existente.
+- `ProgressoMarcoLer.status` passou a expor `ProgressStatus`.
+- O pacote compartilhado passou a exportar `progressStatus` e o tipo
+  `ProgressStatus` para o frontend.
+- A validação de valores inválidos permanece garantida pelo Pydantic, pela
+  máquina de transições e pela constraint `ck_progressos_status` do banco.
+
+### Validação executada
+
+- Compilação sintática de `modelos.py`, `esquemas.py`, `regras.py` e
+  `servicos.py`: aprovada.
+- `git diff --check`: aprovado.
+- Não foi criada migration, pois a coluna e a constraint existentes já
+  suportavam os três valores definidos.
+
+### Critérios
+
+- [x] enum `ProgressStatus` existe;
+- [x] status inválido não é aceito pelo schema/constraint;
+- [x] model utiliza o enum;
+- [x] schemas utilizam o enum;
+- [x] API retorna status válidos pelo schema de leitura;
+- [x] frontend possui contrato compartilhado para interpretar os status.
+
 ## Planejamento de execução
 
 ### Descobertas e decisões
