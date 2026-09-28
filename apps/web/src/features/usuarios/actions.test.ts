@@ -35,6 +35,7 @@ const cadastroValido = {
   unidade: "101",
   canal_preferido: "email",
   receber_atualizacoes: "on",
+  papel: "COMPRADOR",
   senha: "segura123",
   confirmarSenha: "segura123",
 };
@@ -52,6 +53,7 @@ const edicaoValida = {
   canal_preferido: "email",
   receber_atualizacoes: "on",
   ativo: "on",
+  papel: "COMPRADOR",
 };
 
 describe("actions de autenticação e usuários", () => {

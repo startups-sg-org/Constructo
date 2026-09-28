@@ -1,0 +1,8 @@
+.taxonomy-config { display: grid; gap: .75rem; margin: 1rem 0; padding: 1rem; border: 1px solid #dbe3ee; border-radius: .6rem; background: #f8fafc; }
+.taxonomy-config h3, .taxonomy-config p { margin: 0; }
+.taxonomy-config form { display: grid; gap: .5rem; max-width: 32rem; }
+.taxonomy-config select, .taxonomy-config button { min-height: 2.5rem; padding: .5rem .75rem; }
+.taxonomy-config button { width: fit-content; cursor: pointer; }
+.taxonomy-config__descricao { color: #475569; font-size: .9rem; }
+.taxonomy-config__erro { color: #b91c1c; }
+.taxonomy-config--linked { display: flex; justify-content: space-between; }

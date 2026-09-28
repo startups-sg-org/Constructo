@@ -16,7 +16,7 @@ from sqlalchemy.types import TypeDecorator
 
 from backend.banco_de_dados.connections.database_postgres import Base
 
-from .regras import TipoLocal
+from .regras import ProgressStatus, TipoLocal
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):
@@ -93,6 +93,7 @@ class LocalObra(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
     empreendimento: Mapped["Empreendimento"] = relationship(back_populates="locais_obra")
+    progressos_marco: Mapped[list["ProgressoMarco"]] = relationship(back_populates="local_obra")
     filhos: Mapped[list["LocalObra"]] = relationship(back_populates="pai", foreign_keys=[parent_id])
     pai: Mapped["LocalObra | None"] = relationship(
         back_populates="filhos", remote_side=[id], foreign_keys=[parent_id]
@@ -101,12 +102,25 @@ class LocalObra(Base):
 
 class Taxonomia(Base):
     __tablename__ = "taxonomias"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    empreendimento_id: Mapped[int] = mapped_column(
-        ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=False, unique=True
+    empreendimento_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=True, unique=True
+    )
+    origem_taxonomia_id: Mapped[int | None] = mapped_column(
+        ForeignKey("taxonomias.id", ondelete="RESTRICT"), index=True
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
+    is_padrao: Mapped[bool] = mapped_column(nullable=False, server_default="false")
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    etapas: Mapped[list["Etapa"]] = relationship(back_populates="taxonomia")
+    origem_taxonomia: Mapped["Taxonomia | None"] = relationship(remote_side=[id])
 
 
 class Etapa(Base):
@@ -131,6 +145,7 @@ class Etapa(Base):
     descricao_tecnica: Mapped[str | None] = mapped_column(Text)
     descricao_cliente: Mapped[str | None] = mapped_column(Text)
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    taxonomia: Mapped[Taxonomia] = relationship(back_populates="etapas")
 
 
 class Marco(Base):
@@ -144,6 +159,7 @@ class Marco(Base):
     descricao_tecnica: Mapped[str | None] = mapped_column(Text)
     descricao_cliente: Mapped[str | None] = mapped_column(Text)
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    progressos_marco: Mapped[list["ProgressoMarco"]] = relationship(back_populates="marco")
 
 
 class ProgressoMarco(Base):
@@ -174,9 +190,36 @@ class ProgressoMarco(Base):
     marco_id: Mapped[int] = mapped_column(
         ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="NAO_INICIADO")
+    status: Mapped[ProgressStatus] = mapped_column(
+        String(20), nullable=False, server_default=ProgressStatus.NAO_INICIADO.value
+    )
     iniciado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     concluido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    local_obra: Mapped[LocalObra] = relationship(back_populates="progressos_marco")
+    marco: Mapped[Marco] = relationship(back_populates="progressos_marco")
+
+
+class HistoricoProgressoMarco(Base):
+    __tablename__ = "historico_progressos_marco"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    progresso_marco_id: Mapped[int] = mapped_column(
+        ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    status_anterior: Mapped[ProgressStatus] = mapped_column(String(20), nullable=False)
+    status_novo: Mapped[ProgressStatus] = mapped_column(String(20), nullable=False)
+    alterado_por: Mapped[int] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    alterado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+    observacao: Mapped[str | None] = mapped_column(Text)
 
 
 class Evidencia(Base):

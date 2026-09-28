@@ -13,19 +13,26 @@ from backend.modulos.usuarios.modelos import Usuario
 from .esquemas import (
     EmpreendimentoAtualizar,
     EmpreendimentoCriar,
+    EtapaAtualizar,
     EtapaCriar,
     EvidenciaCriar,
     LocalAtualizar,
     LocalCriar,
     LocalHierarquiaLer,
     LocalLer,
+    MarcoAtualizar,
+    MarcoCriar,
     ProgressoMarcoCriar,
     PublicacaoCriar,
+    TaxonomiaConfigurar,
+    TaxonomiaCriar,
+    TaxonomiaPersonalizar,
 )
 from .modelos import (
     Empreendimento,
     Etapa,
     Evidencia,
+    HistoricoProgressoMarco,
     LocalObra,
     Marco,
     ProgressoMarco,
@@ -44,11 +51,25 @@ from .regras import (
 )
 
 
+def _em_utc(valor: datetime) -> datetime:
+    """Normaliza datas do banco, inclusive as sem fuso devolvidas pelo SQLite."""
+    if valor.tzinfo is None:
+        return valor.replace(tzinfo=UTC)
+    return valor.astimezone(UTC)
+
+
 async def _exigir(session: AsyncSession, classe, identificador: int):
     obj = await session.get(classe, identificador)
     if obj is None:
         raise ValueError(f"{classe.__name__} inexistente: {identificador}")
     return obj
+
+
+async def _exigir_taxonomia_editavel(session: AsyncSession, taxonomia_id: int) -> Taxonomia:
+    taxonomia = await _exigir(session, Taxonomia, taxonomia_id)
+    if taxonomia.is_padrao and taxonomia.empreendimento_id is None:
+        raise ValueError("Taxonomia padrão deve ser personalizada antes de ser alterada")
+    return taxonomia
 
 
 async def criar_empreendimento(session: AsyncSession, dados: EmpreendimentoCriar) -> Empreendimento:
@@ -235,6 +256,154 @@ async def mover_local(session: AsyncSession, local_id: int, parent_id: int | Non
     return local
 
 
+async def criar_taxonomia(session: AsyncSession, dados: TaxonomiaCriar) -> Taxonomia:
+    if dados.is_padrao and dados.empreendimento_id is not None:
+        raise ValueError("Taxonomia padrão não deve pertencer a um empreendimento")
+    if not dados.is_padrao and dados.empreendimento_id is None:
+        raise ValueError("Taxonomia personalizada deve pertencer a um empreendimento")
+    if dados.empreendimento_id is not None:
+        await _exigir(session, Empreendimento, dados.empreendimento_id)
+        existente = await session.scalar(
+            select(Taxonomia).where(Taxonomia.empreendimento_id == dados.empreendimento_id)
+        )
+        if existente is not None:
+            raise ValueError("Empreendimento já possui taxonomia")
+
+    taxonomia = Taxonomia(**dados.model_dump())
+    session.add(taxonomia)
+    await session.flush()
+    await session.refresh(taxonomia)
+    return taxonomia
+
+
+async def buscar_taxonomia(session: AsyncSession, taxonomia_id: int) -> Taxonomia:
+    return await _exigir(session, Taxonomia, taxonomia_id)
+
+
+async def listar_taxonomias_disponiveis(session: AsyncSession) -> list[Taxonomia]:
+    return list(
+        (
+            await session.scalars(
+                select(Taxonomia)
+                .where(Taxonomia.is_padrao.is_(True), Taxonomia.empreendimento_id.is_(None))
+                .order_by(Taxonomia.nome, Taxonomia.id)
+            )
+        ).all()
+    )
+
+
+async def configurar_taxonomia(
+    session: AsyncSession, empreendimento_id: int, dados: TaxonomiaConfigurar
+) -> Taxonomia:
+    return await personalizar_taxonomia(
+        session,
+        empreendimento_id,
+        TaxonomiaPersonalizar(
+            origem_taxonomia_id=dados.origem_taxonomia_id,
+            nome=dados.nome,
+            descricao=dados.descricao,
+        ),
+    )
+
+
+async def buscar_taxonomia_do_empreendimento(
+    session: AsyncSession, empreendimento_id: int
+) -> Taxonomia:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    taxonomia = await session.scalar(
+        select(Taxonomia).where(Taxonomia.empreendimento_id == empreendimento_id)
+    )
+    if taxonomia is None:
+        raise ValueError("Empreendimento não possui taxonomia")
+    return taxonomia
+
+
+async def exigir_taxonomia_do_empreendimento(
+    session: AsyncSession, empreendimento_id: int, taxonomia_id: int
+) -> Taxonomia:
+    taxonomia = await session.scalar(
+        select(Taxonomia).where(
+            Taxonomia.id == taxonomia_id,
+            Taxonomia.empreendimento_id == empreendimento_id,
+        )
+    )
+    if taxonomia is None:
+        raise ValueError("Taxonomia não pertence ao empreendimento")
+    return taxonomia
+
+
+async def personalizar_taxonomia(
+    session: AsyncSession, empreendimento_id: int, dados: TaxonomiaPersonalizar
+) -> Taxonomia:
+    await _exigir(session, Empreendimento, empreendimento_id)
+    existente = await session.scalar(
+        select(Taxonomia).where(Taxonomia.empreendimento_id == empreendimento_id)
+    )
+    if existente is not None:
+        raise ValueError("Empreendimento já possui taxonomia personalizada")
+
+    origem = await _exigir(session, Taxonomia, dados.origem_taxonomia_id)
+    if origem.empreendimento_id == empreendimento_id:
+        raise ValueError("Origem já pertence ao empreendimento informado")
+    copia = Taxonomia(
+        empreendimento_id=empreendimento_id,
+        origem_taxonomia_id=origem.id,
+        nome=dados.nome or origem.nome,
+        descricao=dados.descricao if dados.descricao is not None else origem.descricao,
+        is_padrao=False,
+    )
+    session.add(copia)
+    await session.flush()
+
+    etapas_origem = list(
+        (
+            await session.scalars(
+                select(Etapa)
+                .where(Etapa.taxonomia_id == origem.id)
+                .order_by(Etapa.parent_id.is_not(None), Etapa.parent_id, Etapa.ordem, Etapa.id)
+            )
+        ).all()
+    )
+    mapa_etapas: dict[int, int] = {}
+    for etapa_origem in etapas_origem:
+        etapa = Etapa(
+            taxonomia_id=copia.id,
+            parent_id=mapa_etapas.get(etapa_origem.parent_id),
+            nome=etapa_origem.nome,
+            descricao_tecnica=etapa_origem.descricao_tecnica,
+            descricao_cliente=etapa_origem.descricao_cliente,
+            ordem=etapa_origem.ordem,
+        )
+        session.add(etapa)
+        await session.flush()
+        mapa_etapas[etapa_origem.id] = etapa.id
+
+    if mapa_etapas:
+        marcos = list(
+            (
+                await session.scalars(
+                    select(Marco)
+                    .where(Marco.etapa_id.in_(list(mapa_etapas)))
+                    .order_by(Marco.etapa_id, Marco.ordem, Marco.id)
+                )
+            ).all()
+        )
+        session.add_all(
+            Marco(
+                etapa_id=mapa_etapas[marco.etapa_id],
+                nome=marco.nome,
+                descricao_tecnica=marco.descricao_tecnica,
+                descricao_cliente=marco.descricao_cliente,
+                ordem=marco.ordem,
+            )
+            for marco in marcos
+        )
+
+    await session.flush()
+    await session.refresh(copia)
+    return copia
+
+
 async def _validar_pai_etapa(
     session: AsyncSession, taxonomia_id: int, parent_id: int | None, *, movida_id: int | None = None
 ) -> None:
@@ -254,7 +423,7 @@ async def _validar_pai_etapa(
 
 
 async def criar_etapa(session: AsyncSession, dados: EtapaCriar) -> Etapa:
-    await _exigir(session, Taxonomia, dados.taxonomia_id)
+    await _exigir_taxonomia_editavel(session, dados.taxonomia_id)
     await _validar_pai_etapa(session, dados.taxonomia_id, dados.parent_id)
     etapa = Etapa(**dados.model_dump())
     session.add(etapa)
@@ -262,14 +431,119 @@ async def criar_etapa(session: AsyncSession, dados: EtapaCriar) -> Etapa:
     return etapa
 
 
+async def atualizar_etapa(session: AsyncSession, etapa_id: int, dados: EtapaAtualizar) -> Etapa:
+    etapa = await session.scalar(select(Etapa).where(Etapa.id == etapa_id).with_for_update())
+    if etapa is None:
+        raise ValueError("Etapa inexistente")
+    await _exigir_taxonomia_editavel(session, etapa.taxonomia_id)
+
+    alteracoes = dados.model_dump(exclude_unset=True)
+    if "parent_id" in alteracoes:
+        await _validar_pai_etapa(
+            session, etapa.taxonomia_id, alteracoes["parent_id"], movida_id=etapa.id
+        )
+
+    for campo, valor in alteracoes.items():
+        setattr(etapa, campo, valor)
+
+    await session.flush()
+    await session.refresh(etapa)
+    return etapa
+
+
+async def listar_etapas(
+    session: AsyncSession, taxonomia_id: int, *, parent_id: int | None = None
+) -> list[Etapa]:
+    await _exigir(session, Taxonomia, taxonomia_id)
+    return list(
+        (
+            await session.scalars(
+                select(Etapa)
+                .where(Etapa.taxonomia_id == taxonomia_id, Etapa.parent_id == parent_id)
+                .order_by(Etapa.ordem, Etapa.id)
+            )
+        ).all()
+    )
+
+
+async def exigir_etapa_do_empreendimento(
+    session: AsyncSession, empreendimento_id: int, etapa_id: int
+) -> Etapa:
+    etapa = await session.scalar(
+        select(Etapa)
+        .join(Taxonomia)
+        .where(
+            Etapa.id == etapa_id,
+            Taxonomia.empreendimento_id == empreendimento_id,
+        )
+    )
+    if etapa is None:
+        raise ValueError("Etapa não pertence ao empreendimento")
+    return etapa
+
+
 async def mover_etapa(session: AsyncSession, etapa_id: int, parent_id: int | None) -> Etapa:
     etapa = await session.scalar(select(Etapa).where(Etapa.id == etapa_id).with_for_update())
     if etapa is None:
         raise ValueError("Etapa inexistente")
+    await _exigir_taxonomia_editavel(session, etapa.taxonomia_id)
     await _validar_pai_etapa(session, etapa.taxonomia_id, parent_id, movida_id=etapa.id)
     etapa.parent_id = parent_id
     await session.flush()
     return etapa
+
+
+async def criar_marco(session: AsyncSession, dados: MarcoCriar) -> Marco:
+    etapa = await _exigir(session, Etapa, dados.etapa_id)
+    await _exigir_taxonomia_editavel(session, etapa.taxonomia_id)
+    marco = Marco(**dados.model_dump())
+    session.add(marco)
+    await session.flush()
+    await session.refresh(marco)
+    return marco
+
+
+async def atualizar_marco(session: AsyncSession, marco_id: int, dados: MarcoAtualizar) -> Marco:
+    marco = await session.scalar(select(Marco).where(Marco.id == marco_id).with_for_update())
+    if marco is None:
+        raise ValueError("Marco inexistente")
+    etapa = await _exigir(session, Etapa, marco.etapa_id)
+    await _exigir_taxonomia_editavel(session, etapa.taxonomia_id)
+
+    for campo, valor in dados.model_dump(exclude_unset=True).items():
+        setattr(marco, campo, valor)
+
+    await session.flush()
+    await session.refresh(marco)
+    return marco
+
+
+async def listar_marcos(session: AsyncSession, etapa_id: int) -> list[Marco]:
+    await _exigir(session, Etapa, etapa_id)
+    return list(
+        (
+            await session.scalars(
+                select(Marco).where(Marco.etapa_id == etapa_id).order_by(Marco.ordem, Marco.id)
+            )
+        ).all()
+    )
+
+
+async def exigir_marco_do_empreendimento(
+    session: AsyncSession, empreendimento_id: int, marco_id: int
+) -> Marco:
+    marco = await session.scalar(
+        select(Marco)
+        .join(Etapa)
+        .join(Taxonomia)
+        .where(
+            Marco.id == marco_id,
+            Taxonomia.empreendimento_id == empreendimento_id,
+        )
+    )
+    if marco is None:
+        raise ValueError("Marco não pertence ao empreendimento")
+    return marco
 
 
 async def vincular_gestor(
@@ -328,11 +602,13 @@ async def criar_progresso(session: AsyncSession, dados: ProgressoMarcoCriar) -> 
     progresso = ProgressoMarco(**dados.model_dump())
     session.add(progresso)
     await session.flush()
+    await session.refresh(progresso)
     return progresso
 
 
 async def alterar_estado(
-    session: AsyncSession, progresso_id: int, novo: EstadoMarco, *, agora: datetime | None = None
+    session: AsyncSession, progresso_id: int, novo: EstadoMarco, *, agora: datetime | None = None,
+    usuario_id: int | None = None, observacao: str | None = None
 ) -> ProgressoMarco:
     progresso = await session.scalar(
         select(ProgressoMarco).where(ProgressoMarco.id == progresso_id).with_for_update()
@@ -340,17 +616,99 @@ async def alterar_estado(
     if progresso is None:
         raise ValueError("Progresso inexistente")
     validar_transicao(EstadoMarco(progresso.status), novo)
-    instante = agora or datetime.now(UTC)
+    anterior = EstadoMarco(progresso.status)
+    instante = _em_utc(agora or datetime.now(UTC))
     if novo == EstadoMarco.EM_ANDAMENTO:
         progresso.iniciado_em = progresso.iniciado_em or instante
         progresso.concluido_em = None
     else:
-        if progresso.iniciado_em is None or instante < progresso.iniciado_em:
+        iniciado_em = _em_utc(progresso.iniciado_em) if progresso.iniciado_em else None
+        if iniciado_em is None or instante < iniciado_em:
             raise ValueError("Conclusão deve ocorrer após o início")
         progresso.concluido_em = instante
     progresso.status = novo
+    if usuario_id is not None:
+        session.add(HistoricoProgressoMarco(
+            progresso_marco_id=progresso.id,
+            status_anterior=anterior,
+            status_novo=novo,
+            alterado_por=usuario_id,
+            alterado_em=instante,
+            observacao=observacao,
+        ))
     await session.flush()
+    await session.refresh(progresso)
     return progresso
+
+
+async def iniciar_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> ProgressoMarco:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode alterar este progresso")
+    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO, usuario_id=usuario_id)
+
+
+async def concluir_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> ProgressoMarco:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode alterar este progresso")
+    # A máquina de estados exige EM_ANDAMENTO e preserva iniciado_em.
+    return await alterar_estado(session, progresso_id, EstadoMarco.CONCLUIDO, usuario_id=usuario_id)
+
+
+async def reabrir_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> ProgressoMarco:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode alterar este progresso")
+    # A máquina de estados restringe a reabertura a CONCLUIDO -> EM_ANDAMENTO.
+    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO, usuario_id=usuario_id)
+
+
+async def listar_historico_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> list[HistoricoProgressoMarco]:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode consultar este progresso")
+    return list(await session.scalars(select(HistoricoProgressoMarco).where(
+        HistoricoProgressoMarco.progresso_marco_id == progresso_id
+    ).order_by(HistoricoProgressoMarco.alterado_em, HistoricoProgressoMarco.id)))
+
+
+async def calcular_progresso_etapa(
+    session: AsyncSession, etapa_id: int, local_id: int, *, usuario_id: int
+) -> dict[str, int]:
+    etapa = await _exigir(session, Etapa, etapa_id)
+    local = await _exigir(session, LocalObra, local_id)
+    if not await pode_gerir(session, usuario_id, local.empreendimento_id):
+        raise ValueError("Usuário não pode consultar este progresso")
+    taxonomia = await _exigir(session, Taxonomia, etapa.taxonomia_id)
+    if taxonomia.empreendimento_id != local.empreendimento_id:
+        raise ValueError("Etapa e local pertencem a empreendimentos diferentes")
+    marcos = list(await session.scalars(select(Marco).where(Marco.etapa_id == etapa_id)))
+    ids = [marco.id for marco in marcos]
+    progressos = []
+    if ids:
+        progressos = list(await session.scalars(select(ProgressoMarco).where(
+            ProgressoMarco.local_obra_id == local_id, ProgressoMarco.marco_id.in_(ids)
+        )))
+    estados = {progresso.marco_id: EstadoMarco(progresso.status) for progresso in progressos}
+    total = len(marcos)
+    concluidos = sum(estados.get(marco_id) == EstadoMarco.CONCLUIDO for marco_id in ids)
+    em_andamento = sum(estados.get(marco_id) == EstadoMarco.EM_ANDAMENTO for marco_id in ids)
+    nao_iniciados = total - concluidos - em_andamento
+    percentual = round(100 * concluidos / total) if total else 0
+    return {
+        "etapa_id": etapa_id, "local_obra_id": local_id, "total": total,
+        "concluidos": concluidos, "em_andamento": em_andamento,
+        "nao_iniciados": nao_iniciados, "percentual": max(0, min(100, percentual)),
+    }
 
 
 async def criar_publicacao(

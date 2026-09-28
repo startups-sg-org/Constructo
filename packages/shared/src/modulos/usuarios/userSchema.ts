@@ -46,6 +46,8 @@ const userBaseSchema = z.object({
         .trim()
         .min(1, 'Unidade obrigatória'),
 
+    papel: z.enum(['GESTOR', 'COMPRADOR']),
+
     senha: z
         .string()
         .min(1, 'Senha obrigatória')

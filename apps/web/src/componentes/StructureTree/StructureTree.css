@@ -1,34 +1,44 @@
 .structure-tree,
 .structure-tree__group {
     display: grid;
-    gap: 6px;
+    gap: 2px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 .structure-tree {
-    margin-top: 18px;
+    margin-top: 14px;
 }
 
 .structure-tree__group {
     position: relative;
-    margin: 6px 0 0 21px;
-    padding-left: 26px;
+    margin: 2px 0 0 18px;
+    padding-left: 22px;
 }
 
 .structure-tree__group::before {
     position: absolute;
-    inset: 0 auto 8px 8px;
-    width: 2px;
-    border-radius: 2px;
-    background: var(--cor-borda);
+    inset: 0 auto 12px 7px;
+    width: 1px;
+    background: #d9e4df;
     content: "";
 }
 
 .structure-tree__item {
+    position: relative;
     border-radius: var(--raio-campo);
     outline: none;
+}
+
+.structure-tree__group > .structure-tree__item::before {
+    position: absolute;
+    top: 22px;
+    left: -15px;
+    width: 15px;
+    height: 1px;
+    background: #d9e4df;
+    content: "";
 }
 
 .structure-tree__item:focus-visible > .structure-tree__row {
@@ -42,52 +52,76 @@
 
 .structure-tree__row {
     display: flex;
-    min-height: 52px;
+    min-height: 44px;
     align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-campo);
-    background: var(--cor-superficie);
+    gap: 9px;
+    padding: 6px 9px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
     cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.structure-tree__row:hover {
+    border-color: #dbe7e2;
+    background: #f5f9f7;
 }
 
 .structure-tree__toggle {
     display: grid;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     flex: none;
     place-items: center;
     border: 0;
-    border-radius: 7px;
+    border-radius: 6px;
     color: var(--cor-sucesso);
     background: var(--cor-sucesso-fundo);
     font-size: 1.15rem;
+    line-height: 1;
     cursor: pointer;
 }
 
 .structure-tree__leaf {
-    width: 28px;
+    width: 24px;
     flex: none;
 }
 
 .structure-tree__icon {
-    width: 10px;
-    height: 10px;
+    display: grid;
+    width: 24px;
+    height: 24px;
     flex: none;
-    border-radius: 50%;
-    background: var(--cor-sucesso);
+    place-items: center;
+    border: 1px solid #a9c6bb;
+    border-radius: 7px;
+    color: #276b5b;
+    background: #edf7f2;
+    font-size: .65rem;
+    font-weight: 800;
 }
+
+.structure-tree__icon::before { content: "⌂"; }
+
+.structure-tree__item--torre > .structure-tree__row .structure-tree__icon::before { content: "T"; }
+.structure-tree__item--bloco > .structure-tree__row .structure-tree__icon::before { content: "B"; }
 
 .structure-tree__item--pavimento > .structure-tree__row .structure-tree__icon {
-    border-radius: 2px;
-    background: #547f76;
+    border-color: #c6b88a;
+    color: #806a25;
+    background: #fbf6e8;
 }
 
+.structure-tree__item--pavimento > .structure-tree__row .structure-tree__icon::before { content: "▤"; }
+
 .structure-tree__item--unidade > .structure-tree__row .structure-tree__icon {
-    border: 2px solid #82958f;
-    background: transparent;
+    border-color: #b9c7d8;
+    color: #55708d;
+    background: #f1f5fa;
 }
+
+.structure-tree__item--unidade > .structure-tree__row .structure-tree__icon::before { content: "○"; }
 
 .structure-tree__name {
     color: var(--cor-texto-forte);
@@ -95,7 +129,7 @@
 }
 
 .structure-tree__type {
-    padding: 3px 8px;
+    padding: 3px 7px;
     border-radius: 999px;
     color: #526762;
     background: #edf2f0;
@@ -106,6 +140,14 @@
 
 .structure-tree__actions {
     margin-left: auto;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+.structure-tree__row:hover .structure-tree__actions,
+.structure-tree__item[aria-selected="true"] .structure-tree__actions,
+.structure-tree__item:focus-within .structure-tree__actions {
+    opacity: 1;
 }
 
 @media (max-width: 700px) {
@@ -116,6 +158,7 @@
     .structure-tree__actions {
         width: 100%;
         margin-left: 48px;
+        opacity: 1;
     }
 
     .structure-tree__actions .botao {

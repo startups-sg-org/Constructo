@@ -393,7 +393,7 @@ def test_comprador_nao_acessa_gerenciamento_de_usuarios():
 
     app.dependency_overrides.clear()
     assert resposta.status_code == 403
-    assert resposta.json() == {"detail": "Acesso restrito a administradores"}
+    assert resposta.json() == {"detail": "Acesso restrito ao painel administrativo"}
 
 
 def test_admin_altera_papel_de_usuario():

@@ -27,6 +27,10 @@ export default function CardEmpreendimento({ empreendimento }: CardEmpreendiment
                     <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
                 </div>
                 <div>
+                    <dt>Descrição</dt>
+                    <dd>{empreendimento.descricao || "Descrição não informada"}</dd>
+                </div>
+                <div>
                     <dt>Criado em</dt>
                     <dd>{formatarDataEmpreendimento(empreendimento.criado_em)}</dd>
                 </div>
@@ -44,6 +48,18 @@ export default function CardEmpreendimento({ empreendimento }: CardEmpreendiment
                     to={`/admin/empreendimentos/${empreendimento.id}/editar`}
                 >
                     Editar
+                </Link>
+                <Link
+                    className="botao secundario"
+                    to={`/admin/empreendimentos/${empreendimento.id}/estrutura`}
+                >
+                    Estrutura
+                </Link>
+                <Link
+                    className="botao secundario"
+                    to={`/admin/empreendimentos/${empreendimento.id}`}
+                >
+                    Taxonomia
                 </Link>
             </footer>
         </article>

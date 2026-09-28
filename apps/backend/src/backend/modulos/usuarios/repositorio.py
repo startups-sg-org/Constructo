@@ -30,6 +30,7 @@ class RepositorioDeUsuarios:
         receber_atualizacoes: bool,
         empreendimento: str,
         unidade: str,
+        papel: Papel = Papel.COMPRADOR,
     ) -> Usuario:
         usuario = Usuario(
             cpf=cpf,
@@ -43,7 +44,7 @@ class RepositorioDeUsuarios:
             empreendimento=empreendimento,
             unidade=unidade,
             ativo=True,
-            papel=Papel.COMPRADOR,
+            papel=papel,
         )
         self.session.add(usuario)
         await self.session.flush()
