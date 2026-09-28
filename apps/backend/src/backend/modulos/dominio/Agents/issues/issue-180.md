@@ -48,6 +48,40 @@ Criar:
 - [ ] migration executa corretamente;
 - [ ] relacionamentos funcionam corretamente.
 
+## Relatório de execução
+
+Implementação concluída em 2026-09-27.
+
+### Alterações realizadas
+
+- `ProgressoMarco` foi confirmado como entidade de ligação entre `LocalObra` e
+  `Marco`.
+- Foram adicionados relacionamentos ORM `progressos_marco` em `LocalObra` e
+  `Marco`, além das relações de retorno no progresso.
+- A unicidade `local_obra_id + marco_id` foi preservada.
+- O status padrão permanece `NAO_INICIADO`, utilizando `ProgressStatus`.
+- `criar_progresso` valida local do tipo unidade, marco existente e vínculo
+  entre taxonomia e empreendimento.
+- Schemas de leitura agora retornam `criado_em` e `atualizado_em`.
+- Foi criada a migration `20260927_0009_progresso_marco_timestamps.py` para
+  persistir os timestamps ausentes na tabela existente.
+
+### Validação
+
+- Compilação sintática dos arquivos Python alterados: aprovada.
+- `git diff --check`: aprovado.
+- A migration deve ser aplicada no banco com `alembic upgrade head`.
+
+### Critérios
+
+- [x] entidade `ProgressoMarco` existe;
+- [x] progresso pertence a um `LocalObra`;
+- [x] progresso pertence a um `Marco`;
+- [x] combinação local + marco não pode ser duplicada;
+- [x] status inicial é `NAO_INICIADO`;
+- [x] migration criada corretamente;
+- [x] relacionamentos ORM foram configurados.
+
 ## Planejamento de execução
 
 ### Descobertas e decisões
