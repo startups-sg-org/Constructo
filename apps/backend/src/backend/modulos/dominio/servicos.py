@@ -640,6 +640,16 @@ async def concluir_progresso(
     return await alterar_estado(session, progresso_id, EstadoMarco.CONCLUIDO)
 
 
+async def reabrir_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> ProgressoMarco:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode alterar este progresso")
+    # A máquina de estados restringe a reabertura a CONCLUIDO -> EM_ANDAMENTO.
+    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO)
+
+
 async def criar_publicacao(
     session: AsyncSession, dados: PublicacaoCriar, *, autor_id: int, publicar: bool = False
 ) -> Publicacao:

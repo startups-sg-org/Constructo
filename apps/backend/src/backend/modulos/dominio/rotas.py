@@ -60,6 +60,7 @@ from .servicos import (
     personalizar_taxonomia,
     concluir_progresso,
     iniciar_progresso,
+    reabrir_progresso,
     vincular_gestor,
 )
 
@@ -329,6 +330,27 @@ async def concluir_progresso_marco(
     await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         progresso = await concluir_progresso(session, progresso_id, usuario_id=usuario.id)
+        local = await session.get(LocalObra, progresso.local_obra_id)
+        if local is None or local.empreendimento_id != empreendimento_id:
+            raise ValueError("Progresso não pertence ao empreendimento")
+        return progresso
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.post(
+    "/{empreendimento_id}/progressos/{progresso_id}/reabrir",
+    response_model=ProgressoMarcoLer,
+)
+async def reabrir_progresso_marco(
+    empreendimento_id: int,
+    progresso_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        progresso = await reabrir_progresso(session, progresso_id, usuario_id=usuario.id)
         local = await session.get(LocalObra, progresso.local_obra_id)
         if local is None or local.empreendimento_id != empreendimento_id:
             raise ValueError("Progresso não pertence ao empreendimento")

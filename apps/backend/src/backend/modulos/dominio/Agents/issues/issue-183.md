@@ -23,13 +23,13 @@ Validar:
 
 ## Critérios de aceite
 
-- [ ] marco concluído pode ser reaberto;
-- [ ] status volta para `EM_ANDAMENTO`;
-- [ ] `concluido_em` é removido;
-- [ ] `iniciado_em` permanece;
+- [x] marco concluído pode ser reaberto;
+- [x] status volta para `EM_ANDAMENTO`;
+- [x] `concluido_em` é removido;
+- [x] `iniciado_em` permanece;
 - [ ] ação é registrada no histórico;
-- [ ] marco não concluído não pode ser reaberto;
-- [ ] alteração é persistida.
+- [x] marco não concluído não pode ser reaberto;
+- [x] alteração é persistida.
 
 ## Planejamento de execução
 
@@ -58,3 +58,23 @@ Validar:
 - Depende de 180–182 e deve ser implementada junto ao contrato de histórico da
   issue-185.
 - Não permitir reabertura para `NAO_INICIADO` nesta issue.
+
+## Relatório de execução
+
+- Implementada a ação `reabrir_progresso`, reutilizando a transição
+  `CONCLUIDO` → `EM_ANDAMENTO` da máquina de estados.
+- A operação preserva `iniciado_em`, limpa `concluido_em` e atualiza o registro
+  persistido.
+- Criado o endpoint `POST /empreendimentos/{empreendimento_id}/progressos/{progresso_id}/reabrir`.
+- Acesso é validado para ADMIN/GESTOR e o progresso é conferido contra o
+  empreendimento informado na rota.
+- A gravação do histórico permanece pendente da issue 185, conforme a
+  dependência definida no planejamento.
+- Validação realizada: compilação dos módulos alterados e `git diff --check`.
+- Testes de integração com banco não foram executados neste ambiente.
+
+## Conclusão
+
+Issue concluída no código, exceto o registro de histórico que depende da
+implementação da issue 185. A reabertura já valida o estado, preserva o início,
+remove a conclusão e retorna o progresso atualizado.
