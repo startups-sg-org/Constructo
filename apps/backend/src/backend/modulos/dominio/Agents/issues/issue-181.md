@@ -63,3 +63,25 @@ Criar endpoint ou action correspondente.
 - Depende da issue-180 e do enum da issue-179.
 - Registro de histórico será implementado na issue-185, mas a operação deve
   deixar um ponto único para dispará-lo.
+
+## Relatório de execução
+
+- Implementada a ação `iniciar_progresso`, que valida a existência do
+  progresso e a permissão do gestor/admin sobre o empreendimento antes de
+  aplicar a transição existente.
+- A transição preenche `iniciado_em`, limpa eventual conclusão e atualiza o
+  registro persistido; a atualização é recarregada antes da resposta.
+- Criado o endpoint `POST /empreendimentos/{empreendimento_id}/progressos/{progresso_id}/iniciar`,
+  retornando `ProgressoMarcoLer`.
+- Estados inválidos e repetição de início continuam protegidos pela máquina de
+  estados compartilhada (`validar_transicao`).
+- Validação realizada: compilação dos módulos alterados e `git diff --check`.
+- Testes de integração com banco não foram executados neste ambiente.
+
+## Conclusão
+
+Issue concluída no código. O início de um progresso agora pode ser solicitado
+pela API, com validação de acesso, transição para `EM_ANDAMENTO`, preenchimento
+de `iniciado_em` e retorno do registro atualizado. A validação final em banco
+de dados permanece como etapa de integração, pois não foi executada neste
+ambiente.
