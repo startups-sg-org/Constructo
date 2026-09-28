@@ -82,6 +82,7 @@ class Contrato(Base):
     itens_contratuais: Mapped[list["itens_contratuais"]] = relationship(
         "itens_contratuais",
         back_populates="contrato",
+        cascade="all, delete-orphan",
     )
 
 
@@ -108,3 +109,4 @@ class itens_contratuais(Base):
     )
 
     contrato: Mapped["Contrato"] = relationship("Contrato", back_populates="itens_contratuais")
+

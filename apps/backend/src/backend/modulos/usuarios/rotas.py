@@ -20,7 +20,8 @@ from backend.modulos.usuarios.repositorio import (
 )
 from backend.modulos.usuarios.senhas import gerar_senha_hash, verificar_senha
 
-router = APIRouter()
+router = APIRouter(tags=["Usuários"])
+
 
 
 async def get_usuario_autenticado(
