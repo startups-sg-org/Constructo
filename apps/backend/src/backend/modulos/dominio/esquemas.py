@@ -371,6 +371,15 @@ class ProgressoMarcoLer(Leitura, ProgressoMarcoCriar):
     atualizado_em: datetime
 
 
+class HistoricoProgressoMarcoLer(Leitura):
+    progresso_marco_id: int
+    status_anterior: ProgressStatus
+    status_novo: ProgressStatus
+    alterado_por: int
+    alterado_em: datetime
+    observacao: str | None = None
+
+
 class EvidenciaCriar(BaseModel):
     progresso_marco_id: int
     arquivo_url: str = Field(min_length=1, max_length=1000)

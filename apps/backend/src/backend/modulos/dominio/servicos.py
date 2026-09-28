@@ -35,6 +35,7 @@ from .modelos import (
     LocalObra,
     Marco,
     ProgressoMarco,
+    HistoricoProgressoMarco,
     Publicacao,
     PublicacaoEvidencia,
     Taxonomia,
@@ -599,7 +600,8 @@ async def criar_progresso(session: AsyncSession, dados: ProgressoMarcoCriar) -> 
 
 
 async def alterar_estado(
-    session: AsyncSession, progresso_id: int, novo: EstadoMarco, *, agora: datetime | None = None
+    session: AsyncSession, progresso_id: int, novo: EstadoMarco, *, agora: datetime | None = None,
+    usuario_id: int | None = None, observacao: str | None = None
 ) -> ProgressoMarco:
     progresso = await session.scalar(
         select(ProgressoMarco).where(ProgressoMarco.id == progresso_id).with_for_update()
@@ -607,6 +609,7 @@ async def alterar_estado(
     if progresso is None:
         raise ValueError("Progresso inexistente")
     validar_transicao(EstadoMarco(progresso.status), novo)
+    anterior = EstadoMarco(progresso.status)
     instante = agora or datetime.now(UTC)
     if novo == EstadoMarco.EM_ANDAMENTO:
         progresso.iniciado_em = progresso.iniciado_em or instante
@@ -616,6 +619,15 @@ async def alterar_estado(
             raise ValueError("Conclusão deve ocorrer após o início")
         progresso.concluido_em = instante
     progresso.status = novo
+    if usuario_id is not None:
+        session.add(HistoricoProgressoMarco(
+            progresso_marco_id=progresso.id,
+            status_anterior=anterior,
+            status_novo=novo,
+            alterado_por=usuario_id,
+            alterado_em=instante,
+            observacao=observacao,
+        ))
     await session.flush()
     await session.refresh(progresso)
     return progresso
@@ -627,7 +639,7 @@ async def iniciar_progresso(
     progresso = await _exigir(session, ProgressoMarco, progresso_id)
     if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
         raise ValueError("Usuário não pode alterar este progresso")
-    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO)
+    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO, usuario_id=usuario_id)
 
 
 async def concluir_progresso(
@@ -637,7 +649,7 @@ async def concluir_progresso(
     if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
         raise ValueError("Usuário não pode alterar este progresso")
     # A máquina de estados exige EM_ANDAMENTO e preserva iniciado_em.
-    return await alterar_estado(session, progresso_id, EstadoMarco.CONCLUIDO)
+    return await alterar_estado(session, progresso_id, EstadoMarco.CONCLUIDO, usuario_id=usuario_id)
 
 
 async def reabrir_progresso(
@@ -647,7 +659,18 @@ async def reabrir_progresso(
     if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
         raise ValueError("Usuário não pode alterar este progresso")
     # A máquina de estados restringe a reabertura a CONCLUIDO -> EM_ANDAMENTO.
-    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO)
+    return await alterar_estado(session, progresso_id, EstadoMarco.EM_ANDAMENTO, usuario_id=usuario_id)
+
+
+async def listar_historico_progresso(
+    session: AsyncSession, progresso_id: int, *, usuario_id: int
+) -> list[HistoricoProgressoMarco]:
+    progresso = await _exigir(session, ProgressoMarco, progresso_id)
+    if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
+        raise ValueError("Usuário não pode consultar este progresso")
+    return list(await session.scalars(select(HistoricoProgressoMarco).where(
+        HistoricoProgressoMarco.progresso_marco_id == progresso_id
+    ).order_by(HistoricoProgressoMarco.alterado_em, HistoricoProgressoMarco.id)))
 
 
 async def criar_publicacao(

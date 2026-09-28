@@ -79,3 +79,22 @@ EM_ANDAMENTO
 - Definir se `alterado_por` aceita sistema/NULL para ações automáticas antes da
   migration.
 - Não incluir comentários editáveis ou auditoria de outros recursos.
+
+## Relatório de execução
+
+- Criada a entidade append-only `HistoricoProgressoMarco`, com status anterior
+  e novo, usuário responsável, timestamp UTC e observação opcional.
+- Criada migration `20260927_0010_historico_progresso_marco.py`, incluindo FKs
+  e índices para progresso, usuário e data.
+- O registro foi centralizado em `alterar_estado`; iniciar, concluir e reabrir
+  passam o usuário autenticado e geram uma entrada sem sobrescrever as
+  anteriores.
+- Criado o endpoint `GET /empreendimentos/{empreendimento_id}/progressos/{progresso_id}/historico`,
+  ordenado por data e id e protegido por acesso ao empreendimento.
+- Validação realizada: compilação dos módulos alterados e `git diff --check`.
+- Testes de integração com banco não foram executados neste ambiente.
+
+## Conclusão
+
+Issue concluída no código. As transições de progresso agora geram histórico
+append-only consultável pela API, com responsável, estados e data da alteração.

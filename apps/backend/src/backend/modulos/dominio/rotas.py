@@ -27,6 +27,7 @@ from .esquemas import (
     MarcoEtapaCriar,
     MarcoLer,
     ProgressoMarcoLer,
+    HistoricoProgressoMarcoLer,
     PavimentoCriar,
     TaxonomiaLer,
     TaxonomiaConfigurar,
@@ -34,6 +35,7 @@ from .esquemas import (
     UnidadeCriar,
 )
 from .regras import Papel
+from .modelos import LocalObra, ProgressoMarco
 from .servicos import (
     atualizar_empreendimento,
     atualizar_etapa,
@@ -61,6 +63,7 @@ from .servicos import (
     concluir_progresso,
     iniciar_progresso,
     reabrir_progresso,
+    listar_historico_progresso,
     vincular_gestor,
 )
 
@@ -355,6 +358,28 @@ async def reabrir_progresso_marco(
         if local is None or local.empreendimento_id != empreendimento_id:
             raise ValueError("Progresso não pertence ao empreendimento")
         return progresso
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.get(
+    "/{empreendimento_id}/progressos/{progresso_id}/historico",
+    response_model=list[HistoricoProgressoMarcoLer],
+)
+async def consultar_historico_progresso(
+    empreendimento_id: int,
+    progresso_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        historico = await listar_historico_progresso(session, progresso_id, usuario_id=usuario.id)
+        progresso = await session.get(ProgressoMarco, progresso_id)
+        local = await session.get(LocalObra, progresso.local_obra_id) if progresso else None
+        if local is None or local.empreendimento_id != empreendimento_id:
+            raise ValueError("Progresso não pertence ao empreendimento")
+        return historico
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro)) from erro
 

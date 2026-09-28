@@ -206,6 +206,23 @@ class ProgressoMarco(Base):
     marco: Mapped[Marco] = relationship(back_populates="progressos_marco")
 
 
+class HistoricoProgressoMarco(Base):
+    __tablename__ = "historico_progressos_marco"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    progresso_marco_id: Mapped[int] = mapped_column(
+        ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    status_anterior: Mapped[ProgressStatus] = mapped_column(String(20), nullable=False)
+    status_novo: Mapped[ProgressStatus] = mapped_column(String(20), nullable=False)
+    alterado_por: Mapped[int] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    alterado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+    observacao: Mapped[str | None] = mapped_column(Text)
+
+
 class Evidencia(Base):
     __tablename__ = "evidencias"
     id: Mapped[int] = mapped_column(primary_key=True)
