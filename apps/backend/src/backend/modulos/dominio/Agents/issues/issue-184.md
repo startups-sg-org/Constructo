@@ -64,3 +64,19 @@ Preparar o modelo para futura inclusão de:
 
 - Depende das transições 181–183.
 - Não implementar previsão de datas nesta issue.
+
+## Relatório de execução
+
+- Auditado o modelo `ProgressoMarco`, que já utiliza `DateTime(timezone=True)`
+  para `iniciado_em`, `concluido_em`, `criado_em` e `atualizado_em`.
+- As transições usam um único instante UTC por operação, preservam o início na
+  conclusão/reabertura e removem `concluido_em` ao reabrir.
+- As constraints do banco impedem conclusão sem início e conclusão anterior ao
+  início; o schema de leitura retorna as quatro datas em formato ISO.
+- Não foram adicionados campos de previsão, conforme o limite da issue.
+- Validação realizada: compilação dos módulos e `git diff --check`.
+
+## Conclusão
+
+Issue concluída. O ciclo de datas do progresso está padronizado, validado pelo
+modelo e exposto pela API, sem incluir previsão de datas.
