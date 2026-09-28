@@ -14,6 +14,7 @@ import {
   listarEmpreendimentos,
   obterEstruturaFisica,
   obterEmpreendimento,
+  obterTaxonomia,
 } from "../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../services/api";
 import {
@@ -38,6 +39,7 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   listarEmpreendimentos: vi.fn(),
   obterEstruturaFisica: vi.fn(),
   obterEmpreendimento: vi.fn(),
+  obterTaxonomia: vi.fn(),
 }));
 
 
@@ -60,6 +62,7 @@ const criarUnidadeMock = vi.mocked(criarUnidade);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const obterEstruturaFisicaMock = vi.mocked(obterEstruturaFisica);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
+const obterTaxonomiaMock = vi.mocked(obterTaxonomia);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
 const getUsersCountMock = vi.mocked(getUsersCount);
@@ -106,6 +109,14 @@ describe("novo sistema de rotas", () => {
     listarEmpreendimentosMock.mockResolvedValue([]);
     obterEstruturaFisicaMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
+    obterTaxonomiaMock.mockResolvedValue({
+      id: 3,
+      empreendimento_id: empreendimento.id,
+      origem_taxonomia_id: 1,
+      nome: "Residencial",
+      descricao: "Taxonomia do empreendimento",
+      is_padrao: false,
+    });
   });
 
   it("renderiza a rota pública principal", async () => {

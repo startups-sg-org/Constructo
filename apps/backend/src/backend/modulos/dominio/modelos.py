@@ -16,8 +16,7 @@ from sqlalchemy.types import TypeDecorator
 
 from backend.banco_de_dados.connections.database_postgres import Base
 
-from .regras import TipoLocal
-from .regras import ProgressStatus
+from .regras import ProgressStatus, TipoLocal
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):

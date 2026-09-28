@@ -23,7 +23,6 @@ export default function TaxonomyConfiguration({ empreendimentoId, taxonomia, onC
 
     useEffect(() => {
         let ativo = true;
-        setCarregando(true);
         listarTaxonomiasDisponiveis()
             .then((dados) => {
                 if (!ativo) return;
@@ -35,7 +34,7 @@ export default function TaxonomyConfiguration({ empreendimentoId, taxonomia, onC
             })
             .finally(() => ativo && setCarregando(false));
         return () => { ativo = false; };
-    }, [empreendimentoId]);
+    }, []);
 
     if (taxonomia) {
         return <div className="taxonomy-config taxonomy-config--linked">

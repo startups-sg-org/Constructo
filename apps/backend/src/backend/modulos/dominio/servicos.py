@@ -24,18 +24,18 @@ from .esquemas import (
     MarcoCriar,
     ProgressoMarcoCriar,
     PublicacaoCriar,
-    TaxonomiaCriar,
     TaxonomiaConfigurar,
+    TaxonomiaCriar,
     TaxonomiaPersonalizar,
 )
 from .modelos import (
     Empreendimento,
     Etapa,
     Evidencia,
+    HistoricoProgressoMarco,
     LocalObra,
     Marco,
     ProgressoMarco,
-    HistoricoProgressoMarco,
     Publicacao,
     PublicacaoEvidencia,
     Taxonomia,
@@ -49,6 +49,13 @@ from .regras import (
     calcular_progresso,
     validar_transicao,
 )
+
+
+def _em_utc(valor: datetime) -> datetime:
+    """Normaliza datas do banco, inclusive as sem fuso devolvidas pelo SQLite."""
+    if valor.tzinfo is None:
+        return valor.replace(tzinfo=UTC)
+    return valor.astimezone(UTC)
 
 
 async def _exigir(session: AsyncSession, classe, identificador: int):
@@ -610,12 +617,13 @@ async def alterar_estado(
         raise ValueError("Progresso inexistente")
     validar_transicao(EstadoMarco(progresso.status), novo)
     anterior = EstadoMarco(progresso.status)
-    instante = agora or datetime.now(UTC)
+    instante = _em_utc(agora or datetime.now(UTC))
     if novo == EstadoMarco.EM_ANDAMENTO:
         progresso.iniciado_em = progresso.iniciado_em or instante
         progresso.concluido_em = None
     else:
-        if progresso.iniciado_em is None or instante < progresso.iniciado_em:
+        iniciado_em = _em_utc(progresso.iniciado_em) if progresso.iniciado_em else None
+        if iniciado_em is None or instante < iniciado_em:
             raise ValueError("Conclusão deve ocorrer após o início")
         progresso.concluido_em = instante
     progresso.status = novo
