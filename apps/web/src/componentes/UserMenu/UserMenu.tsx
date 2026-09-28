@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
 import { Link, useFetcher, useRouteLoaderData } from "react-router-dom";
-import { exigirAutenticacao } from "../../features/auth/auth.loader";
+import { exigirAcessoAoPainel } from "../../features/auth/auth.loader";
 import type { AdminActionData } from "../../features/auth/logout.action";
 import "./UserMenu.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
 
 export default function UserMenu() {
-    const usuario = useRouteLoaderData<typeof exigirAutenticacao>("admin-autenticado");
+    const usuario = useRouteLoaderData<typeof exigirAcessoAoPainel>("admin-autenticado");
     const [menuAberto, setMenuAberto] = useState(false);
     const fetcher = useFetcher<AdminActionData>();
     const saindo = fetcher.state !== "idle";

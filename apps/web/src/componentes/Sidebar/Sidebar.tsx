@@ -1,6 +1,12 @@
 import { useState, type SVGProps } from "react";
-import { matchPath, NavLink, useLocation } from "react-router-dom";
+import {
+    matchPath,
+    NavLink,
+    useLocation,
+    useRouteLoaderData,
+} from "react-router-dom";
 import SidebarItem, { type IconeSidebar } from "./SidebarItem";
+import { exigirAcessoAoPainel } from "../../features/auth/auth.loader";
 import "./Sidebar.css";
 
 type IconeProps = SVGProps<SVGSVGElement>;
@@ -19,7 +25,7 @@ type SidebarProps = {
 const itensNavegacao: ItemNavegacao[] = [
     { rotulo: "Home", rota: "/admin", icone: IconeHome, exato: true },
     { rotulo: "Usuários", rota: "/admin/usuarios", icone: IconeUsuarios },
-    { rotulo: "Obras", rota: "/admin/obras", icone: IconeObras },
+    { rotulo: "Empreendimentos", rota: "/admin/obras", icone: IconeObras },
     { rotulo: "Marcos", rota: "/admin/marcos", icone: IconeChecklist },
     { rotulo: "Contratos", rota: "/admin/contratos", icone: IconeContratos },
     { rotulo: "Medições", rota: "/admin/medicoes", icone: IconeMedicoes }
@@ -29,6 +35,11 @@ const itensNavegacao: ItemNavegacao[] = [
 export default function Sidebar({ className = "" }: SidebarProps) {
     const [aberta, setAberta] = useState(true);
     const { pathname } = useLocation();
+
+    const usuario = useRouteLoaderData<typeof exigirAcessoAoPainel>("admin-autenticado");
+    const itensVisiveis = itensNavegacao.filter(
+        (item) => usuario?.papel === "ADMIN" || item.rota !== "/admin/usuarios",
+    );
 
     return (
         <aside
@@ -58,7 +69,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
                 <span className="sidebar__secao">Menu principal</span>
 
                 <ul className="sidebar__lista">
-                    {itensNavegacao.map(({ rotulo, rota, icone: IconeItem, exato }) => (
+                    {itensVisiveis.map(({ rotulo, rota, icone: IconeItem, exato }) => (
                         <SidebarItem
                             key={rota}
                             texto={rotulo}

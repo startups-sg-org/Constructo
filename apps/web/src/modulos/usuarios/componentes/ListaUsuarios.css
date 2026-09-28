@@ -49,25 +49,6 @@
     border-bottom: 0;
 }
 
-.lista-usuarios__status {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.lista-usuarios__status--ativo {
-    color: #147a55;
-    background: #e8f7f0;
-}
-
-.lista-usuarios__status--inativo {
-    color: #a0443b;
-    background: #fcecea;
-}
-
 .lista-usuarios__estado {
     display: flex;
     min-height: 132px;
@@ -145,9 +126,6 @@
         text-transform: uppercase;
     }
 
-    .lista-usuarios__status {
-        width: fit-content;
-    }
 }
 
 .lista-usuarios__editar {
@@ -240,11 +218,6 @@
     font-size: 0.875rem;
 }
 
-.botao:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-}
-
 @media (max-width: 600px) {
     .editar-usuario__fundo {
         padding: 12px;
@@ -285,4 +258,23 @@
     border-radius: 10px;
     color: #a0443b;
     background: #fcecea;
+}
+
+.lista-usuarios__papel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.lista-usuarios__papel select {
+    min-width: 130px;
+    padding: 7px 9px;
+    border: 1px solid #c8d3d0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.lista-usuarios__papel button {
+    white-space: nowrap;
 }

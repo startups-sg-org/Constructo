@@ -22,7 +22,8 @@ export default function Formulario() {
         resolver: zodResolver(userSchema),
         defaultValues: {
             canal_preferido: "email",
-            receber_atualizacoes: true
+            receber_atualizacoes: true,
+            papel: "COMPRADOR",
         }
     });
 
@@ -75,6 +76,17 @@ export default function Formulario() {
                             <p>Informações para identificar e contatar você.</p>
                         </div>
                     </header>
+
+                    <div className="cadastro-form__grade">
+                        <div className="campo cadastro-form__campo--largo">
+                            <label htmlFor="papel">Tipo de acesso</label>
+                            <select id="papel" {...register("papel")} disabled={enviando}>
+                                <option value="COMPRADOR">Cliente</option>
+                                <option value="GESTOR">Gestor</option>
+                            </select>
+                            <small>Opção provisória para demonstração do MVP.</small>
+                        </div>
+                    </div>
 
                     <div className="cadastro-form__grade">
                         <div className="campo">

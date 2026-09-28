@@ -1,20 +1,12 @@
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, func
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from backend.banco_de_dados.connections.database_postgres import Base
 
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import (
-    Boolean,
-    String,
-    Integer,
-    Numeric,
-    ForeignKey,
-    DateTime,
-    Enum as SAEnum,
-    Text,
-    func
-)
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 class Empresa(Base):
     __tablename__ = "empresa"
@@ -117,3 +109,4 @@ class itens_contratuais(Base):
     )
 
     contrato: Mapped["Contrato"] = relationship("Contrato", back_populates="itens_contratuais")
+

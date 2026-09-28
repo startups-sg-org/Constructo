@@ -13,6 +13,8 @@ class RepositorioEmMemoria:
         self.proximo_id = 1
 
     async def inserir_usuario(self, **dados) -> SimpleNamespace:
+        dados.setdefault("ativo", True)
+        dados.setdefault("papel", "COMPRADOR")
         usuario = SimpleNamespace(id=self.proximo_id, **dados)
         self.proximo_id += 1
         self.usuarios[usuario.email.lower()] = usuario
@@ -46,6 +48,14 @@ class RepositorioEmMemoria:
     async def contar_usuarios(self) -> int:
         return len(self.usuarios)
 
+    async def contar_administradores_ativos(self) -> int:
+        return sum(usuario.papel == "ADMIN" and usuario.ativo for usuario in self.usuarios.values())
+
+    async def alterar_papel(self, usuario, papel, *, alterado_por_id):
+        assert alterado_por_id > 0
+        usuario.papel = papel
+        return usuario
+
     async def listar_usuarios(self) -> list[SimpleNamespace]:
         return sorted(
             self.usuarios.values(),
@@ -76,7 +86,6 @@ USUARIO = {
     "receber_atualizacoes": True,
     "empreendimento": "Residencial Teste",
     "unidade": "101",
-    "ativo": True,
 }
 
 
@@ -84,6 +93,10 @@ def criar_cliente():
     repositorio = RepositorioEmMemoria()
     app.dependency_overrides[get_repositorio_de_usuarios] = lambda: repositorio
     return TestClient(app), repositorio
+
+
+def promover_admin(repositorio: RepositorioEmMemoria) -> None:
+    repositorio.usuarios[USUARIO["email"]].papel = "ADMIN"
 
 
 def test_health_check():
@@ -100,6 +113,7 @@ def test_fluxo_completo_de_autenticacao():
         assert cadastro.status_code == 201
         assert cadastro.json()["email"] == USUARIO["email"]
         assert "senha" not in cadastro.json()
+        assert cadastro.json()["papel"] == "COMPRADOR"
 
         login = cliente.post(
             "/login",
@@ -134,9 +148,10 @@ def test_rejeita_email_duplicado():
 
 
 def test_consulta_quantidade_de_usuarios_autenticado():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
@@ -158,17 +173,18 @@ def test_rejeita_consulta_de_quantidade_sem_autenticacao():
 
 
 def test_lista_usuarios_cadastrados_com_status():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     usuario_inativo = {
         **USUARIO,
         "nome": "Ana",
         "email": "ana@example.com",
-        "ativo": False,
     }
 
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post("/usuarios/", json=usuario_inativo)
+        repositorio.usuarios["ana@example.com"].ativo = False
         cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
@@ -195,9 +211,10 @@ def test_rejeita_listagem_de_usuarios_sem_autenticacao():
 
 
 def test_rejeita_senha_incorreta():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         resposta = cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": "senha-errada"},
@@ -208,16 +225,16 @@ def test_rejeita_senha_incorreta():
 
 
 def test_carrega_e_atualiza_usuario_e_reflete_na_listagem():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     usuario_editado = {
         **USUARIO,
         "nome": "Ana",
         "email": "ana@example.com",
-        "ativo": True,
     }
 
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post("/usuarios/", json=usuario_editado)
         cliente.post(
             "/login",
@@ -228,11 +245,7 @@ def test_carrega_e_atualiza_usuario_e_reflete_na_listagem():
         assert consulta.status_code == 200
         assert consulta.json()["nome"] == "Ana"
 
-        novos_dados = {
-            key: value
-            for key, value in consulta.json().items()
-            if key != "id"
-        }
+        novos_dados = {key: value for key, value in consulta.json().items() if key != "id"}
         novos_dados.update(
             {
                 "nome": "Beatriz",
@@ -248,15 +261,13 @@ def test_carrega_e_atualiza_usuario_e_reflete_na_listagem():
     assert atualizacao.json()["nome"] == "Beatriz"
     assert atualizacao.json()["ativo"] is False
     assert listagem.status_code == 200
-    usuario_na_lista = next(
-        usuario for usuario in listagem.json() if usuario["id"] == 2
-    )
+    usuario_na_lista = next(usuario for usuario in listagem.json() if usuario["id"] == 2)
     assert usuario_na_lista["email"] == "beatriz@example.com"
     assert usuario_na_lista["ativo"] is False
 
 
 def test_rejeita_email_duplicado_na_edicao():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     outro_usuario = {
         **USUARIO,
         "nome": "Ana",
@@ -265,15 +276,14 @@ def test_rejeita_email_duplicado_na_edicao():
 
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post("/usuarios/", json=outro_usuario)
         cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
         )
         dados = {
-            key: value
-            for key, value in cliente.get("/usuarios/2").json().items()
-            if key != "id"
+            key: value for key, value in cliente.get("/usuarios/2").json().items() if key != "id"
         }
         dados["email"] = USUARIO["email"]
         resposta = cliente.put("/usuarios/2", json=dados)
@@ -284,18 +294,17 @@ def test_rejeita_email_duplicado_na_edicao():
 
 
 def test_rejeita_edicao_com_dados_invalidos():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
 
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
         )
         dados = {
-            key: value
-            for key, value in cliente.get("/usuarios/1").json().items()
-            if key != "id"
+            key: value for key, value in cliente.get("/usuarios/1").json().items() if key != "id"
         }
         dados["canal_preferido"] = "sms"
         resposta = cliente.put("/usuarios/1", json=dados)
@@ -317,7 +326,7 @@ def test_rejeita_consulta_e_edicao_sem_autenticacao():
 
 
 def test_exclui_usuario_e_reflete_na_listagem():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
     outro_usuario = {
         **USUARIO,
         "nome": "Ana",
@@ -326,6 +335,7 @@ def test_exclui_usuario_e_reflete_na_listagem():
 
     with cliente:
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post("/usuarios/", json=outro_usuario)
         cliente.post(
             "/login",
@@ -340,11 +350,12 @@ def test_exclui_usuario_e_reflete_na_listagem():
 
 
 def test_rejeita_exclusao_inexistente_ou_sem_autenticacao():
-    cliente, _ = criar_cliente()
+    cliente, repositorio = criar_cliente()
 
     with cliente:
         sem_autenticacao = cliente.delete("/usuarios/1")
         cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
         cliente.post(
             "/login",
             json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
@@ -355,3 +366,84 @@ def test_rejeita_exclusao_inexistente_ou_sem_autenticacao():
     assert sem_autenticacao.status_code == 401
     assert inexistente.status_code == 404
     assert inexistente.json() == {"detail": "Usuário não encontrado"}
+
+
+def test_cadastro_publico_rejeita_campos_administrativos():
+    cliente, _ = criar_cliente()
+
+    with cliente:
+        com_papel = cliente.post("/usuarios/", json={**USUARIO, "papel": "ADMIN"})
+        com_status = cliente.post("/usuarios/", json={**USUARIO, "ativo": False})
+
+    app.dependency_overrides.clear()
+    assert com_papel.status_code == 422
+    assert com_status.status_code == 422
+
+
+def test_comprador_nao_acessa_gerenciamento_de_usuarios():
+    cliente, _ = criar_cliente()
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        resposta = cliente.get("/usuarios/")
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 403
+    assert resposta.json() == {"detail": "Acesso restrito ao painel administrativo"}
+
+
+def test_admin_altera_papel_de_usuario():
+    cliente, repositorio = criar_cliente()
+    gestor = {
+        **USUARIO,
+        "nome": "Carlos",
+        "email": "carlos@example.com",
+    }
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        cliente.post("/usuarios/", json=gestor)
+        promover_admin(repositorio)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+        resposta = cliente.patch("/usuarios/2/papel", json={"papel": "GESTOR"})
+
+    app.dependency_overrides.clear()
+    assert resposta.status_code == 200
+    assert resposta.json()["papel"] == "GESTOR"
+    assert repositorio.usuarios["carlos@example.com"].papel == "GESTOR"
+
+
+def test_ultimo_admin_nao_pode_ser_rebaixado_desativado_ou_excluido():
+    cliente, repositorio = criar_cliente()
+
+    with cliente:
+        cliente.post("/usuarios/", json=USUARIO)
+        promover_admin(repositorio)
+        cliente.post(
+            "/login",
+            json={"email": USUARIO["email"], "senha": USUARIO["senha"]},
+        )
+
+        rebaixamento = cliente.patch(
+            "/usuarios/1/papel",
+            json={"papel": "COMPRADOR"},
+        )
+        exclusao = cliente.delete("/usuarios/1")
+        usuario = cliente.get("/usuarios/1").json()
+        dados_inativos = {
+            chave: valor for chave, valor in usuario.items() if chave not in {"id", "papel"}
+        }
+        dados_inativos["ativo"] = False
+        desativacao = cliente.put("/usuarios/1", json=dados_inativos)
+
+    app.dependency_overrides.clear()
+    assert rebaixamento.status_code == 400
+    assert exclusao.status_code == 400
+    assert desativacao.status_code == 400

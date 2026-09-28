@@ -46,6 +46,8 @@ const userBaseSchema = z.object({
         .trim()
         .min(1, 'Unidade obrigatória'),
 
+    papel: z.enum(['GESTOR', 'COMPRADOR']),
+
     senha: z
         .string()
         .min(1, 'Senha obrigatória')
@@ -90,7 +92,11 @@ export const loginSchema = z.object({
 export type loginFormData = z.infer<typeof loginSchema>
 
 
-export type UserReponse = {
+export const papeisUsuario = ["ADMIN", "GESTOR", "COMPRADOR"] as const
+
+export type PapelUsuario = (typeof papeisUsuario)[number]
+
+export type UserResponse = {
     id: number,
     cpf: string,
     nome: string,
@@ -102,4 +108,8 @@ export type UserReponse = {
     empreendimento: string,
     unidade: string,
     ativo: boolean,
+    papel: PapelUsuario,
 }
+
+/** @deprecated Use UserResponse. */
+export type UserReponse = UserResponse

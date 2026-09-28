@@ -1,12 +1,17 @@
-import type { EditUserData, User, UserReponse } from "@constructo/shared";
+import type {
+    EditUserData,
+    PapelUsuario,
+    User,
+    UserResponse,
+} from "@constructo/shared";
 
 import { apiRequest, type ServiceRequestOptions } from "../../services/api";
 
 export function createUser(
     user: User,
     options?: ServiceRequestOptions,
-): Promise<UserReponse> {
-    return apiRequest<UserReponse>("/usuarios/", {
+): Promise<UserResponse> {
+    return apiRequest<UserResponse>("/usuarios/", {
         method: "POST",
         body: JSON.stringify(user),
         signal: options?.signal,
@@ -21,20 +26,34 @@ export async function getUsersCount(options?: ServiceRequestOptions): Promise<nu
     return result.total;
 }
 
-export function getUsers(options?: ServiceRequestOptions): Promise<UserReponse[]> {
-    return apiRequest<UserReponse[]>("/usuarios/", { signal: options?.signal });
+export function getUsers(options?: ServiceRequestOptions): Promise<UserResponse[]> {
+    return apiRequest<UserResponse[]>("/usuarios/", { signal: options?.signal });
 }
 
 export function updateUser(
     userId: number,
     user: EditUserData,
     options?: ServiceRequestOptions,
-): Promise<UserReponse> {
-    return apiRequest<UserReponse>(`/usuarios/${userId}`, {
+): Promise<UserResponse> {
+    return apiRequest<UserResponse>(`/usuarios/${userId}`, {
         method: "PUT",
         body: JSON.stringify(user),
         signal: options?.signal,
     });
+}
+export function updateUserRole(
+    userId: number,
+    papel: PapelUsuario,
+    options?: ServiceRequestOptions,
+): Promise<UserResponse> {
+    return apiRequest<UserResponse>(
+        `/usuarios/${userId}/papel`,
+        {
+            method: "PATCH",
+            body: JSON.stringify({ papel }),
+            signal: options?.signal,
+        },
+    );
 }
 
 export function deleteUser(
