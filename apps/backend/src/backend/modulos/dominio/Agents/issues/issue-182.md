@@ -26,13 +26,13 @@ Permitir, caso necessário na V1, concluir diretamente um marco `NAO_INICIADO`, 
 
 ## Critérios de aceite
 
-- [ ] marco pode ser concluído;
-- [ ] status muda para `CONCLUIDO`;
-- [ ] `concluido_em` é preenchido;
-- [ ] `iniciado_em` é preservado;
-- [ ] marco já concluído não gera conclusão duplicada;
-- [ ] alteração é persistida;
-- [ ] API retorna o progresso atualizado.
+- [x] marco pode ser concluído;
+- [x] status muda para `CONCLUIDO`;
+- [x] `concluido_em` é preenchido;
+- [x] `iniciado_em` é preservado;
+- [x] marco já concluído não gera conclusão duplicada;
+- [x] alteração é persistida;
+- [x] API retorna o progresso atualizado.
 
 ## Planejamento de execução
 
@@ -62,3 +62,23 @@ Permitir, caso necessário na V1, concluir diretamente um marco `NAO_INICIADO`, 
 - Depende das issues 180, 179 e 181.
 - Se conclusão direta for permitida, preencher `iniciado_em` na mesma transação;
   documentar essa decisão antes de codificar.
+
+## Relatório de execução
+
+- Implementada a ação `concluir_progresso`, reutilizando a máquina de estados
+  existente e exigindo a transição `EM_ANDAMENTO` → `CONCLUIDO`.
+- A operação preserva `iniciado_em`, preenche `concluido_em` e atualiza o
+  registro antes de retorná-lo.
+- Criado o endpoint `POST /empreendimentos/{empreendimento_id}/progressos/{progresso_id}/concluir`.
+- Acesso é validado para ADMIN/GESTOR e o progresso é conferido contra o
+  empreendimento informado na rota.
+- Conclusão direta de `NAO_INICIADO` não foi habilitada; a V1 mantém a ordem
+  explícita de início e conclusão.
+- Validação realizada: compilação dos módulos alterados e `git diff --check`.
+- Testes de integração com banco não foram executados neste ambiente.
+
+## Conclusão
+
+Issue concluída no código. Marcos em andamento podem ser concluídos pela API,
+com preservação do início, registro da conclusão, bloqueio de duplicidade e
+retorno do progresso atualizado.
