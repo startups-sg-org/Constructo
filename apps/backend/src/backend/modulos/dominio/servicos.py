@@ -673,6 +673,36 @@ async def listar_historico_progresso(
     ).order_by(HistoricoProgressoMarco.alterado_em, HistoricoProgressoMarco.id)))
 
 
+async def calcular_progresso_etapa(
+    session: AsyncSession, etapa_id: int, local_id: int, *, usuario_id: int
+) -> dict[str, int]:
+    etapa = await _exigir(session, Etapa, etapa_id)
+    local = await _exigir(session, LocalObra, local_id)
+    if not await pode_gerir(session, usuario_id, local.empreendimento_id):
+        raise ValueError("Usuário não pode consultar este progresso")
+    taxonomia = await _exigir(session, Taxonomia, etapa.taxonomia_id)
+    if taxonomia.empreendimento_id != local.empreendimento_id:
+        raise ValueError("Etapa e local pertencem a empreendimentos diferentes")
+    marcos = list(await session.scalars(select(Marco).where(Marco.etapa_id == etapa_id)))
+    ids = [marco.id for marco in marcos]
+    progressos = []
+    if ids:
+        progressos = list(await session.scalars(select(ProgressoMarco).where(
+            ProgressoMarco.local_obra_id == local_id, ProgressoMarco.marco_id.in_(ids)
+        )))
+    estados = {progresso.marco_id: EstadoMarco(progresso.status) for progresso in progressos}
+    total = len(marcos)
+    concluidos = sum(estados.get(marco_id) == EstadoMarco.CONCLUIDO for marco_id in ids)
+    em_andamento = sum(estados.get(marco_id) == EstadoMarco.EM_ANDAMENTO for marco_id in ids)
+    nao_iniciados = total - concluidos - em_andamento
+    percentual = round(100 * concluidos / total) if total else 0
+    return {
+        "etapa_id": etapa_id, "local_obra_id": local_id, "total": total,
+        "concluidos": concluidos, "em_andamento": em_andamento,
+        "nao_iniciados": nao_iniciados, "percentual": max(0, min(100, percentual)),
+    }
+
+
 async def criar_publicacao(
     session: AsyncSession, dados: PublicacaoCriar, *, autor_id: int, publicar: bool = False
 ) -> Publicacao:

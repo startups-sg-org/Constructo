@@ -380,6 +380,16 @@ class HistoricoProgressoMarcoLer(Leitura):
     observacao: str | None = None
 
 
+class ProgressoEtapaLer(BaseModel):
+    etapa_id: int
+    local_obra_id: int
+    total: int
+    concluidos: int
+    em_andamento: int
+    nao_iniciados: int
+    percentual: int
+
+
 class EvidenciaCriar(BaseModel):
     progresso_marco_id: int
     arquivo_url: str = Field(min_length=1, max_length=1000)

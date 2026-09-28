@@ -74,5 +74,23 @@ Retornar:
 - Depende das entidades/transições das issues 180–185.
 - Não calcular progresso do empreendimento inteiro nem criar gráficos nesta
   issue.
+
+## Relatório de execução
+
+- Criado o contrato `ProgressoEtapaLer` com total, concluídos, em andamento,
+  não iniciados e percentual.
+- Implementado o cálculo por etapa e local, considerando todos os marcos da
+  etapa; progressos ausentes são tratados como `NAO_INICIADO`.
+- Criado o endpoint `GET /empreendimentos/{empreendimento_id}/locais/{local_id}/etapas/{etapa_id}/progresso`.
+- O cálculo valida acesso do usuário e a correspondência entre local,
+  empreendimento e taxonomia da etapa, limitando o percentual a 0–100.
+- Etapa sem marcos retorna contagens zeradas e percentual `0`.
+- Validação realizada: compilação dos módulos alterados e `git diff --check`.
+- Testes de integração com banco não foram executados neste ambiente.
+
+## Conclusão
+
+Issue concluída no código. A API agora calcula e expõe o progresso de uma etapa
+por local, refletindo automaticamente conclusões e reaberturas dos marcos.
 - Definir antes da implementação se subetapas entram no cálculo da etapa pai;
   a V1 deve documentar uma única regra e aplicá-la consistentemente.
