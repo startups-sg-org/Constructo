@@ -1,0 +1,14 @@
+.taxonomy-editor { display: grid; gap: 1rem; }
+.taxonomy-tree, .taxonomy-tree ul { list-style: none; margin: 0; padding-left: 1rem; }
+.taxonomy-item { border-left: 3px solid #cbd5e1; margin: .5rem 0; padding: .5rem .75rem; }
+.taxonomy-etapa { border-color: #2563eb; }
+.taxonomy-subetapa { border-color: #7c3aed; }
+.taxonomy-marco { border-color: #16a34a; }
+.taxonomy-item__row { display: flex; align-items: center; gap: .5rem; }
+.taxonomy-item__row button { border: 0; background: transparent; cursor: pointer; }
+.taxonomy-item__row span { color: #64748b; font-size: .8rem; }
+.taxonomy-select { border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0; }
+.taxonomy-item--selected { background: #eff6ff; }
+.taxonomy-item__description { color: #475569; font-size: .9rem; margin-left: 1.5rem; }
+.taxonomy-form { display: flex; flex-wrap: wrap; gap: .5rem; padding: .75rem; background: #f8fafc; border-radius: .5rem; }
+.taxonomy-form input { min-width: 10rem; padding: .45rem; }

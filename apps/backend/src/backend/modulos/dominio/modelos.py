@@ -103,8 +103,11 @@ class Taxonomia(Base):
     __tablename__ = "taxonomias"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    empreendimento_id: Mapped[int] = mapped_column(
-        ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=False, unique=True
+    empreendimento_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=True, unique=True
+    )
+    origem_taxonomia_id: Mapped[int | None] = mapped_column(
+        ForeignKey("taxonomias.id", ondelete="RESTRICT"), index=True
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
@@ -116,6 +119,7 @@ class Taxonomia(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
     etapas: Mapped[list["Etapa"]] = relationship(back_populates="taxonomia")
+    origem_taxonomia: Mapped["Taxonomia | None"] = relationship(remote_side=[id])
 
 
 class Etapa(Base):

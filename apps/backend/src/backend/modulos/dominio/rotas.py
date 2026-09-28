@@ -14,26 +14,50 @@ from .esquemas import (
     EmpreendimentoAtualizar,
     EmpreendimentoCriar,
     EmpreendimentoLer,
+    EtapaAtualizar,
+    EtapaCriar,
+    EtapaLer,
+    EtapaTaxonomiaCriar,
     LocalAtualizar,
     LocalCriar,
     LocalHierarquiaLer,
     LocalLer,
     LocalRaizCriar,
+    MarcoAtualizar,
+    MarcoCriar,
+    MarcoEtapaCriar,
+    MarcoLer,
     PavimentoCriar,
+    TaxonomiaLer,
+    TaxonomiaConfigurar,
+    TaxonomiaPersonalizar,
     UnidadeCriar,
 )
 from .regras import Papel
 from .servicos import (
     atualizar_empreendimento,
+    atualizar_etapa,
     atualizar_local,
+    atualizar_marco,
     buscar_empreendimento,
+    buscar_taxonomia_do_empreendimento,
+    configurar_taxonomia,
     criar_empreendimento,
+    criar_etapa,
     criar_local,
+    criar_marco,
+    exigir_etapa_do_empreendimento,
+    exigir_marco_do_empreendimento,
+    exigir_taxonomia_do_empreendimento,
+    listar_etapas,
     listar_empreendimentos,
     listar_empreendimentos_do_gestor,
+    listar_taxonomias_disponiveis,
     listar_estrutura_fisica,
     listar_locais,
+    listar_marcos,
     pode_gerir,
+    personalizar_taxonomia,
 )
 
 router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
@@ -92,6 +116,161 @@ async def _exigir_acesso_ao_empreendimento(
         return
     if not await pode_gerir(session, usuario.id, empreendimento_id):
         raise HTTPException(status_code=403, detail="Acesso negado ao empreendimento")
+
+
+@router.get("/{empreendimento_id}/taxonomia", response_model=TaxonomiaLer)
+async def consultar_taxonomia(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await buscar_taxonomia_do_empreendimento(session, empreendimento_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.get("/taxonomias/disponiveis", response_model=list[TaxonomiaLer])
+async def consultar_taxonomias_disponiveis(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    return await listar_taxonomias_disponiveis(session)
+
+
+@router.post("/{empreendimento_id}/taxonomia/configurar", response_model=TaxonomiaLer, status_code=201)
+async def configurar_taxonomia_empreendimento(
+    empreendimento_id: int,
+    dados: TaxonomiaConfigurar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await configurar_taxonomia(session, empreendimento_id, dados)
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.post("/{empreendimento_id}/taxonomia/personalizar", response_model=TaxonomiaLer, status_code=201)
+async def cadastrar_taxonomia_personalizada(
+    empreendimento_id: int,
+    dados: TaxonomiaPersonalizar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await personalizar_taxonomia(session, empreendimento_id, dados)
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.get("/{empreendimento_id}/taxonomia/etapas", response_model=list[EtapaLer])
+async def consultar_etapas_taxonomia(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+    parent_id: int | None = None,
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        taxonomia = await buscar_taxonomia_do_empreendimento(session, empreendimento_id)
+        if parent_id is not None:
+            await exigir_etapa_do_empreendimento(session, empreendimento_id, parent_id)
+        return await listar_etapas(session, taxonomia.id, parent_id=parent_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.post("/{empreendimento_id}/taxonomia/etapas", response_model=EtapaLer, status_code=201)
+async def cadastrar_etapa_taxonomia(
+    empreendimento_id: int,
+    dados: EtapaTaxonomiaCriar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        taxonomia = await buscar_taxonomia_do_empreendimento(session, empreendimento_id)
+        if dados.parent_id is not None:
+            await exigir_etapa_do_empreendimento(session, empreendimento_id, dados.parent_id)
+        return await criar_etapa(
+            session,
+            EtapaCriar(taxonomia_id=taxonomia.id, **dados.model_dump()),
+        )
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.patch("/{empreendimento_id}/taxonomia/etapas/{etapa_id}", response_model=EtapaLer)
+async def editar_etapa_taxonomia(
+    empreendimento_id: int,
+    etapa_id: int,
+    dados: EtapaAtualizar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_etapa_do_empreendimento(session, empreendimento_id, etapa_id)
+        if dados.parent_id is not None:
+            await exigir_etapa_do_empreendimento(session, empreendimento_id, dados.parent_id)
+        return await atualizar_etapa(session, etapa_id, dados)
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.get("/{empreendimento_id}/taxonomia/etapas/{etapa_id}/marcos", response_model=list[MarcoLer])
+async def consultar_marcos_etapa(
+    empreendimento_id: int,
+    etapa_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_etapa_do_empreendimento(session, empreendimento_id, etapa_id)
+        return await listar_marcos(session, etapa_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.post(
+    "/{empreendimento_id}/taxonomia/etapas/{etapa_id}/marcos",
+    response_model=MarcoLer,
+    status_code=201,
+)
+async def cadastrar_marco_etapa(
+    empreendimento_id: int,
+    etapa_id: int,
+    dados: MarcoEtapaCriar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_etapa_do_empreendimento(session, empreendimento_id, etapa_id)
+        return await criar_marco(session, MarcoCriar(etapa_id=etapa_id, **dados.model_dump()))
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.patch("/{empreendimento_id}/taxonomia/marcos/{marco_id}", response_model=MarcoLer)
+async def editar_marco_taxonomia(
+    empreendimento_id: int,
+    marco_id: int,
+    dados: MarcoAtualizar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
+        return await atualizar_marco(session, marco_id, dados)
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro)) from erro
 
 
 @router.get(

@@ -13,6 +13,7 @@ import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/For
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
 import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
+import TaxonomyEditor from "../modulos/empreendimentos/componentes/TaxonomyEditor";
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
@@ -24,6 +25,8 @@ import ResumoPainel from "../pages/Painel/ResumoPainel";
 import { exigirAcessoAoPainel, exigirAdmin } from "../features/auth/auth.loader";
 import { cadastrarEmpreendimento, cadastrarLocalRaiz, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
 import { carregarEmpreendimento, carregarEmpreendimentos, carregarEstruturaFisica } from "../features/empreendimentos/empreendimentos.loader";
+import { carregarTaxonomia } from "../features/empreendimentos/taxonomia.loader";
+import { alterarTaxonomia } from "../features/empreendimentos/taxonomia.action";
 import { redirecionarUsuarioAutenticado } from "../features/auth/login.loader";
 import { carregarResumoPainel } from "../features/usuarios/resumoPainel.loader";
 import { carregarUsuarios } from "../features/usuarios/usuarios.loader";
@@ -144,6 +147,19 @@ export const rotas: RouteObject[] = [
                 subtitulo="Gerencie a organização física do empreendimento selecionado."
               >
                 <StructureManagementPage />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId/taxonomia",
+            loader: carregarTaxonomia,
+            action: alterarTaxonomia,
+            element: (
+              <PaginaPainel
+                titulo="Editor de taxonomia"
+                subtitulo="Personalize etapas, subetapas e marcos do empreendimento."
+              >
+                <TaxonomyEditor />
               </PaginaPainel>
             ),
           },

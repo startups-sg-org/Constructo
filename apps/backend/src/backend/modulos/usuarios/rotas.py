@@ -121,6 +121,7 @@ async def criar_usuario(
             receber_atualizacoes=usuario.receber_atualizacoes,
             empreendimento=usuario.empreendimento,
             unidade=usuario.unidade,
+            papel=Papel(usuario.papel),
         )
     except IntegrityError as erro:
         await repositorio.session.rollback()

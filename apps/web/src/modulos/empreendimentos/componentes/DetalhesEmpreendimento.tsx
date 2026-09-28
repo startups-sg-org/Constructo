@@ -1,13 +1,29 @@
 import { Link, useLoaderData } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
 import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
+import { obterTaxonomia, type Taxonomia } from "../../../features/empreendimentos/empreendimentos.service";
+import { ApiError } from "../../../services/api";
 import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
 import "./ListaEmpreendimentos.css";
 
 export default function DetalhesEmpreendimento() {
     const empreendimento = useLoaderData<typeof carregarEmpreendimento>();
+    const [taxonomia, setTaxonomia] = useState<Taxonomia | null>(null);
+    const [carregandoTaxonomia, setCarregandoTaxonomia] = useState(true);
+
+    useEffect(() => {
+        let ativo = true;
+        obterTaxonomia(empreendimento.id)
+            .then((dados) => ativo && setTaxonomia(dados))
+            .catch((erro) => {
+                if (!(erro instanceof ApiError && erro.status === 404)) throw erro;
+            })
+            .finally(() => ativo && setCarregandoTaxonomia(false));
+        return () => { ativo = false; };
+    }, [empreendimento.id]);
 
     return (
         <article className="detalhes-empreendimento superficie-painel">
@@ -39,12 +55,19 @@ export default function DetalhesEmpreendimento() {
                     <dt>Descrição</dt>
                     <dd>{empreendimento.descricao || "Descrição não informada"}</dd>
                 </div>
+                <div>
+                    <dt>Taxonomia</dt>
+                    <dd>{carregandoTaxonomia ? "Carregando…" : taxonomia?.nome || "Nenhuma taxonomia configurada"}</dd>
+                </div>
             </dl>
 
             <footer className="detalhes-empreendimento__acoes barra-acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
                 <Link className="botao secundario" to="estrutura">
                     Gerenciar estrutura física
+                </Link>
+                <Link className="botao secundario" to="taxonomia">
+                    Editar taxonomia
                 </Link>
                 <Link className="botao primario" to="editar">Editar empreendimento</Link>
             </footer>

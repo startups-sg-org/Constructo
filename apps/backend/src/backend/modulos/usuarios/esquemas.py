@@ -18,6 +18,7 @@ class CreateUser(BaseModel):
     receber_atualizacoes: bool = True
     empreendimento: str
     unidade: str
+    papel: Literal["GESTOR", "COMPRADOR"] = "COMPRADOR"
 
 
 class LoginUser(BaseModel):

@@ -129,15 +129,84 @@ class LocalHierarquiaLer(LocalLer):
 
 
 class TaxonomiaCriar(BaseModel):
-    empreendimento_id: int
+    empreendimento_id: int | None = None
     nome: str = Field(min_length=1, max_length=200)
     descricao: str | None = None
     is_padrao: bool = False
 
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class TaxonomiaPadraoCriar(BaseModel):
+    nome: str = Field(min_length=1, max_length=200)
+    descricao: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class TaxonomiaPersonalizar(BaseModel):
+    origem_taxonomia_id: int
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    descricao: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str | None) -> str | None:
+        if nome is None:
+            return None
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class TaxonomiaConfigurar(BaseModel):
+    origem_taxonomia_id: int = Field(gt=0)
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    descricao: str | None = None
+
 
 class TaxonomiaLer(Leitura, TaxonomiaCriar):
+    origem_taxonomia_id: int | None = None
     criado_em: datetime
     atualizado_em: datetime
+
+
+class TaxonomiaPersonalizadaLer(TaxonomiaLer):
+    origem_taxonomia_id: int
 
 
 class EtapaCriar(BaseModel):
@@ -148,9 +217,72 @@ class EtapaCriar(BaseModel):
     descricao_tecnica: str | None = None
     descricao_cliente: str | None = None
 
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class EtapaAtualizar(BaseModel):
+    parent_id: int | None = None
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    ordem: int | None = Field(default=None, ge=0)
+    descricao_tecnica: str | None = None
+    descricao_cliente: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str | None) -> str | None:
+        if nome is None:
+            return None
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
 
 class EtapaLer(Leitura, EtapaCriar):
     pass
+
+
+class EtapaTaxonomiaCriar(BaseModel):
+    parent_id: int | None = None
+    nome: str = Field(min_length=1, max_length=200)
+    ordem: int = Field(default=0, ge=0)
+    descricao_tecnica: str | None = None
+    descricao_cliente: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
 
 
 class MarcoCriar(BaseModel):
@@ -160,9 +292,70 @@ class MarcoCriar(BaseModel):
     descricao_tecnica: str | None = None
     descricao_cliente: str | None = None
 
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class MarcoAtualizar(BaseModel):
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    ordem: int | None = Field(default=None, ge=0)
+    descricao_tecnica: str | None = None
+    descricao_cliente: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str | None) -> str | None:
+        if nome is None:
+            return None
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
 
 class MarcoLer(Leitura, MarcoCriar):
     pass
+
+
+class MarcoEtapaCriar(BaseModel):
+    nome: str = Field(min_length=1, max_length=200)
+    ordem: int = Field(default=0, ge=0)
+    descricao_tecnica: str | None = None
+    descricao_cliente: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str) -> str:
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao_tecnica", "descricao_cliente")
+    @classmethod
+    def normalizar_descricao(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
 
 
 class ProgressoMarcoCriar(BaseModel):

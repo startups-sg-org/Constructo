@@ -7,6 +7,8 @@ from backend.modulos.contracts.routes import empresas_router, contratos_router, 
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+
 ]
 
 app = FastAPI()
