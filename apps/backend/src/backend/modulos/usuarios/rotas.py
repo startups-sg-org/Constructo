@@ -131,7 +131,7 @@ async def criar_usuario(
 @router.get("/usuarios/quantidade", response_model=UserCount)
 async def consultar_quantidade_de_usuarios(
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> UserCount:
     return UserCount(total=await repositorio.contar_usuarios())
 
@@ -139,7 +139,7 @@ async def consultar_quantidade_de_usuarios(
 @router.get("/usuarios/", response_model=list[UserReturn])
 async def listar_usuarios(
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> list[Usuario]:
     return await repositorio.listar_usuarios()
 
@@ -148,7 +148,7 @@ async def listar_usuarios(
 async def consultar_usuario(
     usuario_id: int,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Usuario:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
@@ -160,7 +160,7 @@ async def consultar_usuario(
 async def excluir_usuario(
     usuario_id: int,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Response:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
@@ -184,7 +184,7 @@ async def atualizar_usuario(
     usuario_id: int,
     dados: UpdateUser,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    _: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Usuario:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:
@@ -228,7 +228,7 @@ async def atualizar_papel_usuario(
     usuario_id: int,
     dados: PapelUsuarioAtualizar,
     repositorio: Annotated[RepositorioDeUsuarios, Depends(get_repositorio_de_usuarios)],
-    admin: Annotated[Usuario, Depends(get_admin)],
+    admin: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Usuario:
     usuario = await repositorio.buscar_usuario_por_id(usuario_id)
     if not usuario:

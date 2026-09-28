@@ -22,7 +22,7 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import PaginaPainel from "../pages/Painel/PaginaPainel";
 import ResumoPainel from "../pages/Painel/ResumoPainel";
-import { exigirAcessoAoPainel, exigirAdmin } from "../features/auth/auth.loader";
+import { exigirAcessoAoPainel } from "../features/auth/auth.loader";
 import { cadastrarEmpreendimento, cadastrarLocalRaiz, editarEmpreendimento } from "../features/empreendimentos/empreendimentos.action";
 import { carregarEmpreendimento, carregarEmpreendimentos, carregarEstruturaFisica } from "../features/empreendimentos/empreendimentos.loader";
 import { carregarTaxonomia } from "../features/empreendimentos/taxonomia.loader";
@@ -36,12 +36,12 @@ import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
 
 async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
-  await exigirAdmin(args);
+  await exigirAcessoAoPainel(args);
   return carregarUsuarios(args);
 }
 
 async function alterarUsuarioComoAdmin(args: ActionFunctionArgs) {
-  await exigirAdmin(args);
+  await exigirAcessoAoPainel(args);
   return alterarUsuario(args);
 }
 export const rotas: RouteObject[] = [

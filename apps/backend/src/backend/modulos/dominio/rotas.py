@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.banco_de_dados.connections.database_postgres import get_db
 from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import (
-    get_admin,
     get_admin_ou_gestor,
 )
 
@@ -58,6 +57,7 @@ from .servicos import (
     listar_marcos,
     pode_gerir,
     personalizar_taxonomia,
+    vincular_gestor,
 )
 
 router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
@@ -67,9 +67,12 @@ router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
 async def cadastrar_empreendimento(
     dados: EmpreendimentoCriar,
     session: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[Usuario, Depends(get_admin)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
-    return await criar_empreendimento(session, dados)
+    empreendimento = await criar_empreendimento(session, dados)
+    if usuario.papel == Papel.GESTOR:
+        await vincular_gestor(session, usuario.id, empreendimento.id)
+    return empreendimento
 
 
 @router.get("/", response_model=list[EmpreendimentoLer])

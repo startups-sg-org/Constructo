@@ -60,7 +60,7 @@ export default function FormularioEmpreendimento() {
         }
     }, [actionData, reset, setError]);
 
-    if (usuario?.papel !== "ADMIN") return null;
+    if (usuario?.papel !== "ADMIN" && usuario?.papel !== "GESTOR") return null;
 
     return (
         <section className="empreendimento-card superficie-painel" aria-labelledby="novo-empreendimento-titulo">

@@ -61,7 +61,7 @@ export default function StructureTreeItem({
                         aria-label={`${expanded ? "Recolher" : "Expandir"} ${item.nome}`}
                         onClick={alternar}
                     >
-                        <span aria-hidden="true">{expanded ? "-" : "+"}</span>
+                        <span aria-hidden="true">{expanded ? "⌄" : "›"}</span>
                     </button>
                 ) : (
                     <span className="structure-tree__leaf" aria-hidden="true" />

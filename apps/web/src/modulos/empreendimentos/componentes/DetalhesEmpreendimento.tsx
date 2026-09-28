@@ -6,6 +6,7 @@ import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import { obterTaxonomia, type Taxonomia } from "../../../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../../../services/api";
+import TaxonomyConfiguration from "./TaxonomyConfiguration";
 import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
 import "./ListaEmpreendimentos.css";
 
@@ -61,14 +62,21 @@ export default function DetalhesEmpreendimento() {
                 </div>
             </dl>
 
+            {!carregandoTaxonomia && !taxonomia && (
+                <TaxonomyConfiguration
+                    empreendimentoId={empreendimento.id}
+                    onConfigured={setTaxonomia}
+                />
+            )}
+
             <footer className="detalhes-empreendimento__acoes barra-acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
                 <Link className="botao secundario" to="estrutura">
                     Gerenciar estrutura física
                 </Link>
-                <Link className="botao secundario" to="taxonomia">
+                {taxonomia && <Link className="botao secundario" to="taxonomia">
                     Editar taxonomia
-                </Link>
+                </Link>}
                 <Link className="botao primario" to="editar">Editar empreendimento</Link>
             </footer>
         </article>

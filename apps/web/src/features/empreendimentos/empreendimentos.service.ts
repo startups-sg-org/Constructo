@@ -38,6 +38,7 @@ export type Taxonomia = {
     nome: string;
     descricao?: string | null;
     empreendimento_id?: number | null;
+    origem_taxonomia_id?: number | null;
     is_padrao: boolean;
     etapas?: Etapa[];
 };
