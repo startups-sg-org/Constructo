@@ -1,8 +1,0 @@
-{
-  "color" : "#FF3B30",
-  "icon" : "brain",
-  "id" : "2E9AE44C-E213-4F4D-A339-14ACCC1C9A96",
-  "name" : "Executador de agentes planejadores e sub-executadores",
-  "prompt" : "O agente planejador deverá executar os agentes que planejam - os agentes que planejam são responsáveis por analisar uma issue {a ser pedida pelo ser humano] e planejar como ela deverá ser implementada no projeto de forma técnica - O agente principal deverá executar os agentes sub-executadores - que são responsáveis por implementar o planejado para cada issue. \nO agente orquestrador deverá criar uma branch a partir da develop para a primeira issue criada, as próximas serão serão criadas em cascata, ( por que uma iissue pode depender de outra issue que já foi concluida anteriormente).",
-  "schemaVersion" : 1
-}
