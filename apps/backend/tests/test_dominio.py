@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import configure_mappers
 
 from backend.banco_de_dados.connections.database_postgres import Base
-from backend.modulos.dominio import modelos as dominio  # noqa: F401
+from backend.banco_de_dados.registro_modelos import registrar_modelos
 from backend.modulos.dominio.esquemas import LocalCriar, PublicacaoCriar
 from backend.modulos.dominio.regras import (
     EstadoMarco,
@@ -11,10 +11,10 @@ from backend.modulos.dominio.regras import (
     calcular_progresso,
     validar_transicao,
 )
-from backend.modulos.usuarios import modelos as usuarios  # noqa: F401
 
 
 def test_mapeamento_e_tabelas():
+    registrar_modelos()
     configure_mappers()
     assert {
         "empreendimentos",
@@ -28,6 +28,8 @@ def test_mapeamento_e_tabelas():
         "publicacoes_evidencias",
         "usuarios_unidades",
         "usuarios_empreendimentos",
+        "protocolos_evidencia",
+        "itens_protocolo",
     } <= set(Base.metadata.tables)
 
 
