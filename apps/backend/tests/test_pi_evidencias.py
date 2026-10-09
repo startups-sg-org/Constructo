@@ -165,3 +165,42 @@ def test_gerencia_itens_de_protocolo(cliente, monkeypatch):
     assert atualizada.json()["obrigatorio"] is False
     assert excluida.status_code == 204
     assert removidos == [(7, 1, 2)]
+
+
+def test_atualiza_quantidade_minima_e_consulta_status_do_protocolo(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def atualizar(session_recebida, marco_id, protocolo_id, quantidade_minima):
+        assert session_recebida is session
+        assert marco_id == 7
+        assert protocolo_id == 1
+        protocolo = _protocolo(marco_id)
+        protocolo.quantidade_minima = quantidade_minima
+        return protocolo
+
+    async def consultar_status(session_recebida, marco_id, protocolo_id, progresso_marco_id):
+        assert session_recebida is session
+        assert (marco_id, protocolo_id, progresso_marco_id) == (7, 1, 9)
+        return {
+            "protocolo_id": protocolo_id,
+            "quantidade_minima": 5,
+            "evidencias_registradas": 3,
+            "quantidade_atendida": False,
+        }
+
+    monkeypatch.setattr(routes, "atualizar_quantidade_minima", atualizar)
+    monkeypatch.setattr(routes, "consultar_status_protocolo", consultar_status)
+
+    caminho = "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1"
+    atualizada = test_client.patch(caminho, json={"quantidade_minima": 0})
+    status = test_client.get(f"{caminho}/status?progresso_marco_id=9")
+
+    assert atualizada.status_code == 200
+    assert atualizada.json()["quantidade_minima"] == 0
+    assert status.status_code == 200
+    assert status.json() == {
+        "protocolo_id": 1,
+        "quantidade_minima": 5,
+        "evidencias_registradas": 3,
+        "quantidade_atendida": False,
+    }

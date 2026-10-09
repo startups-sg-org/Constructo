@@ -1,8 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.modulos.dominio.modelos import Marco
+from backend.modulos.dominio.modelos import Evidencia, Marco, ProgressoMarco
 
 from .modulos import ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
@@ -59,6 +59,26 @@ class ProtocolosEvidenciaRepo:
     ) -> None:
         protocolo.marco_id = None
         await db.flush()
+
+    async def atualizar_quantidade_minima(
+        self, db: AsyncSession, protocolo: ProtocoloEvidencia, quantidade_minima: int
+    ) -> ProtocoloEvidencia:
+        protocolo.quantidade_minima = quantidade_minima
+        await db.flush()
+        await db.refresh(protocolo)
+        return protocolo
+
+    async def buscar_progresso_por_id(
+        self, db: AsyncSession, progresso_marco_id: int
+    ) -> ProgressoMarco | None:
+        return await db.get(ProgressoMarco, progresso_marco_id)
+
+    async def contar_evidencias_do_progresso(
+        self, db: AsyncSession, progresso_marco_id: int
+    ) -> int:
+        return await db.scalar(
+            select(func.count(Evidencia.id)).where(Evidencia.progresso_marco_id == progresso_marco_id)
+        ) or 0
 
 
 class ItensProtocoloRepo:

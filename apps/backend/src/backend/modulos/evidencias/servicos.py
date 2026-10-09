@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .modulos import ItemProtocolo, ProtocoloEvidencia
+from .regras import quantidade_minima_atendida
 from .repository import ItensProtocoloRepo, ProtocolosEvidenciaRepo
 from .schemas import (
     ItemProtocolo_Atualizar_Schema,
@@ -52,6 +53,28 @@ async def remover_associacao_do_protocolo(
     if protocolo is None or protocolo.marco_id != marco_id:
         raise ValueError(f"Protocolo inexistente no marco: {protocolo_id}")
     await _repositorio.remover_associacao_do_protocolo(session, protocolo)
+
+
+async def atualizar_quantidade_minima(
+    session: AsyncSession, marco_id: int, protocolo_id: int, quantidade_minima: int
+) -> ProtocoloEvidencia:
+    await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
+    protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
+    return await _repositorio.atualizar_quantidade_minima(session, protocolo, quantidade_minima)
+
+
+async def consultar_status_protocolo(
+    session: AsyncSession, marco_id: int, protocolo_id: int, progresso_marco_id: int
+) -> dict[str, int | bool]:
+    await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
+    progresso = await _repositorio.buscar_progresso_por_id(session, progresso_marco_id)
+    if progresso is None or progresso.marco_id != marco_id:
+        raise ValueError(f"Progresso inexistente no marco: {progresso_marco_id}")
+    protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
+    registradas = await _repositorio.contar_evidencias_do_progresso(session, progresso_marco_id)
+    return {"protocolo_id": protocolo.id, "quantidade_minima": protocolo.quantidade_minima,
+            "evidencias_registradas": registradas,
+            "quantidade_atendida": quantidade_minima_atendida(registradas, protocolo.quantidade_minima)}
 
 
 async def _exigir_protocolo_do_marco(

@@ -12,7 +12,7 @@ class ProtocoloEvidencia(Base):
     __tablename__ = "protocolos_evidencia"
     __table_args__ = (
         CheckConstraint(
-            "quantidade_minima >= 1", name="ck_protocolos_evidencia_quantidade_minima"
+            "quantidade_minima >= 0", name="ck_protocolos_evidencia_quantidade_minima"
         ),
     )
 
@@ -22,7 +22,7 @@ class ProtocoloEvidencia(Base):
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
-    quantidade_minima: Mapped[int] = mapped_column(Integer, nullable=False)
+    quantidade_minima: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
