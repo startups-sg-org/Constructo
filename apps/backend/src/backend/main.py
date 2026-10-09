@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from backend.modulos.contracts.routes import (
     contratos_router,
@@ -7,7 +8,11 @@ from backend.modulos.contracts.routes import (
     itens_contratuais_router,
 )
 from backend.modulos.dominio.rotas import router as dominio_router
-from backend.modulos.evidencias.routes import router as evidencias_router
+from backend.modulos.evidencias.routes import (
+    router as evidencias_router,
+    upload_router as evidencias_upload_router,
+)
+from backend.modulos.evidencias.storage import DIRETORIO_UPLOADS
 from backend.modulos.usuarios.rotas import router as usuarios_router
 
 origins = [
@@ -30,6 +35,8 @@ app.add_middleware(
 app.include_router(usuarios_router)
 app.include_router(dominio_router)
 app.include_router(evidencias_router)
+app.include_router(evidencias_upload_router)
+app.mount("/uploads", StaticFiles(directory=DIRETORIO_UPLOADS), name="evidencias_publicas")
 
 #--------------------------------------
 # Rotas do módulo contracts

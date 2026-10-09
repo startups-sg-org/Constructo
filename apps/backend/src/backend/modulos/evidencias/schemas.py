@@ -149,3 +149,14 @@ class ProtocoloEvidencia_ComItens_FromDB_Schema(ProtocoloEvidencia_FromDB_Schema
     """Protocolo persistido com os itens que o compõem, em ordem."""
 
     itens: list[ItemProtocolo_FromDB_Schema] = Field(default_factory=list)
+
+
+class EvidenciaUpload_FromDB_Schema(BaseModel):
+    """Metadados devolvidos após armazenar uma imagem de evidência."""
+
+    empreendimento_id: int
+    nome: str
+    caminho: str
+    url: str
+    tamanho: int
+    tipo_mime: str

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from backend.banco_de_dados.connections.database_postgres import get_db
 from backend.main import app
 from backend.modulos.evidencias import routes
+from backend.modulos.evidencias.storage import LocalStorage, obter_storage
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 
@@ -165,3 +166,60 @@ def test_gerencia_itens_de_protocolo(cliente, monkeypatch):
     assert atualizada.json()["obrigatorio"] is False
     assert excluida.status_code == 204
     assert removidos == [(7, 1, 2)]
+
+
+def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
+    cliente, tmp_path
+):
+    test_client, _ = cliente
+    storage = LocalStorage(tmp_path)
+    app.dependency_overrides[obter_storage] = lambda: storage
+    png = b"\x89PNG\r\n\x1a\n" + b"conteudo-da-imagem"
+
+    resposta = test_client.post(
+        "/api/evidences/upload",
+        data={"empreendimento_id": "42"},
+        files={"file": ("obra.png", png, "image/png")},
+    )
+
+    assert resposta.status_code == 201
+    dados = resposta.json()
+    assert dados["empreendimento_id"] == 42
+    assert dados["tipo_mime"] == "image/png"
+    assert dados["tamanho"] == len(png)
+    assert dados["caminho"].startswith("empreendimentos/42/evidencias/")
+    assert dados["url"] == f"/uploads/{dados['caminho']}"
+    assert dados["nome"].endswith(".png")
+    assert (tmp_path / dados["caminho"]).read_bytes() == png
+
+    segunda_resposta = test_client.post(
+        "/api/evidences/upload",
+        data={"empreendimento_id": "42"},
+        files={"file": ("obra.png", png, "image/png")},
+    )
+    assert segunda_resposta.status_code == 201
+    assert segunda_resposta.json()["nome"] != dados["nome"]
+
+
+@pytest.mark.parametrize(
+    ("nome", "conteudo", "tipo_mime", "status"),
+    [
+        ("documento.pdf", b"%PDF-1.7", "application/pdf", 415),
+        ("imagem.png", b"nao-e-uma-imagem", "image/png", 415),
+        ("imagem.png", b"\x89PNG\r\n\x1a\n" + b"x" * (5 * 1024 * 1024), "image/png", 413),
+    ],
+)
+def test_upload_rejeita_formato_conteudo_e_tamanho_invalidos(
+    cliente, tmp_path, nome, conteudo, tipo_mime, status
+):
+    test_client, _ = cliente
+    app.dependency_overrides[obter_storage] = lambda: LocalStorage(tmp_path)
+
+    resposta = test_client.post(
+        "/api/evidences/upload",
+        data={"empreendimento_id": "42"},
+        files={"file": (nome, conteudo, tipo_mime)},
+    )
+
+    assert resposta.status_code == status
+    assert not list(tmp_path.rglob("*"))

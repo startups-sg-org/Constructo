@@ -69,6 +69,9 @@ COPY --from=builder --chown=python:python /python /python
 # Copiando a pasta app para estágio vai ser bom para não precisar refazer o estágio anterior.
 COPY --from=builder --chown=python:python /app /app
 
+# O volume de evidências herda estas permissões na primeira inicialização.
+RUN mkdir -p /app/uploads && chown python:python /app/uploads
+
 # WORKDIR /app :: define o diretório de trabalho dentro do container. Isso significa que todos os comandos subsequentes serão executados a partir desse diretório. Além disso, ao definir o WORKDIR, você garante que o usuário python terá acesso a esse diretório e poderá executar a aplicação corretamente.
 WORKDIR /app
 
