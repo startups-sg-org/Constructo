@@ -17,8 +17,8 @@ class ProtocoloEvidencia(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    marco_id: Mapped[int] = mapped_column(
-        ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=False, index=True
+    marco_id: Mapped[int | None] = mapped_column(
+        ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
@@ -30,7 +30,7 @@ class ProtocoloEvidencia(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    marco: Mapped[Marco] = relationship()
+    marco: Mapped[Marco | None] = relationship(back_populates="protocolos_evidencia")
     itens: Mapped[list["ItemProtocolo"]] = relationship(
         back_populates="protocolo", order_by="ItemProtocolo.ordem"
     )

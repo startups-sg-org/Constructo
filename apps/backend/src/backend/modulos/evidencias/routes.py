@@ -18,11 +18,13 @@ from .schemas import (
     ProtocoloEvidencia_FromRequest_Schema,
 )
 from .servicos import (
+    associar_protocolo_ao_marco,
     atualizar_item_protocolo,
     criar_item_protocolo,
     criar_protocolo_evidencia,
     listar_itens_protocolo,
     listar_protocolos_evidencia,
+    remover_associacao_do_protocolo,
     remover_item_protocolo,
 )
 
@@ -66,6 +68,41 @@ async def consultar_protocolos_evidencia(
         return await listar_protocolos_evidencia(session, marco_id)
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.put(
+    "/{empreendimento_id}/taxonomia/marcos/{marco_id}/protocolos-evidencia/{protocolo_id}",
+    response_model=ProtocoloEvidencia_FromDB_Schema,
+)
+async def associar_protocolo(
+    empreendimento_id: int, marco_id: int, protocolo_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
+        return await associar_protocolo_ao_marco(session, marco_id, protocolo_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.delete(
+    "/{empreendimento_id}/taxonomia/marcos/{marco_id}/protocolos-evidencia/{protocolo_id}",
+    status_code=204,
+)
+async def remover_associacao_protocolo(
+    empreendimento_id: int, marco_id: int, protocolo_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+) -> Response:
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
+        await remover_associacao_do_protocolo(session, marco_id, protocolo_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    return Response(status_code=204)
 
 
 @router.post(

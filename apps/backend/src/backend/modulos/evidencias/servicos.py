@@ -34,6 +34,26 @@ async def listar_protocolos_evidencia(
     return await _repositorio.listar_protocolos_evidencia(session, marco_id)
 
 
+async def associar_protocolo_ao_marco(
+    session: AsyncSession, marco_id: int, protocolo_id: int
+) -> ProtocoloEvidencia:
+    await _exigir_marco(session, marco_id)
+    protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
+    if protocolo is None:
+        raise ValueError(f"Protocolo inexistente: {protocolo_id}")
+    return await _repositorio.associar_protocolo_ao_marco(session, protocolo, marco_id)
+
+
+async def remover_associacao_do_protocolo(
+    session: AsyncSession, marco_id: int, protocolo_id: int
+) -> None:
+    await _exigir_marco(session, marco_id)
+    protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
+    if protocolo is None or protocolo.marco_id != marco_id:
+        raise ValueError(f"Protocolo inexistente no marco: {protocolo_id}")
+    await _repositorio.remover_associacao_do_protocolo(session, protocolo)
+
+
 async def _exigir_protocolo_do_marco(
     session: AsyncSession, marco_id: int, protocolo_id: int
 ) -> None:

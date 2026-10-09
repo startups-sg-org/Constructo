@@ -46,6 +46,20 @@ class ProtocolosEvidenciaRepo:
     ) -> ProtocoloEvidencia | None:
         return await db.get(ProtocoloEvidencia, protocolo_id)
 
+    async def associar_protocolo_ao_marco(
+        self, db: AsyncSession, protocolo: ProtocoloEvidencia, marco_id: int
+    ) -> ProtocoloEvidencia:
+        protocolo.marco_id = marco_id
+        await db.flush()
+        await db.refresh(protocolo)
+        return protocolo
+
+    async def remover_associacao_do_protocolo(
+        self, db: AsyncSession, protocolo: ProtocoloEvidencia
+    ) -> None:
+        protocolo.marco_id = None
+        await db.flush()
+
 
 class ItensProtocoloRepo:
     """Acesso persistente aos itens que compõem um protocolo de evidência."""
