@@ -120,13 +120,20 @@ async def editar_empreendimento(
         raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
 
 
-async def _exigir_acesso_ao_empreendimento(
+async def exigir_acesso_ao_empreendimento(
     session: AsyncSession, usuario: Usuario, empreendimento_id: int
 ) -> None:
     if usuario.papel == Papel.ADMIN:
         return
     if not await pode_gerir(session, usuario.id, empreendimento_id):
         raise HTTPException(status_code=403, detail="Acesso negado ao empreendimento")
+
+
+async def _exigir_acesso_ao_empreendimento(
+    session: AsyncSession, usuario: Usuario, empreendimento_id: int
+) -> None:
+    """Compatibilidade para as rotas de domínio que ainda usam o nome privado."""
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
 
 
 @router.get("/{empreendimento_id}/taxonomia", response_model=TaxonomiaLer)

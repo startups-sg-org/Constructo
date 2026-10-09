@@ -1,9 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.modulos.contracts.routes import (
+    contratos_router,
+    empresas_router,
+    itens_contratuais_router,
+)
 from backend.modulos.dominio.rotas import router as dominio_router
+from backend.modulos.evidencias.routes import router as evidencias_router
 from backend.modulos.usuarios.rotas import router as usuarios_router
-from backend.modulos.contracts.routes import empresas_router, contratos_router, itens_contratuais_router
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -23,6 +29,7 @@ app.add_middleware(
 
 app.include_router(usuarios_router)
 app.include_router(dominio_router)
+app.include_router(evidencias_router)
 
 #--------------------------------------
 # Rotas do módulo contracts
