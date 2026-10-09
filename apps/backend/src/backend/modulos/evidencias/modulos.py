@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.banco_de_dados.connections.database_postgres import Base
@@ -31,3 +31,28 @@ class ProtocoloEvidencia(Base):
     )
 
     marco: Mapped[Marco] = relationship()
+    itens: Mapped[list["ItemProtocolo"]] = relationship(
+        back_populates="protocolo", order_by="ItemProtocolo.ordem"
+    )
+
+
+class ItemProtocolo(Base):
+    __tablename__ = "itens_protocolo"
+    __table_args__ = (CheckConstraint("ordem >= 0", name="ck_itens_protocolo_ordem"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    protocolo_id: Mapped[int] = mapped_column(
+        ForeignKey("protocolos_evidencia.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    nome: Mapped[str] = mapped_column(String(200), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(Text)
+    obrigatorio: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    protocolo: Mapped[ProtocoloEvidencia] = relationship(back_populates="itens")

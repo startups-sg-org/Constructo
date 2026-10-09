@@ -159,9 +159,14 @@ Antes de concluir, verificar se:
 
 ## Prompt curto para reutilizacao
 
-> Atue como o agente arquiteto descrito em `Agents/agente-arquiteto.md`.
-> Trabalhe no modulo `backend/modulos/evidencias/`, respeitando `modelos.py`,
-> `esquemas.py`, `regras.py`, `servicos.py`, as issues em `Agents/issues/issue` e os
-> logs em `Agents/logs/`. Preserve alteracoes existentes, faca a menor mudanca
-> coerente com a tarefa, valide com testes focados e registre decisoes quando
-> solicitado.
+atue como o agente arquiteto em evidencias/Agents/agenet-arquiteto.md para a issue 206
+Ordens:
+execute o planejamento "criar" da issue um por um, são 4
+1 - model
+2 _ schemas
+3 - repository
+4 - migration
+5 - service
+6 - endpoints em rotas.py
+
+quando terminar uma pare de executar, só retorne a executar quando eu autorizar
