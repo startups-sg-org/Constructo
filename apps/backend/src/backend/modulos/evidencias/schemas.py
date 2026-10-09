@@ -154,9 +154,11 @@ class ProtocoloEvidencia_ComItens_FromDB_Schema(ProtocoloEvidencia_FromDB_Schema
 class EvidenciaUpload_FromDB_Schema(BaseModel):
     """Metadados devolvidos após armazenar uma imagem de evidência."""
 
+    id: int
     empreendimento_id: int
     nome: str
     caminho: str
     url: str
     tamanho: int
     tipo_mime: str
+    criado_em: datetime

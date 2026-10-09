@@ -8,12 +8,14 @@ export const TIPOS_EVIDENCIA_PERMITIDOS = [
 ] as const;
 
 export type EvidenciaUpload = {
+    id: number;
     empreendimento_id: number;
     nome: string;
     caminho: string;
     url: string;
     tamanho: number;
     tipo_mime: string;
+    criado_em: string;
 };
 
 export function enviarEvidencia(

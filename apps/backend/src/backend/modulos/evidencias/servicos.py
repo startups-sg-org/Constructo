@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .modulos import ItemProtocolo, ProtocoloEvidencia
-from .repository import ItensProtocoloRepo, ProtocolosEvidenciaRepo
+from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
+from .repository import ArquivosEvidenciaRepo, ItensProtocoloRepo, ProtocolosEvidenciaRepo
 from .schemas import (
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
@@ -10,6 +10,32 @@ from .schemas import (
 
 _repositorio = ProtocolosEvidenciaRepo()
 _repositorio_itens = ItensProtocoloRepo()
+_repositorio_arquivos = ArquivosEvidenciaRepo()
+
+
+async def registrar_arquivo_evidencia(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    usuario_id: int,
+    nome_original: str,
+    nome_armazenado: str,
+    caminho: str,
+    url: str,
+    tipo_mime: str,
+    tamanho: int,
+) -> ArquivoEvidencia:
+    return await _repositorio_arquivos.criar(
+        session,
+        empreendimento_id=empreendimento_id,
+        usuario_id=usuario_id,
+        nome_original=nome_original,
+        nome_armazenado=nome_armazenado,
+        caminho=caminho,
+        url=url,
+        tipo_mime=tipo_mime,
+        tamanho=tamanho,
+    )
 
 
 async def _exigir_marco(session: AsyncSession, marco_id: int) -> None:

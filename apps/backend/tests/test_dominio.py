@@ -30,6 +30,7 @@ def test_mapeamento_e_tabelas():
         "usuarios_empreendimentos",
         "protocolos_evidencia",
         "itens_protocolo",
+        "arquivos_evidencia",
     } <= set(Base.metadata.tables)
 
 

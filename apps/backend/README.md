@@ -89,7 +89,9 @@ POSTGRES_PORT=5432
 O endpoint `POST /api/evidences/upload` recebe `multipart/form-data` com os campos
 `empreendimento_id` e `file`. São aceitas imagens JPEG, PNG e WEBP de até 5 MB. No
 Compose, os arquivos ficam no volume persistente `evidence_uploads` e são publicados
-em `/uploads/<caminho>`. A implementação local segue o contrato `Storage`, em
+em `/uploads/<caminho>`. Os metadados ficam na tabela `arquivos_evidencia`, criada
+automaticamente pela migration `20261009_0013` durante o `docker compose up --build`.
+A implementação local segue o contrato `Storage`, em
 `src/backend/modulos/evidencias/storage.py`, que pode ser substituído por um adaptador
 S3, Google Cloud Storage ou Azure Blob sem alterar o serviço de upload.
 

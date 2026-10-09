@@ -24,6 +24,7 @@ from .servicos import (
     criar_protocolo_evidencia,
     listar_itens_protocolo,
     listar_protocolos_evidencia,
+    registrar_arquivo_evidencia,
     remover_item_protocolo,
 )
 from .storage import Storage, obter_storage
@@ -46,20 +47,38 @@ async def upload_evidencia(
     storage: Annotated[Storage, Depends(obter_storage)],
 ) -> EvidenciaUpload_FromDB_Schema:
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    evidencia = None
     try:
         evidencia = await salvar_evidencia(storage, arquivo, empreendimento_id)
+        registro = await registrar_arquivo_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario_id=usuario.id,
+            nome_original=(arquivo.filename or evidencia.nome)[:255],
+            nome_armazenado=evidencia.nome,
+            caminho=evidencia.caminho,
+            url=evidencia.url,
+            tipo_mime=evidencia.tipo_mime,
+            tamanho=evidencia.tamanho,
+        )
     except ErroValidacaoUpload as erro:
         raise HTTPException(status_code=erro.status_code, detail=str(erro)) from erro
+    except Exception:
+        if evidencia is not None:
+            await storage.remover(evidencia.caminho)
+        raise
     finally:
         await arquivo.close()
 
     return EvidenciaUpload_FromDB_Schema(
+        id=registro.id,
         empreendimento_id=empreendimento_id,
         nome=evidencia.nome,
         caminho=evidencia.caminho,
         url=evidencia.url,
         tamanho=evidencia.tamanho,
         tipo_mime=evidencia.tipo_mime,
+        criado_em=registro.criado_em,
     )
 
 

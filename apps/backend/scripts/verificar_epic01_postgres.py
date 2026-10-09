@@ -59,6 +59,7 @@ async def verificar() -> None:
                 "publicacoes_evidencias",
                 "usuarios_empreendimentos",
                 "usuarios_unidades",
+                "arquivos_evidencia",
             ):
                 assert (
                     await conexao.scalar(text("SELECT to_regclass(:tabela)"), {"tabela": nome})

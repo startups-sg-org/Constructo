@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from backend.modulos.dominio.modelos import Marco
 
-from .modulos import ItemProtocolo, ProtocoloEvidencia
+from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
@@ -94,3 +94,35 @@ class ItensProtocoloRepo:
     async def remover_item_protocolo(self, db: AsyncSession, item: ItemProtocolo) -> None:
         await db.delete(item)
         await db.flush()
+
+
+class ArquivosEvidenciaRepo:
+    """Persistência dos metadados dos arquivos enviados."""
+
+    async def criar(
+        self,
+        db: AsyncSession,
+        *,
+        empreendimento_id: int,
+        usuario_id: int,
+        nome_original: str,
+        nome_armazenado: str,
+        caminho: str,
+        url: str,
+        tipo_mime: str,
+        tamanho: int,
+    ) -> ArquivoEvidencia:
+        registro = ArquivoEvidencia(
+            empreendimento_id=empreendimento_id,
+            usuario_id=usuario_id,
+            nome_original=nome_original,
+            nome_armazenado=nome_armazenado,
+            caminho=caminho,
+            url=url,
+            tipo_mime=tipo_mime,
+            tamanho=tamanho,
+        )
+        db.add(registro)
+        await db.flush()
+        await db.refresh(registro)
+        return registro

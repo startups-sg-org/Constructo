@@ -24,12 +24,14 @@ describe("UploadEvidencia", () => {
     it("exibe preview e envia a imagem no contexto do empreendimento", async () => {
         const user = userEvent.setup();
         enviarEvidenciaMock.mockResolvedValue({
+            id: 1,
             empreendimento_id: 42,
             nome: "imagem.png",
             caminho: "empreendimentos/42/evidencias/imagem.png",
             url: "/uploads/empreendimentos/42/evidencias/imagem.png",
             tamanho: 12,
             tipo_mime: "image/png",
+            criado_em: "2026-10-09T19:30:00Z",
         });
         render(<UploadEvidencia empreendimentoId={42} />);
         const arquivo = new File(["imagem"], "progresso.png", { type: "image/png" });

@@ -169,12 +169,20 @@ def test_gerencia_itens_de_protocolo(cliente, monkeypatch):
 
 
 def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
-    cliente, tmp_path
+    cliente, tmp_path, monkeypatch
 ):
-    test_client, _ = cliente
+    test_client, session = cliente
     storage = LocalStorage(tmp_path)
     app.dependency_overrides[obter_storage] = lambda: storage
     png = b"\x89PNG\r\n\x1a\n" + b"conteudo-da-imagem"
+    registros = []
+
+    async def registrar(session_recebida, **dados):
+        assert session_recebida is session
+        registros.append(dados)
+        return SimpleNamespace(id=len(registros), criado_em=datetime.now(UTC))
+
+    monkeypatch.setattr(routes, "registrar_arquivo_evidencia", registrar)
 
     resposta = test_client.post(
         "/api/evidences/upload",
@@ -184,6 +192,7 @@ def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
 
     assert resposta.status_code == 201
     dados = resposta.json()
+    assert dados["id"] == 1
     assert dados["empreendimento_id"] == 42
     assert dados["tipo_mime"] == "image/png"
     assert dados["tamanho"] == len(png)
@@ -191,6 +200,9 @@ def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
     assert dados["url"] == f"/uploads/{dados['caminho']}"
     assert dados["nome"].endswith(".png")
     assert (tmp_path / dados["caminho"]).read_bytes() == png
+    assert registros[0]["empreendimento_id"] == 42
+    assert registros[0]["usuario_id"] == 1
+    assert registros[0]["nome_original"] == "obra.png"
 
     segunda_resposta = test_client.post(
         "/api/evidences/upload",
@@ -198,6 +210,7 @@ def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
         files={"file": ("obra.png", png, "image/png")},
     )
     assert segunda_resposta.status_code == 201
+    assert segunda_resposta.json()["id"] == 2
     assert segunda_resposta.json()["nome"] != dados["nome"]
 
 
