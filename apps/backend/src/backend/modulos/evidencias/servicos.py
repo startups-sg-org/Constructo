@@ -119,6 +119,43 @@ async def consultar_status_protocolo(
     }
 
 
+async def validar_conclusao_progresso(
+    session: AsyncSession, progresso_marco_id: int
+) -> None:
+    """Impede a conclusão quando algum protocolo do marco está incompleto.
+
+    Marcos sem protocolos associados são válidos. Quando há mais de um
+    protocolo, todos precisam atender simultaneamente à quantidade mínima e
+    aos itens obrigatórios.
+    """
+    progresso = await _repositorio.buscar_progresso_por_id(session, progresso_marco_id)
+    if progresso is None:
+        raise ValueError(f"Progresso inexistente: {progresso_marco_id}")
+
+    protocolos = await _repositorio.listar_protocolos_evidencia(session, progresso.marco_id)
+    pendencias: list[str] = []
+    for protocolo in protocolos:
+        status = await consultar_status_protocolo(
+            session, progresso.marco_id, protocolo.id, progresso_marco_id
+        )
+        detalhes: list[str] = []
+        if not status["quantidade_atendida"]:
+            detalhes.append(
+                "quantidade mínima "
+                f"({status['evidencias_registradas']}/{status['quantidade_minima']})"
+            )
+        if not status["itens_obrigatorios_atendidos"]:
+            nomes = ", ".join(item["nome"] for item in status["itens_pendentes"])
+            detalhes.append(f"itens obrigatórios sem evidência: {nomes}")
+        if detalhes:
+            pendencias.append(f"Protocolo '{protocolo.nome}': {'; '.join(detalhes)}")
+
+    if pendencias:
+        raise ValueError(
+            "Não foi possível concluir o marco. Pendências: " + " | ".join(pendencias)
+        )
+
+
 async def registrar_evidencia_no_item(
     session: AsyncSession,
     *,

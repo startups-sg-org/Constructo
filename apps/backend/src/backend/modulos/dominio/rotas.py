@@ -331,6 +331,11 @@ async def iniciar_progresso_marco(
 @router.post(
     "/{empreendimento_id}/progressos/{progresso_id}/concluir",
     response_model=ProgressoMarcoLer,
+    responses={
+        400: {
+            "description": "Marco não pode ser concluído; a resposta informa as pendências.",
+        }
+    },
 )
 async def concluir_progresso_marco(
     empreendimento_id: int,
@@ -338,6 +343,7 @@ async def concluir_progresso_marco(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Conclui um marco ou retorna as pendências de evidências em HTTP 400."""
     await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         progresso = await concluir_progresso(session, progresso_id, usuario_id=usuario.id)
