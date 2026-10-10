@@ -207,7 +207,7 @@ class EvidenciaCriar_Schema(BaseModel):
     marco_id: int = Field(gt=0)
     item_protocolo_id: int | None = Field(default=None, gt=0)
     descricao_tecnica: str | None = Field(default=None, max_length=4000)
-    capturado_em: datetime
+    capturado_em: datetime | None = None
 
     @field_validator("descricao_tecnica")
     @classmethod
@@ -257,6 +257,7 @@ class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     id: int
     arquivo_url: str
     capturado_por: int
+    capturado_em: datetime
     criado_em: datetime
     atualizado_em: datetime
     local_obra: LocalObraResumo

@@ -63,11 +63,11 @@ async def cadastrar_evidencia(
     empreendimento_id: int,
     local_obra_id: Annotated[int, Form(gt=0)],
     marco_id: Annotated[int, Form(gt=0)],
-    capturado_em: Annotated[datetime, Form()],
     arquivo: Annotated[UploadFile, File(alias="file")],
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
     storage: Annotated[Storage, Depends(obter_storage)],
+    capturado_em: Annotated[datetime | None, Form()] = None,
     item_protocolo_id: Annotated[int | None, Form(gt=0)] = None,
     descricao_tecnica: Annotated[str | None, Form(max_length=4000)] = None,
 ):
@@ -157,14 +157,21 @@ async def consultar_evidencias(
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
     local_obra_id: Annotated[int | None, Query(gt=0)] = None,
     marco_id: Annotated[int | None, Query(gt=0)] = None,
+    data_captura_inicio: Annotated[datetime | None, Query()] = None,
+    data_captura_fim: Annotated[datetime | None, Query()] = None,
 ):
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
-    return await listar_evidencias(
-        session,
-        empreendimento_id,
-        local_obra_id=local_obra_id,
-        marco_id=marco_id,
-    )
+    try:
+        return await listar_evidencias(
+            session,
+            empreendimento_id,
+            local_obra_id=local_obra_id,
+            marco_id=marco_id,
+            data_captura_inicio=data_captura_inicio,
+            data_captura_fim=data_captura_fim,
+        )
+    except EvidenciaInvalidaError as erro:
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
 
 
 @upload_router.post(

@@ -24,7 +24,7 @@ from backend.modulos.dominio.regras import TipoLocal
 from backend.modulos.evidencias import routes, servicos
 from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
-from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
+from backend.modulos.evidencias.repository import EvidenciasRepo, ProtocolosEvidenciaRepo
 from backend.modulos.evidencias.schemas import (
     EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
@@ -579,7 +579,7 @@ def test_servico_rejeita_arquivo_nao_registrado_no_empreendimento(monkeypatch):
     registrar.assert_not_awaited()
 
 
-def test_schema_da_evidencia_exige_local_marco_e_data_de_captura():
+def test_schema_da_evidencia_aceita_data_de_captura_opcional():
     agora = datetime.now(UTC)
     dados = EvidenciaCriar_Schema(
         local_obra_id=3,
@@ -593,8 +593,15 @@ def test_schema_da_evidencia_exige_local_marco_e_data_de_captura():
     assert dados.item_protocolo_id is None
     assert dados.descricao_tecnica == "Detalhe técnico"
 
+    sem_data = EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+    assert sem_data.capturado_em is None
+
     with pytest.raises(ValidationError):
-        EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            capturado_em="data-invalida",
+        )
 
     with pytest.raises(ValidationError):
         EvidenciaCriar_Schema(
@@ -602,6 +609,13 @@ def test_schema_da_evidencia_exige_local_marco_e_data_de_captura():
             marco_id=7,
             capturado_em=agora,
             capturado_por=999,
+        )
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            criado_em=agora,
         )
 
 
@@ -685,6 +699,20 @@ def test_api_ignora_capturado_por_enviado_e_usa_usuario_autenticado(
     session.commit.assert_awaited_once()
 
 
+def test_api_rejeita_data_de_captura_mal_formatada(cliente):
+    resposta = cliente[0].post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "12",
+            "marco_id": "7",
+            "capturado_em": "31/02/2026 25:70",
+        },
+        files={"file": ("foto.png", b"conteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 422
+
+
 def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
     agora = datetime.now(UTC)
     arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
@@ -741,6 +769,42 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
         capturado_por=1,
         capturado_em=agora,
     )
+
+
+def test_servico_aplica_data_utc_do_servidor_quando_captura_omitida(monkeypatch):
+    arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    progresso = SimpleNamespace(id=9, local_obra_id=3, marco_id=7)
+    criar = AsyncMock(return_value=SimpleNamespace(id=31))
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(criar=criar),
+    )
+    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
+    dados = EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+    inicio = datetime.now(UTC)
+
+    asyncio.run(
+        servicos.criar_evidencia(
+            object(),
+            empreendimento_id=42,
+            usuario=usuario,
+            arquivo=arquivo,
+            dados=dados,
+            contexto=servicos.ContextoLocalEvidencia(
+                local=local,
+                marco=marco,
+                progresso=progresso,
+            ),
+        )
+    )
+    fim = datetime.now(UTC)
+
+    capturado_em = criar.await_args.kwargs["capturado_em"]
+    assert capturado_em.tzinfo is UTC
+    assert inicio <= capturado_em <= fim
 
 
 def test_servico_rejeita_local_inexistente(monkeypatch):
@@ -1126,6 +1190,8 @@ def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
 def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
     test_client, session = cliente
     agora = datetime.now(UTC)
+    inicio = datetime(2026, 10, 1, tzinfo=UTC)
+    fim = datetime(2026, 10, 31, 23, 59, 59, tzinfo=UTC)
     listar = AsyncMock(
         return_value=[
             SimpleNamespace(
@@ -1162,7 +1228,13 @@ def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
     monkeypatch.setattr(routes, "listar_evidencias", listar)
 
     resposta = test_client.get(
-        "/empreendimentos/42/evidencias?local_obra_id=12&marco_id=7"
+        "/empreendimentos/42/evidencias",
+        params={
+            "local_obra_id": 12,
+            "marco_id": 7,
+            "data_captura_inicio": inicio.isoformat(),
+            "data_captura_fim": fim.isoformat(),
+        },
     )
 
     assert resposta.status_code == 200
@@ -1172,7 +1244,116 @@ def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
         42,
         local_obra_id=12,
         marco_id=7,
+        data_captura_inicio=inicio,
+        data_captura_fim=fim,
     )
+
+
+def test_servico_rejeita_periodo_de_captura_invertido(monkeypatch):
+    listar = AsyncMock()
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(listar=listar),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.EvidenciaInvalidaError, match="não pode ser posterior"):
+            await servicos.listar_evidencias(
+                object(),
+                42,
+                data_captura_inicio=datetime(2026, 11, 1, tzinfo=UTC),
+                data_captura_fim=datetime(2026, 10, 1, tzinfo=UTC),
+            )
+
+    asyncio.run(executar_teste())
+    listar.assert_not_awaited()
+
+
+def test_repositorio_filtra_evidencias_pelo_periodo_de_captura():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+            fabrica = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica() as session:
+                usuario = Usuario(
+                    cpf="12345678901",
+                    nome="Fiscal",
+                    sobrenome="Obra",
+                    email="fiscal-periodo@example.com",
+                    senha="hash",
+                    telefone="63999999999",
+                    empreendimento="Obra",
+                    unidade="704",
+                    papel="ADMIN",
+                )
+                empreendimento = Empreendimento(nome="Obra temporal")
+                session.add_all([usuario, empreendimento])
+                await session.flush()
+                local = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    nome="Unidade 704",
+                    tipo=TipoLocal.UNIDADE,
+                )
+                taxonomia = Taxonomia(
+                    empreendimento_id=empreendimento.id,
+                    nome="Padrão",
+                )
+                session.add_all([local, taxonomia])
+                await session.flush()
+                etapa = Etapa(taxonomia_id=taxonomia.id, nome="Instalações")
+                session.add(etapa)
+                await session.flush()
+                marco = Marco(etapa_id=etapa.id, nome="Tubulação instalada")
+                session.add(marco)
+                await session.flush()
+                progresso = ProgressoMarco(
+                    local_obra_id=local.id,
+                    marco_id=marco.id,
+                    status="EM_ANDAMENTO",
+                    iniciado_em=datetime(2026, 9, 1, tzinfo=UTC),
+                )
+                session.add(progresso)
+                await session.flush()
+                session.add_all(
+                    [
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
+                            arquivo_url="privado/setembro.jpg",
+                            capturado_em=datetime(2026, 9, 30, 23, 59, tzinfo=UTC),
+                            capturado_por=usuario.id,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
+                            arquivo_url="privado/outubro.jpg",
+                            capturado_em=datetime(2026, 10, 15, 12, tzinfo=UTC),
+                            capturado_por=usuario.id,
+                        ),
+                    ]
+                )
+                await session.flush()
+
+                evidencias = await EvidenciasRepo().listar(
+                    session,
+                    empreendimento.id,
+                    data_captura_inicio=datetime(2026, 10, 1, tzinfo=UTC),
+                    data_captura_fim=datetime(2026, 10, 31, 23, 59, 59, tzinfo=UTC),
+                )
+
+                assert [item.arquivo_url for item in evidencias] == [
+                    "privado/outubro.jpg"
+                ]
+                assert evidencias[0].criado_em is not None
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
 
 
 def test_status_real_separa_minimo_de_itens_obrigatorios():

@@ -295,6 +295,8 @@ class EvidenciasRepo:
         *,
         local_obra_id: int | None = None,
         marco_id: int | None = None,
+        data_captura_inicio: datetime | None = None,
+        data_captura_fim: datetime | None = None,
     ) -> list[Evidencia]:
         consulta = (
             select(Evidencia)
@@ -308,6 +310,10 @@ class EvidenciasRepo:
             consulta = consulta.where(Evidencia.local_obra_id == local_obra_id)
         if marco_id is not None:
             consulta = consulta.where(Evidencia.marco_id == marco_id)
+        if data_captura_inicio is not None:
+            consulta = consulta.where(Evidencia.capturado_em >= data_captura_inicio)
+        if data_captura_fim is not None:
+            consulta = consulta.where(Evidencia.capturado_em <= data_captura_fim)
         resultado = await db.scalars(
             consulta.order_by(Evidencia.capturado_em.desc(), Evidencia.id.desc())
         )

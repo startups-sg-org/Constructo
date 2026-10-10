@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -133,7 +134,7 @@ async def criar_evidencia(
         arquivo=arquivo,
         descricao_tecnica=dados.descricao_tecnica,
         capturado_por=usuario.id,
-        capturado_em=dados.capturado_em,
+        capturado_em=_normalizar_data_utc(dados.capturado_em),
     )
 
 
@@ -211,13 +212,32 @@ async def listar_evidencias(
     *,
     local_obra_id: int | None = None,
     marco_id: int | None = None,
+    data_captura_inicio: datetime | None = None,
+    data_captura_fim: datetime | None = None,
 ) -> list[Evidencia]:
+    inicio = _normalizar_data_utc(data_captura_inicio) if data_captura_inicio else None
+    fim = _normalizar_data_utc(data_captura_fim) if data_captura_fim else None
+    if inicio is not None and fim is not None and inicio > fim:
+        raise EvidenciaInvalidaError(
+            "data_captura_inicio não pode ser posterior a data_captura_fim"
+        )
     return await _repositorio_evidencias.listar(
         session,
         empreendimento_id,
         local_obra_id=local_obra_id,
         marco_id=marco_id,
+        data_captura_inicio=inicio,
+        data_captura_fim=fim,
     )
+
+
+def _normalizar_data_utc(valor: datetime | None) -> datetime:
+    """Aplica o instante do servidor e mantém datas persistidas em UTC."""
+    if valor is None:
+        return datetime.now(UTC)
+    if valor.tzinfo is None:
+        return valor.replace(tzinfo=UTC)
+    return valor.astimezone(UTC)
 
 
 async def _exigir_marco(session: AsyncSession, marco_id: int) -> None:
