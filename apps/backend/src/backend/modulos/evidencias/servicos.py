@@ -24,6 +24,7 @@ from .repository import (
     ProtocolosEvidenciaRepo,
 )
 from .schemas import (
+    EvidenciaAtualizar_Schema,
     EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ItemProtocolo_Atualizar_Schema,
@@ -204,6 +205,28 @@ async def buscar_evidencia(
     if evidencia is None:
         raise ValueError(f"Evidencia inexistente: {evidencia_id}")
     return evidencia
+
+
+async def atualizar_evidencia(
+    session: AsyncSession,
+    empreendimento_id: int,
+    evidencia_id: int,
+    dados: EvidenciaAtualizar_Schema,
+) -> Evidencia:
+    evidencia = await _repositorio_evidencias.buscar(
+        session, evidencia_id, empreendimento_id
+    )
+    if evidencia is None:
+        raise ValueError(f"Evidencia inexistente: {evidencia_id}")
+
+    if "descricao_tecnica" not in dados.model_fields_set:
+        return evidencia
+
+    return await _repositorio_evidencias.atualizar_descricao(
+        session,
+        evidencia,
+        dados.descricao_tecnica,
+    )
 
 
 async def listar_evidencias(

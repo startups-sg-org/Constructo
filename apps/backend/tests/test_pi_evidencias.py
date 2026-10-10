@@ -26,6 +26,7 @@ from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
 from backend.modulos.evidencias.repository import EvidenciasRepo, ProtocolosEvidenciaRepo
 from backend.modulos.evidencias.schemas import (
+    EvidenciaAtualizar_Schema,
     EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ProtocoloEvidencia_Atualizar_Schema,
@@ -618,6 +619,20 @@ def test_schema_da_evidencia_aceita_data_de_captura_opcional():
             criado_em=agora,
         )
 
+    assert Evidencia.__table__.c.descricao_tecnica.nullable is True
+
+
+def test_schema_de_atualizacao_distingue_campo_omitido_de_nulo():
+    omitido = EvidenciaAtualizar_Schema()
+    removido = EvidenciaAtualizar_Schema(descricao_tecnica=None)
+    preenchido = EvidenciaAtualizar_Schema(
+        descricao_tecnica="  Tubulação concluída na unidade 704.  "
+    )
+
+    assert omitido.model_fields_set == set()
+    assert removido.model_fields_set == {"descricao_tecnica"}
+    assert preenchido.descricao_tecnica == "Tubulação concluída na unidade 704."
+
 
 def test_api_ignora_capturado_por_enviado_e_usa_usuario_autenticado(
     cliente, monkeypatch
@@ -805,6 +820,56 @@ def test_servico_aplica_data_utc_do_servidor_quando_captura_omitida(monkeypatch)
     capturado_em = criar.await_args.kwargs["capturado_em"]
     assert capturado_em.tzinfo is UTC
     assert inicio <= capturado_em <= fim
+
+
+def test_servico_atualiza_apenas_descricao_tecnica_fornecida(monkeypatch):
+    evidencia = SimpleNamespace(id=31, descricao_tecnica=None)
+    atualizar = AsyncMock(return_value=evidencia)
+    repositorio = SimpleNamespace(
+        buscar=AsyncMock(return_value=evidencia),
+        atualizar_descricao=atualizar,
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio)
+    session = object()
+    dados = EvidenciaAtualizar_Schema(
+        descricao_tecnica="Tubulação concluída na unidade 704."
+    )
+
+    resultado = asyncio.run(
+        servicos.atualizar_evidencia(session, 42, 31, dados)
+    )
+
+    assert resultado is evidencia
+    atualizar.assert_awaited_once_with(
+        session,
+        evidencia,
+        "Tubulação concluída na unidade 704.",
+    )
+
+
+def test_servico_nao_altera_evidencia_quando_patch_esta_vazio(monkeypatch):
+    evidencia = SimpleNamespace(id=31, descricao_tecnica="Descrição atual")
+    atualizar = AsyncMock()
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(
+            buscar=AsyncMock(return_value=evidencia),
+            atualizar_descricao=atualizar,
+        ),
+    )
+
+    resultado = asyncio.run(
+        servicos.atualizar_evidencia(
+            object(),
+            42,
+            31,
+            EvidenciaAtualizar_Schema(),
+        )
+    )
+
+    assert resultado is evidencia
+    atualizar.assert_not_awaited()
 
 
 def test_servico_rejeita_local_inexistente(monkeypatch):
@@ -1127,6 +1192,73 @@ def test_servico_rejeita_marco_sem_mapeamento_em_local_nao_unidade(monkeypatch):
     repositorio_evidencias.iniciar_progresso.assert_not_awaited()
 
 
+def test_gestor_pode_editar_descricao_tecnica_pela_api(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+
+    async def atualizar(session_recebida, empreendimento_id, evidencia_id, dados):
+        assert session_recebida is session
+        assert (empreendimento_id, evidencia_id) == (42, 31)
+        assert dados.model_fields_set == {"descricao_tecnica"}
+        return SimpleNamespace(
+            id=31,
+            arquivo_url="/uploads/foto.png",
+            descricao_tecnica=dados.descricao_tecnica,
+            local_obra_id=12,
+            marco_id=7,
+            item_protocolo_id=None,
+            capturado_por=1,
+            capturado_em=agora,
+            criado_em=agora,
+            atualizado_em=agora,
+            local_obra=SimpleNamespace(
+                id=12,
+                nome="Unidade 704",
+                tipo=TipoLocal.UNIDADE,
+                parent_id=5,
+            ),
+            marco=SimpleNamespace(
+                id=7,
+                nome="Tubulação hidráulica instalada",
+                descricao_tecnica=None,
+            ),
+            responsavel=SimpleNamespace(
+                id=1,
+                nome="Ana",
+                email="ana@example.com",
+                papel="ADMIN",
+            ),
+        )
+
+    monkeypatch.setattr(routes, "atualizar_evidencia", atualizar)
+    resposta = test_client.patch(
+        "/empreendimentos/42/evidencias/31",
+        json={
+            "descricao_tecnica": (
+                "Tubulação de água fria concluída no banheiro social da unidade 704."
+            )
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["descricao_tecnica"].startswith("Tubulação de água fria")
+
+
+def test_edicao_retorna_404_para_evidencia_inexistente(cliente, monkeypatch):
+    monkeypatch.setattr(
+        routes,
+        "atualizar_evidencia",
+        AsyncMock(side_effect=ValueError("Evidencia inexistente: 999")),
+    )
+
+    resposta = cliente[0].patch(
+        "/empreendimentos/42/evidencias/999",
+        json={"descricao_tecnica": "Descrição"},
+    )
+
+    assert resposta.status_code == 404
+
+
 def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
     test_client, session = cliente
     agora = datetime.now(UTC)
@@ -1339,7 +1471,8 @@ def test_repositorio_filtra_evidencias_pelo_periodo_de_captura():
                 )
                 await session.flush()
 
-                evidencias = await EvidenciasRepo().listar(
+                repositorio = EvidenciasRepo()
+                evidencias = await repositorio.listar(
                     session,
                     empreendimento.id,
                     data_captura_inicio=datetime(2026, 10, 1, tzinfo=UTC),
@@ -1350,6 +1483,19 @@ def test_repositorio_filtra_evidencias_pelo_periodo_de_captura():
                     "privado/outubro.jpg"
                 ]
                 assert evidencias[0].criado_em is not None
+
+                evidencias[0].atualizado_em = datetime(2020, 1, 1, tzinfo=UTC)
+                await session.flush()
+                atualizada = await repositorio.atualizar_descricao(
+                    session,
+                    evidencias[0],
+                    "Tubulação concluída na unidade 704.",
+                )
+
+                assert atualizada.descricao_tecnica == (
+                    "Tubulação concluída na unidade 704."
+                )
+                assert atualizada.atualizado_em.year > 2020
         finally:
             await engine.dispose()
 

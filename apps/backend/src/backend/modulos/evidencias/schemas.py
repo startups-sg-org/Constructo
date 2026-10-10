@@ -217,6 +217,21 @@ class EvidenciaCriar_Schema(BaseModel):
         return valor.strip() or None
 
 
+class EvidenciaAtualizar_Schema(BaseModel):
+    """Campos editáveis da evidência; valores omitidos permanecem inalterados."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    descricao_tecnica: str | None = Field(default=None, max_length=4000)
+
+    @field_validator("descricao_tecnica")
+    @classmethod
+    def normalizar_descricao_tecnica(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
 class LocalObraResumo(BaseModel):
     """Identifica onde a evidência foi registrada na estrutura da obra."""
 

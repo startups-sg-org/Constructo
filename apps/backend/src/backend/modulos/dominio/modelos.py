@@ -250,7 +250,7 @@ class Evidencia(Base):
         ForeignKey("arquivos_evidencia.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     arquivo_url: Mapped[str] = mapped_column(String(1000), nullable=False)
-    descricao_tecnica: Mapped[str | None] = mapped_column(Text)
+    descricao_tecnica: Mapped[str | None] = mapped_column(Text, nullable=True)
     capturado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     capturado_por: Mapped[int] = mapped_column(
         ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=False

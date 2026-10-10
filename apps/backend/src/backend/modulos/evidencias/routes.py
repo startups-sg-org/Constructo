@@ -12,6 +12,7 @@ from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_autenticado
 
 from .schemas import (
+    EvidenciaAtualizar_Schema,
     EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     EvidenciaResponse,
@@ -31,6 +32,7 @@ from .servicos import (
     LocalObraNaoEncontradoError,
     MarcoNaoEncontradoError,
     associar_protocolo_ao_marco,
+    atualizar_evidencia,
     atualizar_item_protocolo,
     atualizar_quantidade_minima,
     buscar_evidencia,
@@ -143,6 +145,30 @@ async def consultar_evidencia(
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         return await buscar_evidencia(session, empreendimento_id, evidencia_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.patch(
+    "/{empreendimento_id}/evidencias/{evidencia_id}",
+    response_model=EvidenciaResponse,
+)
+async def editar_evidencia(
+    empreendimento_id: int,
+    evidencia_id: int,
+    dados: EvidenciaAtualizar_Schema,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    """Atualiza parcialmente os metadados editáveis de uma evidência."""
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await atualizar_evidencia(
+            session,
+            empreendimento_id,
+            evidencia_id,
+            dados,
+        )
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro)) from erro
 

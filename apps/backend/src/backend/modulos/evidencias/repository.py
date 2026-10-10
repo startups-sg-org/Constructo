@@ -288,6 +288,20 @@ class EvidenciasRepo:
             )
         )
 
+    async def atualizar_descricao(
+        self,
+        db: AsyncSession,
+        evidencia: Evidencia,
+        descricao_tecnica: str | None,
+    ) -> Evidencia:
+        evidencia.descricao_tecnica = descricao_tecnica
+        await db.flush()
+        await db.refresh(
+            evidencia,
+            attribute_names=["descricao_tecnica", "atualizado_em"],
+        )
+        return evidencia
+
     async def listar(
         self,
         db: AsyncSession,
