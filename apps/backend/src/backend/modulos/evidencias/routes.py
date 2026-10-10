@@ -377,7 +377,7 @@ async def registrar_evidencia_item(
             marco_id=marco_id,
             protocolo_id=protocolo_id,
             item_id=item_id,
-            usuario_id=usuario.id,
+            usuario=usuario,
             dados=dados,
         )
     except ValueError as erro:

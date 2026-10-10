@@ -201,6 +201,8 @@ class EvidenciaUpload_FromDB_Schema(BaseModel):
 class EvidenciaCriar_Schema(BaseModel):
     """Metadados recebidos junto ao arquivo da evidencia."""
 
+    model_config = ConfigDict(extra="forbid")
+
     local_obra_id: int = Field(gt=0)
     marco_id: int = Field(gt=0)
     item_protocolo_id: int | None = Field(default=None, gt=0)
@@ -236,6 +238,17 @@ class MarcoResumo(BaseModel):
     descricao_tecnica: str | None
 
 
+class UsuarioResumo(BaseModel):
+    """Dados minimos do usuario autenticado responsavel pela captura."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    email: str
+    papel: str
+
+
 class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     """Representacao completa da evidencia persistida e de seu arquivo."""
 
@@ -248,6 +261,7 @@ class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     atualizado_em: datetime
     local_obra: LocalObraResumo
     marco: MarcoResumo
+    responsavel: UsuarioResumo
 
 
 class EvidenciaResponse(Evidencia_FromDB_Schema):

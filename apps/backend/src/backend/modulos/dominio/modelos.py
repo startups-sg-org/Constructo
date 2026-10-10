@@ -22,6 +22,7 @@ from .regras import ProgressStatus, TipoLocal
 # Disponível apenas para analisadores de tipo; evita importação circular em execução.
 if TYPE_CHECKING:
     from backend.modulos.evidencias.modulos import ArquivoEvidencia, ProtocoloEvidencia
+    from backend.modulos.usuarios.modelos import Usuario
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):
@@ -264,6 +265,7 @@ class Evidencia(Base):
     progresso_marco: Mapped[ProgressoMarco] = relationship()
     local_obra: Mapped[LocalObra] = relationship(foreign_keys=[local_obra_id])
     marco: Mapped[Marco] = relationship(foreign_keys=[marco_id])
+    responsavel: Mapped["Usuario"] = relationship(foreign_keys=[capturado_por])
     arquivo: Mapped["ArquivoEvidencia | None"] = relationship("ArquivoEvidencia")
 
     # Compatibilidade temporaria com os contratos anteriores do dominio.

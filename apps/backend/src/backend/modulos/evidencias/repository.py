@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from backend.modulos.dominio.modelos import Evidencia, LocalObra, Marco, ProgressoMarco
 from backend.modulos.dominio.regras import ProgressStatus
+from backend.modulos.usuarios.modelos import Usuario
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
@@ -244,6 +245,7 @@ class EvidenciasRepo:
         progresso_marco_id: int,
         local: LocalObra,
         marco: Marco,
+        responsavel: Usuario,
         local_obra_id: int,
         marco_id: int,
         item_protocolo_id: int | None,
@@ -258,6 +260,7 @@ class EvidenciasRepo:
             local_obra_id=local_obra_id,
             marco=marco,
             marco_id=marco_id,
+            responsavel=responsavel,
             item_protocolo_id=item_protocolo_id,
             arquivo_evidencia_id=arquivo.id,
             arquivo_url=arquivo.url,
@@ -278,6 +281,7 @@ class EvidenciasRepo:
             .join(LocalObra, LocalObra.id == Evidencia.local_obra_id)
             .options(joinedload(Evidencia.local_obra))
             .options(joinedload(Evidencia.marco))
+            .options(joinedload(Evidencia.responsavel))
             .where(
                 Evidencia.id == evidencia_id,
                 LocalObra.empreendimento_id == empreendimento_id,
@@ -297,6 +301,7 @@ class EvidenciasRepo:
             .join(LocalObra, LocalObra.id == Evidencia.local_obra_id)
             .options(joinedload(Evidencia.local_obra))
             .options(joinedload(Evidencia.marco))
+            .options(joinedload(Evidencia.responsavel))
             .where(LocalObra.empreendimento_id == empreendimento_id)
         )
         if local_obra_id is not None:

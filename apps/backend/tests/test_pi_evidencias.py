@@ -38,7 +38,7 @@ from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_aute
 
 @pytest.fixture
 def cliente(monkeypatch):
-    session = object()
+    session = SimpleNamespace(commit=AsyncMock())
 
     async def fornecer_sessao():
         yield session
@@ -50,7 +50,13 @@ def cliente(monkeypatch):
         return None
 
     app.dependency_overrides[get_db] = fornecer_sessao
-    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
+    usuario = SimpleNamespace(
+        id=1,
+        nome="Ana",
+        email="ana@example.com",
+        papel="ADMIN",
+        ativo=True,
+    )
     app.dependency_overrides[get_admin_ou_gestor] = lambda: usuario
     app.dependency_overrides[get_usuario_autenticado] = lambda: usuario
     monkeypatch.setattr(routes, "exigir_acesso_ao_empreendimento", permitir_acesso)
@@ -507,7 +513,7 @@ def test_registra_evidencia_associada_ao_item_pela_api(cliente, monkeypatch):
             arquivo_url=dados["dados"].arquivo_url,
             descricao=dados["dados"].descricao,
             capturado_em=dados["dados"].capturado_em,
-            usuario_id=dados["usuario_id"],
+            usuario_id=dados["usuario"].id,
         )
 
     monkeypatch.setattr(routes, "registrar_evidencia_no_item", registrar)
@@ -565,7 +571,7 @@ def test_servico_rejeita_arquivo_nao_registrado_no_empreendimento(monkeypatch):
                 marco_id=7,
                 protocolo_id=1,
                 item_id=4,
-                usuario_id=1,
+                usuario=SimpleNamespace(id=1),
                 dados=dados,
             )
 
@@ -589,6 +595,94 @@ def test_schema_da_evidencia_exige_local_marco_e_data_de_captura():
 
     with pytest.raises(ValidationError):
         EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            capturado_em=agora,
+            capturado_por=999,
+        )
+
+
+def test_api_ignora_capturado_por_enviado_e_usa_usuario_autenticado(
+    cliente, monkeypatch
+):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+    local = SimpleNamespace(
+        id=12,
+        nome="Unidade 704",
+        tipo=TipoLocal.UNIDADE,
+        parent_id=5,
+    )
+    marco = SimpleNamespace(
+        id=7,
+        nome="Tubulação hidráulica instalada",
+        descricao_tecnica=None,
+    )
+    responsavel = SimpleNamespace(
+        id=1,
+        nome="Ana",
+        email="ana@example.com",
+        papel="ADMIN",
+    )
+    arquivo_salvo = SimpleNamespace(
+        nome="foto.png",
+        caminho="empreendimentos/42/evidencias/foto.png",
+        url="/uploads/empreendimentos/42/evidencias/foto.png",
+        tipo_mime="image/png",
+        tamanho=12,
+    )
+    registro_arquivo = SimpleNamespace(id=11, empreendimento_id=42, url=arquivo_salvo.url)
+
+    monkeypatch.setattr(
+        routes,
+        "validar_local_da_evidencia",
+        AsyncMock(return_value=SimpleNamespace(local=local, marco=marco)),
+    )
+    monkeypatch.setattr(routes, "salvar_evidencia", AsyncMock(return_value=arquivo_salvo))
+    monkeypatch.setattr(
+        routes,
+        "registrar_arquivo_evidencia",
+        AsyncMock(return_value=registro_arquivo),
+    )
+
+    async def criar(_session, *, usuario, dados, **_kwargs):
+        assert usuario.id == 1
+        assert "capturado_por" not in dados.model_dump()
+        return SimpleNamespace(
+            id=31,
+            arquivo_url=arquivo_salvo.url,
+            descricao_tecnica=dados.descricao_tecnica,
+            local_obra_id=local.id,
+            marco_id=marco.id,
+            item_protocolo_id=None,
+            capturado_por=usuario.id,
+            capturado_em=dados.capturado_em,
+            criado_em=agora,
+            atualizado_em=agora,
+            local_obra=local,
+            marco=marco,
+            responsavel=responsavel,
+        )
+
+    monkeypatch.setattr(routes, "criar_evidencia", criar)
+    resposta = test_client.post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "12",
+            "marco_id": "7",
+            "capturado_em": agora.isoformat(),
+            "capturado_por": "999",
+        },
+        files={"file": ("foto.png", b"conteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json()["capturado_por"] == 1
+    assert resposta.json()["responsavel"]["id"] == 1
+    session.commit.assert_awaited_once()
 
 
 def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
@@ -638,6 +732,7 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
         progresso_marco_id=9,
         local=local,
         marco=marco,
+        responsavel=usuario,
         local_obra_id=3,
         marco_id=7,
         item_protocolo_id=None,
@@ -997,6 +1092,12 @@ def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
                 nome="Tubulação hidráulica instalada",
                 descricao_tecnica="Tubulação testada e fixada.",
             ),
+            responsavel=SimpleNamespace(
+                id=1,
+                nome="Ana",
+                email="ana@example.com",
+                papel="ADMIN",
+            ),
         )
 
     monkeypatch.setattr(routes, "buscar_evidencia", buscar)
@@ -1007,6 +1108,12 @@ def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
     assert resposta.json()["local_obra_id"] == 3
     assert resposta.json()["marco_id"] == 7
     assert resposta.json()["capturado_por"] == 1
+    assert resposta.json()["responsavel"] == {
+        "id": 1,
+        "nome": "Ana",
+        "email": "ana@example.com",
+        "papel": "ADMIN",
+    }
     assert resposta.json()["local_obra"] == {
         "id": 3,
         "nome": "Torre A",
@@ -1042,6 +1149,12 @@ def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
                     id=7,
                     nome="Tubulação hidráulica instalada",
                     descricao_tecnica=None,
+                ),
+                responsavel=SimpleNamespace(
+                    id=1,
+                    nome="Ana",
+                    email="ana@example.com",
+                    papel="ADMIN",
                 ),
             )
         ]

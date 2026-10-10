@@ -126,6 +126,7 @@ async def criar_evidencia(
         progresso_marco_id=progresso.id,
         local=local,
         marco=marco,
+        responsavel=usuario,
         local_obra_id=local.id,
         marco_id=dados.marco_id,
         item_protocolo_id=dados.item_protocolo_id,
@@ -339,7 +340,7 @@ async def registrar_evidencia_no_item(
     marco_id: int,
     protocolo_id: int,
     item_id: int,
-    usuario_id: int,
+    usuario: Usuario,
     dados: EvidenciaItem_FromRequest_Schema,
 ):
     await exigir_item_do_protocolo(session, marco_id, protocolo_id, item_id)
@@ -364,12 +365,13 @@ async def registrar_evidencia_no_item(
         progresso_marco_id=progresso.id,
         local=local,
         marco=marco,
+        responsavel=usuario,
         local_obra_id=progresso.local_obra_id,
         marco_id=progresso.marco_id,
         item_protocolo_id=item_id,
         arquivo=arquivo,
         descricao_tecnica=dados.descricao,
-        capturado_por=usuario_id,
+        capturado_por=usuario.id,
         capturado_em=dados.capturado_em,
     )
 
