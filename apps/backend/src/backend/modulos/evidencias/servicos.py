@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modulos.dominio.modelos import Evidencia, LocalObra, ProgressoMarco
+from backend.modulos.dominio.modelos import Evidencia, LocalObra, Marco, ProgressoMarco
 from backend.modulos.dominio.regras import Papel, TipoLocal
 from backend.modulos.dominio.servicos import (
     exigir_marco_do_empreendimento,
@@ -42,6 +42,10 @@ class LocalObraNaoEncontradoError(ValueError):
     pass
 
 
+class MarcoNaoEncontradoError(ValueError):
+    pass
+
+
 class AcessoLocalObraNegadoError(PermissionError):
     pass
 
@@ -53,6 +57,7 @@ class EvidenciaInvalidaError(ValueError):
 @dataclass(frozen=True, slots=True)
 class ContextoLocalEvidencia:
     local: LocalObra
+    marco: Marco
     progresso: ProgressoMarco
 
 
@@ -98,6 +103,7 @@ async def criar_evidencia(
         dados=dados,
     )
     local = contexto.local
+    marco = contexto.marco
     progresso = contexto.progresso
 
     if arquivo.empreendimento_id != empreendimento_id:
@@ -119,6 +125,7 @@ async def criar_evidencia(
         session,
         progresso_marco_id=progresso.id,
         local=local,
+        marco=marco,
         local_obra_id=local.id,
         marco_id=dados.marco_id,
         item_protocolo_id=dados.item_protocolo_id,
@@ -136,7 +143,12 @@ async def validar_local_da_evidencia(
     usuario: Usuario,
     dados: EvidenciaCriar_Schema,
 ) -> ContextoLocalEvidencia:
-    """Valida existência, pertencimento, autorização e a regra de unidade da V1."""
+    """Valida local, taxonomia, acesso e aplicabilidade do marco.
+
+    Um progresso existente representa um mapeamento explícito e é aceito em
+    qualquer nível físico. Na V1, a inicialização implícita de progresso é
+    restrita a unidades, conforme a regra vigente do domínio de progresso.
+    """
     local = await _repositorio_evidencias.buscar_local(session, dados.local_obra_id)
     if local is None:
         raise LocalObraNaoEncontradoError(
@@ -158,8 +170,11 @@ async def validar_local_da_evidencia(
     if not acesso_gestao and not acesso_comprador:
         raise AcessoLocalObraNegadoError("Acesso negado ao empreendimento do local")
 
+    marco = await _repositorio.buscar_marco_por_id(session, dados.marco_id)
+    if marco is None:
+        raise MarcoNaoEncontradoError(f"Marco inexistente: {dados.marco_id}")
     try:
-        await exigir_marco_do_empreendimento(
+        marco = await exigir_marco_do_empreendimento(
             session, empreendimento_id, dados.marco_id
         )
     except ValueError as erro:
@@ -168,10 +183,14 @@ async def validar_local_da_evidencia(
         session, local.id, dados.marco_id
     )
     if progresso is None:
-        raise EvidenciaInvalidaError(
-            "Progresso inexistente para o local e marco informados"
+        if local.tipo != TipoLocal.UNIDADE:
+            raise EvidenciaInvalidaError(
+                "Marco não aplicável ao nível do local: não existe mapeamento de progresso"
+            )
+        progresso = await _repositorio_evidencias.iniciar_progresso(
+            session, local.id, marco.id
         )
-    return ContextoLocalEvidencia(local=local, progresso=progresso)
+    return ContextoLocalEvidencia(local=local, marco=marco, progresso=progresso)
 
 
 async def buscar_evidencia(
@@ -336,11 +355,15 @@ async def registrar_evidencia_no_item(
     local = await _repositorio_evidencias.buscar_local(session, progresso.local_obra_id)
     if local is None:
         raise ValueError("Local da obra da evidência não existe")
+    marco = await _repositorio.buscar_marco_por_id(session, progresso.marco_id)
+    if marco is None:
+        raise ValueError("Marco da evidência não existe")
 
     return await _repositorio_evidencias.criar(
         session,
         progresso_marco_id=progresso.id,
         local=local,
+        marco=marco,
         local_obra_id=progresso.local_obra_id,
         marco_id=progresso.marco_id,
         item_protocolo_id=item_id,

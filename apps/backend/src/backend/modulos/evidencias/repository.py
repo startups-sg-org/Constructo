@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from backend.modulos.dominio.modelos import Evidencia, LocalObra, Marco, ProgressoMarco
+from backend.modulos.dominio.regras import ProgressStatus
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
@@ -216,6 +217,21 @@ class EvidenciasRepo:
             )
         )
 
+    async def iniciar_progresso(
+        self, db: AsyncSession, local_obra_id: int, marco_id: int
+    ) -> ProgressoMarco:
+        agora = datetime.now(UTC)
+        progresso = ProgressoMarco(
+            local_obra_id=local_obra_id,
+            marco_id=marco_id,
+            status=ProgressStatus.EM_ANDAMENTO,
+            iniciado_em=agora,
+        )
+        db.add(progresso)
+        await db.flush()
+        await db.refresh(progresso)
+        return progresso
+
     async def buscar_local(
         self, db: AsyncSession, local_obra_id: int
     ) -> LocalObra | None:
@@ -227,6 +243,7 @@ class EvidenciasRepo:
         *,
         progresso_marco_id: int,
         local: LocalObra,
+        marco: Marco,
         local_obra_id: int,
         marco_id: int,
         item_protocolo_id: int | None,
@@ -239,6 +256,7 @@ class EvidenciasRepo:
             progresso_marco_id=progresso_marco_id,
             local_obra=local,
             local_obra_id=local_obra_id,
+            marco=marco,
             marco_id=marco_id,
             item_protocolo_id=item_protocolo_id,
             arquivo_evidencia_id=arquivo.id,
@@ -259,6 +277,7 @@ class EvidenciasRepo:
             select(Evidencia)
             .join(LocalObra, LocalObra.id == Evidencia.local_obra_id)
             .options(joinedload(Evidencia.local_obra))
+            .options(joinedload(Evidencia.marco))
             .where(
                 Evidencia.id == evidencia_id,
                 LocalObra.empreendimento_id == empreendimento_id,
@@ -277,6 +296,7 @@ class EvidenciasRepo:
             select(Evidencia)
             .join(LocalObra, LocalObra.id == Evidencia.local_obra_id)
             .options(joinedload(Evidencia.local_obra))
+            .options(joinedload(Evidencia.marco))
             .where(LocalObra.empreendimento_id == empreendimento_id)
         )
         if local_obra_id is not None:

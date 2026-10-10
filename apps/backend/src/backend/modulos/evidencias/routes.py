@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
@@ -29,6 +29,7 @@ from .servicos import (
     AcessoLocalObraNegadoError,
     EvidenciaInvalidaError,
     LocalObraNaoEncontradoError,
+    MarcoNaoEncontradoError,
     associar_protocolo_ao_marco,
     atualizar_item_protocolo,
     atualizar_quantidade_minima,
@@ -111,7 +112,7 @@ async def cadastrar_evidencia(
         return evidencia
     except ErroValidacaoUpload as erro:
         raise HTTPException(status_code=erro.status_code, detail=str(erro)) from erro
-    except LocalObraNaoEncontradoError as erro:
+    except (LocalObraNaoEncontradoError, MarcoNaoEncontradoError) as erro:
         raise HTTPException(status_code=404, detail=str(erro)) from erro
     except AcessoLocalObraNegadoError as erro:
         raise HTTPException(status_code=403, detail=str(erro)) from erro
@@ -154,8 +155,8 @@ async def consultar_evidencias(
     empreendimento_id: int,
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
-    local_obra_id: int | None = None,
-    marco_id: int | None = None,
+    local_obra_id: Annotated[int | None, Query(gt=0)] = None,
+    marco_id: Annotated[int | None, Query(gt=0)] = None,
 ):
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     return await listar_evidencias(

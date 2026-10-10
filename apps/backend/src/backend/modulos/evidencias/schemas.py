@@ -226,6 +226,16 @@ class LocalObraResumo(BaseModel):
     parent_id: int | None
 
 
+class MarcoResumo(BaseModel):
+    """Identifica qual avanço construtivo a evidência representa."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    descricao_tecnica: str | None
+
+
 class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     """Representacao completa da evidencia persistida e de seu arquivo."""
 
@@ -237,6 +247,7 @@ class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     criado_em: datetime
     atualizado_em: datetime
     local_obra: LocalObraResumo
+    marco: MarcoResumo
 
 
 class EvidenciaResponse(Evidencia_FromDB_Schema):
