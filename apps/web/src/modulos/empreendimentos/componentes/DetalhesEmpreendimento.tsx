@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
 import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
+import UploadEvidencia from "../../../componentes/UploadEvidencia/UploadEvidencia";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import { obterTaxonomia, type Taxonomia } from "../../../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../../../services/api";
@@ -68,6 +69,8 @@ export default function DetalhesEmpreendimento() {
                     onConfigured={setTaxonomia}
                 />
             )}
+
+            <UploadEvidencia empreendimentoId={empreendimento.id} />
 
             <footer className="detalhes-empreendimento__acoes barra-acoes">
                 <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>

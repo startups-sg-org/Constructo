@@ -12,6 +12,8 @@ services:
       - .env
     ports:
       - "8000:8000"
+    volumes:
+      - evidence_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -37,6 +39,7 @@ services:
             - .venv/
             - __pycache__/
             - constructo.db
+            - uploads/
         - action: rebuild
           path: ./uv.lock
 
@@ -61,6 +64,7 @@ services:
 
 volumes:
   pgdata:
+  evidence_uploads:
 
 networks:
   constructo-network:

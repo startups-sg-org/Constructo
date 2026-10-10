@@ -77,9 +77,23 @@ POSTGRES_PORT=5432
 
 # Opcional: substitui as cinco variáveis acima quando definida.
 # URL_POSTGRES=postgresql+asyncpg://postgres:change_me@db:5432/constructo
+
+# Opcional. Por padrão, as evidências são gravadas em apps/backend/uploads.
+# EVIDENCE_STORAGE_PATH=/app/uploads
 ```
 
 > **Atenção:** copie `.env.example` para `.env` antes da primeira execução. O arquivo `.env` não é versionado nem incluído na imagem; o Compose injeta seus valores em tempo de execução. Use `db` como host dentro do Compose e `localhost` ao executar o backend diretamente no host.
+
+### Upload de evidências
+
+O endpoint `POST /api/evidences/upload` recebe `multipart/form-data` com os campos
+`empreendimento_id` e `file`. São aceitas imagens JPEG, PNG e WEBP de até 5 MB. No
+Compose, os arquivos ficam no volume persistente `evidence_uploads` e são publicados
+em `/uploads/<caminho>`. Os metadados ficam na tabela `arquivos_evidencia`, criada
+automaticamente pela migration `20261009_0015` durante o `docker compose up --build`.
+A implementação local segue o contrato `Storage`, em
+`src/backend/modulos/evidencias/storage.py`, que pode ser substituído por um adaptador
+S3, Google Cloud Storage ou Azure Blob sem alterar o serviço de upload.
 
 ---
 

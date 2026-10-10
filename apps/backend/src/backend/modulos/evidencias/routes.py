@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
@@ -10,6 +10,7 @@ from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 from .schemas import (
+    EvidenciaUpload_FromDB_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromDB_Schema,
     ItemProtocolo_FromRequest_Schema,
@@ -28,11 +29,64 @@ from .servicos import (
     criar_protocolo_evidencia,
     listar_itens_protocolo,
     listar_protocolos_evidencia,
+    registrar_arquivo_evidencia,
     remover_associacao_do_protocolo,
     remover_item_protocolo,
 )
+from .storage import Storage, obter_storage
+from .upload_service import ErroValidacaoUpload, salvar_evidencia
 
 router = APIRouter(prefix="/empreendimentos", tags=["evidências"])
+upload_router = APIRouter(prefix="/api/evidences", tags=["evidências"])
+
+
+@upload_router.post(
+    "/upload",
+    response_model=EvidenciaUpload_FromDB_Schema,
+    status_code=201,
+)
+async def upload_evidencia(
+    empreendimento_id: Annotated[int, Form(gt=0)],
+    arquivo: Annotated[UploadFile, File(alias="file")],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+    storage: Annotated[Storage, Depends(obter_storage)],
+) -> EvidenciaUpload_FromDB_Schema:
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    evidencia = None
+    try:
+        evidencia = await salvar_evidencia(storage, arquivo, empreendimento_id)
+        registro = await registrar_arquivo_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario_id=usuario.id,
+            nome_original=(arquivo.filename or evidencia.nome)[:255],
+            nome_armazenado=evidencia.nome,
+            caminho=evidencia.caminho,
+            url=evidencia.url,
+            tipo_mime=evidencia.tipo_mime,
+            tamanho=evidencia.tamanho,
+        )
+    except ErroValidacaoUpload as erro:
+        raise HTTPException(status_code=erro.status_code, detail=str(erro)) from erro
+    except Exception:
+        if evidencia is not None:
+            await storage.remover(evidencia.caminho)
+        raise
+    finally:
+        await arquivo.close()
+
+    return EvidenciaUpload_FromDB_Schema(
+        id=registro.id,
+        empreendimento_id=empreendimento_id,
+        nome=evidencia.nome,
+        caminho=evidencia.caminho,
+        url=evidencia.url,
+        tamanho=evidencia.tamanho,
+        tipo_mime=evidencia.tipo_mime,
+        criado_em=registro.criado_em,
+    )
+
 
 @router.post(
     "/{empreendimento_id}/taxonomia/marcos/{marco_id}/protocolos-evidencia",

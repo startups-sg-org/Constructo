@@ -10,6 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.banco_de_dados.connections.database_clients import settings
+from backend.banco_de_dados.registro_modelos import registrar_modelos
 from backend.modulos.dominio.modelos import (
     Empreendimento,
     Etapa,
@@ -58,6 +59,7 @@ async def verificar() -> None:
                 "publicacoes_evidencias",
                 "usuarios_empreendimentos",
                 "usuarios_unidades",
+                "arquivos_evidencia",
             ):
                 assert (
                     await conexao.scalar(text("SELECT to_regclass(:tabela)"), {"tabela": nome})
@@ -73,6 +75,7 @@ async def verificar() -> None:
 
 async def verificar_concorrencia(engine) -> None:
     """Duas transições concorrentes não podem concluir com o mesmo estado antigo."""
+    registrar_modelos()
     factory = async_sessionmaker(engine, expire_on_commit=False)
     async with factory.begin() as session:
         obra = Empreendimento(nome="Teste concorrência")
