@@ -25,6 +25,7 @@ from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
 from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
 from backend.modulos.evidencias.schemas import (
+    EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ProtocoloEvidencia_Atualizar_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
@@ -244,6 +245,7 @@ def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
         ("imagem.png", b"nao-e-uma-imagem", "image/png", 415),
         ("imagem.png", b"\x89PNG\r\n\x1a\n" + b"x" * (5 * 1024 * 1024), "image/png", 413),
     ],
+    ids=["tipo-nao-permitido", "conteudo-invalido", "arquivo-muito-grande"],
 )
 def test_upload_rejeita_formato_conteudo_e_tamanho_invalidos(
     cliente, tmp_path, nome, conteudo, tipo_mime, status
@@ -438,6 +440,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                     [
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/um.jpg",
                             capturado_em=agora,
@@ -445,6 +449,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/dois.jpg",
                             capturado_em=agora,
@@ -452,6 +458,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=outro_item.id,
                             arquivo_url="privado/outro-protocolo.jpg",
                             capturado_em=agora,
@@ -459,6 +467,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=10,
+                            local_obra_id=4,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/outro-progresso.jpg",
                             capturado_em=agora,
@@ -560,6 +570,102 @@ def test_servico_rejeita_arquivo_nao_registrado_no_empreendimento(monkeypatch):
     registrar.assert_not_awaited()
 
 
+def test_schema_da_evidencia_exige_local_marco_e_data_de_captura():
+    agora = datetime.now(UTC)
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        descricao_tecnica="  Detalhe técnico  ",
+        capturado_em=agora,
+    )
+
+    assert dados.local_obra_id == 3
+    assert dados.marco_id == 7
+    assert dados.item_protocolo_id is None
+    assert dados.descricao_tecnica == "Detalhe técnico"
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+
+
+def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
+    agora = datetime.now(UTC)
+    arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
+    progresso = SimpleNamespace(id=9, local_obra_id=3, marco_id=7)
+    evidencia = SimpleNamespace(id=31, arquivo_evidencia_id=arquivo.id)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=SimpleNamespace(id=3, empreendimento_id=42)),
+        buscar_progresso=AsyncMock(return_value=progresso),
+        criar=AsyncMock(return_value=evidencia),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=SimpleNamespace(id=7))),
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        descricao_tecnica="Teste de estanqueidade",
+        capturado_em=agora,
+    )
+    session = object()
+
+    resultado = asyncio.run(
+        servicos.criar_evidencia(
+            session,
+            empreendimento_id=42,
+            usuario_id=1,
+            arquivo=arquivo,
+            dados=dados,
+        )
+    )
+
+    assert resultado is evidencia
+    repositorio_evidencias.criar.assert_awaited_once_with(
+        session,
+        progresso_marco_id=9,
+        local_obra_id=3,
+        marco_id=7,
+        item_protocolo_id=None,
+        arquivo=arquivo,
+        descricao_tecnica="Teste de estanqueidade",
+        capturado_por=1,
+        capturado_em=agora,
+    )
+
+
+def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+
+    async def buscar(session_recebida, empreendimento_id, evidencia_id):
+        assert session_recebida is session
+        assert (empreendimento_id, evidencia_id) == (42, 31)
+        return SimpleNamespace(
+            id=31,
+            arquivo_url="/uploads/empreendimentos/42/evidencias/foto.png",
+            descricao_tecnica="Detalhe técnico",
+            local_obra_id=3,
+            marco_id=7,
+            item_protocolo_id=None,
+            capturado_por=1,
+            capturado_em=agora,
+            criado_em=agora,
+            atualizado_em=agora,
+        )
+
+    monkeypatch.setattr(routes, "buscar_evidencia", buscar)
+    resposta = test_client.get("/empreendimentos/42/evidencias/31")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["arquivo_url"].endswith("/foto.png")
+    assert resposta.json()["local_obra_id"] == 3
+    assert resposta.json()["marco_id"] == 7
+    assert resposta.json()["capturado_por"] == 1
+
+
 def test_status_real_separa_minimo_de_itens_obrigatorios():
     async def executar_teste():
         engine = create_async_engine("sqlite+aiosqlite:///:memory:")
@@ -625,6 +731,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                     [
                         Evidencia(
                             progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
                             item_protocolo_id=visao_geral.id,
                             arquivo_url="privado/visao.jpg",
                             capturado_em=agora,
@@ -632,6 +740,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                         ),
                         Evidencia(
                             progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
                             item_protocolo_id=detalhe_opcional.id,
                             arquivo_url="privado/outro.jpg",
                             capturado_em=agora,
@@ -653,6 +763,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                 session.add(
                     Evidencia(
                         progresso_marco_id=progresso.id,
+                        local_obra_id=local.id,
+                        marco_id=marco.id,
                         item_protocolo_id=ralo.id,
                         arquivo_url="privado/ralo.jpg",
                         capturado_em=agora,

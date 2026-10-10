@@ -194,3 +194,32 @@ class EvidenciaUpload_FromDB_Schema(BaseModel):
     tamanho: int
     tipo_mime: str
     criado_em: datetime
+
+
+class EvidenciaCriar_Schema(BaseModel):
+    """Metadados recebidos junto ao arquivo da evidencia."""
+
+    local_obra_id: int = Field(gt=0)
+    marco_id: int = Field(gt=0)
+    item_protocolo_id: int | None = Field(default=None, gt=0)
+    descricao_tecnica: str | None = Field(default=None, max_length=4000)
+    capturado_em: datetime
+
+    @field_validator("descricao_tecnica")
+    @classmethod
+    def normalizar_descricao_tecnica(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
+    """Representacao completa da evidencia persistida e de seu arquivo."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    arquivo_url: str
+    capturado_por: int
+    criado_em: datetime
+    atualizado_em: datetime

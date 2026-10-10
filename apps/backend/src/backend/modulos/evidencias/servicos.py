@@ -1,12 +1,18 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modulos.dominio.esquemas import EvidenciaCriar
-from backend.modulos.dominio.servicos import registrar_evidencia as registrar_evidencia_dominio
+from backend.modulos.dominio.modelos import Evidencia
+from backend.modulos.dominio.servicos import registrar_evidencia as _registrar_evidencia_dominio
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .regras import itens_obrigatorios_atendidos, quantidade_minima_atendida
-from .repository import ArquivosEvidenciaRepo, ItensProtocoloRepo, ProtocolosEvidenciaRepo
+from .repository import (
+    ArquivosEvidenciaRepo,
+    EvidenciasRepo,
+    ItensProtocoloRepo,
+    ProtocolosEvidenciaRepo,
+)
 from .schemas import (
+    EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
@@ -16,6 +22,9 @@ from .schemas import (
 _repositorio = ProtocolosEvidenciaRepo()
 _repositorio_itens = ItensProtocoloRepo()
 _repositorio_arquivos = ArquivosEvidenciaRepo()
+_repositorio_evidencias = EvidenciasRepo()
+# Mantido como ponto de extensao para integracoes que importavam o nome antigo.
+registrar_evidencia_dominio = _registrar_evidencia_dominio
 
 
 async def registrar_arquivo_evidencia(
@@ -40,6 +49,77 @@ async def registrar_arquivo_evidencia(
         url=url,
         tipo_mime=tipo_mime,
         tamanho=tamanho,
+    )
+
+
+async def criar_evidencia(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    usuario_id: int,
+    arquivo: ArquivoEvidencia,
+    dados: EvidenciaCriar_Schema,
+) -> Evidencia:
+    """Persiste metadados somente quando local, marco e arquivo sao coerentes."""
+    local = await _repositorio_evidencias.buscar_local(session, dados.local_obra_id)
+    if local is None or local.empreendimento_id != empreendimento_id:
+        raise ValueError("Local da obra inexistente no empreendimento")
+
+    await _exigir_marco(session, dados.marco_id)
+    progresso = await _repositorio_evidencias.buscar_progresso(
+        session, dados.local_obra_id, dados.marco_id
+    )
+    if progresso is None:
+        raise ValueError("Progresso inexistente para o local e marco informados")
+    if arquivo.empreendimento_id != empreendimento_id:
+        raise ValueError("Arquivo de evidencia pertence a outro empreendimento")
+
+    if dados.item_protocolo_id is not None:
+        item = await _repositorio_itens.buscar_item_por_id(
+            session, dados.item_protocolo_id
+        )
+        if item is None:
+            raise ValueError("Item de protocolo inexistente")
+        protocolo = await _repositorio.buscar_protocolo_por_id(session, item.protocolo_id)
+        if protocolo is None or protocolo.marco_id != dados.marco_id:
+            raise ValueError("Item de protocolo nao pertence ao marco informado")
+
+    return await _repositorio_evidencias.criar(
+        session,
+        progresso_marco_id=progresso.id,
+        local_obra_id=dados.local_obra_id,
+        marco_id=dados.marco_id,
+        item_protocolo_id=dados.item_protocolo_id,
+        arquivo=arquivo,
+        descricao_tecnica=dados.descricao_tecnica,
+        capturado_por=usuario_id,
+        capturado_em=dados.capturado_em,
+    )
+
+
+async def buscar_evidencia(
+    session: AsyncSession, empreendimento_id: int, evidencia_id: int
+) -> Evidencia:
+    evidencia = await _repositorio_evidencias.buscar(
+        session, evidencia_id, empreendimento_id
+    )
+    if evidencia is None:
+        raise ValueError(f"Evidencia inexistente: {evidencia_id}")
+    return evidencia
+
+
+async def listar_evidencias(
+    session: AsyncSession,
+    empreendimento_id: int,
+    *,
+    local_obra_id: int | None = None,
+    marco_id: int | None = None,
+) -> list[Evidencia]:
+    return await _repositorio_evidencias.listar(
+        session,
+        empreendimento_id,
+        local_obra_id=local_obra_id,
+        marco_id=marco_id,
     )
 
 
@@ -177,15 +257,17 @@ async def registrar_evidencia_no_item(
     if arquivo is None:
         raise ValueError("Arquivo de evidência inexistente no empreendimento")
 
-    evidencia = EvidenciaCriar(
-        progresso_marco_id=dados.progresso_marco_id,
+    return await _repositorio_evidencias.criar(
+        session,
+        progresso_marco_id=progresso.id,
+        local_obra_id=progresso.local_obra_id,
+        marco_id=progresso.marco_id,
         item_protocolo_id=item_id,
-        arquivo_url=dados.arquivo_url,
-        descricao=dados.descricao,
+        arquivo=arquivo,
+        descricao_tecnica=dados.descricao,
+        capturado_por=usuario_id,
         capturado_em=dados.capturado_em,
-        usuario_id=usuario_id,
     )
-    return await registrar_evidencia_dominio(session, evidencia)
 
 
 async def exigir_item_do_protocolo(
