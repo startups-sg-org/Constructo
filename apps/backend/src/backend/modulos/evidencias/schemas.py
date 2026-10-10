@@ -24,7 +24,8 @@ class ProtocoloEvidencia_FromRequest_Schema(BaseModel):
         description="Orientações técnicas que esclarecem quais evidências devem ser registradas.",
     )
     quantidade_minima: int = Field(
-        ge=1,
+        default=0,
+        ge=0,
         description="Quantidade mínima de evidências exigida para cumprir o protocolo.",
     )
 
@@ -60,6 +61,17 @@ class ProtocoloEvidencia_FromDB_Schema(ProtocoloEvidencia_FromRequest_Schema):
     marco_id: int
     criado_em: datetime
     atualizado_em: datetime
+
+
+class ProtocoloEvidencia_Atualizar_Schema(BaseModel):
+    quantidade_minima: int = Field(ge=0)
+
+
+class ProtocoloEvidencia_Status_Schema(BaseModel):
+    protocolo_id: int
+    quantidade_minima: int
+    evidencias_registradas: int
+    quantidade_atendida: bool
 
 
 class ItemProtocolo_FromRequest_Schema(BaseModel):

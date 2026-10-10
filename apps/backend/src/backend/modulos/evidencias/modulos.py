@@ -22,17 +22,17 @@ class ProtocoloEvidencia(Base):
     __tablename__ = "protocolos_evidencia"
     __table_args__ = (
         CheckConstraint(
-            "quantidade_minima >= 1", name="ck_protocolos_evidencia_quantidade_minima"
+            "quantidade_minima >= 0", name="ck_protocolos_evidencia_quantidade_minima"
         ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    marco_id: Mapped[int] = mapped_column(
-        ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=False, index=True
+    marco_id: Mapped[int | None] = mapped_column(
+        ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
-    quantidade_minima: Mapped[int] = mapped_column(Integer, nullable=False)
+    quantidade_minima: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -40,7 +40,7 @@ class ProtocoloEvidencia(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    marco: Mapped[Marco] = relationship()
+    marco: Mapped[Marco | None] = relationship(back_populates="protocolos_evidencia")
     itens: Mapped[list["ItemProtocolo"]] = relationship(
         back_populates="protocolo", order_by="ItemProtocolo.ordem"
     )
