@@ -1,15 +1,15 @@
 """Cria a persistência dos arquivos enviados como evidência.
 
-Revision ID: 20261009_0013
-Revises: 20261009_0012
+Revision ID: 20261009_0015
+Revises: 20261009_0014
 """
 
 import sqlalchemy as sa
 
 from alembic import op
 
-revision = "20261009_0013"
-down_revision = "20261009_0012"
+revision = "20261009_0015"
+down_revision = "20261009_0014"
 branch_labels = None
 depends_on = None
 

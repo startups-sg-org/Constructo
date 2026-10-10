@@ -1,12 +1,23 @@
+import asyncio
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from backend.banco_de_dados.connections.database_postgres import get_db
+from backend.banco_de_dados.connections.database_postgres import Base, get_db
 from backend.main import app
-from backend.modulos.evidencias import routes
+from backend.modulos.dominio.modelos import Evidencia
+from backend.modulos.evidencias import routes, servicos
+from backend.modulos.evidencias.regras import quantidade_minima_atendida
+from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
+from backend.modulos.evidencias.schemas import (
+    ProtocoloEvidencia_Atualizar_Schema,
+    ProtocoloEvidencia_FromRequest_Schema,
+)
 from backend.modulos.evidencias.storage import LocalStorage, obter_storage
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
@@ -236,3 +247,188 @@ def test_upload_rejeita_formato_conteudo_e_tamanho_invalidos(
 
     assert resposta.status_code == status
     assert not list(tmp_path.rglob("*"))
+
+
+def test_atualiza_quantidade_minima_e_consulta_status_do_protocolo(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def atualizar(session_recebida, marco_id, protocolo_id, quantidade_minima):
+        assert session_recebida is session
+        assert (marco_id, protocolo_id, quantidade_minima) == (7, 1, 0)
+        protocolo = _protocolo(marco_id)
+        protocolo.quantidade_minima = quantidade_minima
+        return protocolo
+
+    async def consultar_status(session_recebida, marco_id, protocolo_id, progresso_marco_id):
+        assert session_recebida is session
+        assert (marco_id, protocolo_id, progresso_marco_id) == (7, 1, 9)
+        return {
+            "protocolo_id": protocolo_id,
+            "quantidade_minima": 5,
+            "evidencias_registradas": 3,
+            "quantidade_atendida": False,
+        }
+
+    monkeypatch.setattr(routes, "atualizar_quantidade_minima", atualizar)
+    monkeypatch.setattr(routes, "consultar_status_protocolo", consultar_status)
+
+    caminho = "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1"
+    atualizada = test_client.patch(caminho, json={"quantidade_minima": 0})
+    resposta_status = test_client.get(f"{caminho}/status?progresso_marco_id=9")
+
+    assert atualizada.status_code == 200
+    assert atualizada.json()["quantidade_minima"] == 0
+    assert resposta_status.status_code == 200
+    assert resposta_status.json() == {
+        "protocolo_id": 1,
+        "quantidade_minima": 5,
+        "evidencias_registradas": 3,
+        "quantidade_atendida": False,
+    }
+
+
+def test_schemas_aceitam_zero_e_rejeitam_quantidade_minima_negativa():
+    criado = ProtocoloEvidencia_FromRequest_Schema(nome="Impermeabilização")
+    atualizado = ProtocoloEvidencia_Atualizar_Schema(quantidade_minima=0)
+
+    assert criado.quantidade_minima == 0
+    assert atualizado.quantidade_minima == 0
+
+    with pytest.raises(ValidationError):
+        ProtocoloEvidencia_FromRequest_Schema(nome="Impermeabilização", quantidade_minima=-1)
+    with pytest.raises(ValidationError):
+        ProtocoloEvidencia_Atualizar_Schema(quantidade_minima=-1)
+
+
+def test_endpoint_rejeita_quantidade_minima_negativa(cliente):
+    test_client, _ = cliente
+
+    resposta = test_client.patch(
+        "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1",
+        json={"quantidade_minima": -1},
+    )
+
+    assert resposta.status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("registradas", "minima", "esperado"),
+    [(0, 0, True), (2, 3, False), (3, 3, True), (4, 3, True)],
+)
+def test_regra_quantidade_minima_atendida(registradas, minima, esperado):
+    assert quantidade_minima_atendida(registradas, minima) is esperado
+
+
+def test_status_indica_quantidade_minima_atendida(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def consultar_status(session_recebida, marco_id, protocolo_id, progresso_marco_id):
+        assert session_recebida is session
+        assert (marco_id, protocolo_id, progresso_marco_id) == (7, 1, 9)
+        return {
+            "protocolo_id": 1,
+            "quantidade_minima": 3,
+            "evidencias_registradas": 3,
+            "quantidade_atendida": True,
+        }
+
+    monkeypatch.setattr(routes, "consultar_status_protocolo", consultar_status)
+    resposta = test_client.get(
+        "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1/status?progresso_marco_id=9"
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["quantidade_atendida"] is True
+
+
+def test_servico_atualiza_quantidade_e_calcula_status(monkeypatch):
+    protocolo = SimpleNamespace(id=1, marco_id=7, quantidade_minima=3)
+    progresso = SimpleNamespace(id=9, marco_id=7)
+    repositorio = SimpleNamespace(
+        buscar_protocolo_por_id=AsyncMock(return_value=protocolo),
+        atualizar_quantidade_minima=AsyncMock(return_value=protocolo),
+        buscar_progresso_por_id=AsyncMock(return_value=progresso),
+        contar_evidencias_do_progresso=AsyncMock(return_value=3),
+    )
+    monkeypatch.setattr(servicos, "_repositorio", repositorio)
+    session = object()
+
+    async def executar_teste():
+        atualizado = await servicos.atualizar_quantidade_minima(session, 7, 1, 0)
+        protocolo.quantidade_minima = 3
+        status = await servicos.consultar_status_protocolo(session, 7, 1, 9)
+        return atualizado, status
+
+    atualizado, status = asyncio.run(executar_teste())
+
+    assert atualizado is protocolo
+    repositorio.atualizar_quantidade_minima.assert_awaited_once_with(session, protocolo, 0)
+    repositorio.contar_evidencias_do_progresso.assert_awaited_once_with(session, 9)
+    assert status == {
+        "protocolo_id": 1,
+        "quantidade_minima": 3,
+        "evidencias_registradas": 3,
+        "quantidade_atendida": True,
+    }
+
+
+def test_servico_rejeita_progresso_de_outro_marco(monkeypatch):
+    protocolo = SimpleNamespace(id=1, marco_id=7, quantidade_minima=3)
+    repositorio = SimpleNamespace(
+        buscar_protocolo_por_id=AsyncMock(return_value=protocolo),
+        buscar_progresso_por_id=AsyncMock(return_value=SimpleNamespace(id=9, marco_id=8)),
+        contar_evidencias_do_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio", repositorio)
+
+    async def executar_teste():
+        with pytest.raises(ValueError, match="Progresso inexistente no marco: 9"):
+            await servicos.consultar_status_protocolo(object(), 7, 1, 9)
+
+    asyncio.run(executar_teste())
+    repositorio.contar_evidencias_do_progresso.assert_not_awaited()
+
+
+def test_conta_apenas_evidencias_do_progresso_informado():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+
+            fabrica_sessao = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica_sessao() as session:
+                agora = datetime.now(UTC)
+                session.add_all(
+                    [
+                        Evidencia(
+                            progresso_marco_id=9,
+                            arquivo_url="privado/um.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=9,
+                            arquivo_url="privado/dois.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=10,
+                            arquivo_url="privado/outro-progresso.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                    ]
+                )
+                await session.flush()
+
+                total = await ProtocolosEvidenciaRepo().contar_evidencias_do_progresso(
+                    session, 9
+                )
+
+            assert total == 2
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
