@@ -262,6 +262,7 @@ class Evidencia(Base):
     )
 
     progresso_marco: Mapped[ProgressoMarco] = relationship()
+    local_obra: Mapped[LocalObra] = relationship(foreign_keys=[local_obra_id])
     arquivo: Mapped["ArquivoEvidencia | None"] = relationship("ArquivoEvidencia")
 
     # Compatibilidade temporaria com os contratos anteriores do dominio.

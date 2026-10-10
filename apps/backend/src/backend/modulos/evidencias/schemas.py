@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from backend.modulos.dominio.regras import TipoLocal
+
 
 class ProtocoloEvidencia_FromRequest_Schema(BaseModel):
     """Dados recebidos da API para criar um protocolo associado a um marco.
@@ -213,6 +215,17 @@ class EvidenciaCriar_Schema(BaseModel):
         return valor.strip() or None
 
 
+class LocalObraResumo(BaseModel):
+    """Identifica onde a evidência foi registrada na estrutura da obra."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    tipo: TipoLocal
+    parent_id: int | None
+
+
 class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     """Representacao completa da evidencia persistida e de seu arquivo."""
 
@@ -223,3 +236,8 @@ class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
     capturado_por: int
     criado_em: datetime
     atualizado_em: datetime
+    local_obra: LocalObraResumo
+
+
+class EvidenciaResponse(Evidencia_FromDB_Schema):
+    """Nome público do contrato retornado pelos endpoints de evidências."""

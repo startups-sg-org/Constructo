@@ -1,7 +1,18 @@
+from dataclasses import dataclass
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modulos.dominio.modelos import Evidencia
-from backend.modulos.dominio.servicos import registrar_evidencia as _registrar_evidencia_dominio
+from backend.modulos.dominio.modelos import Evidencia, LocalObra, ProgressoMarco
+from backend.modulos.dominio.regras import Papel, TipoLocal
+from backend.modulos.dominio.servicos import (
+    exigir_marco_do_empreendimento,
+    pode_gerir,
+    pode_ler_unidade,
+)
+from backend.modulos.dominio.servicos import (
+    registrar_evidencia as _registrar_evidencia_dominio,
+)
+from backend.modulos.usuarios.modelos import Usuario
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .regras import itens_obrigatorios_atendidos, quantidade_minima_atendida
@@ -25,6 +36,24 @@ _repositorio_arquivos = ArquivosEvidenciaRepo()
 _repositorio_evidencias = EvidenciasRepo()
 # Mantido como ponto de extensao para integracoes que importavam o nome antigo.
 registrar_evidencia_dominio = _registrar_evidencia_dominio
+
+
+class LocalObraNaoEncontradoError(ValueError):
+    pass
+
+
+class AcessoLocalObraNegadoError(PermissionError):
+    pass
+
+
+class EvidenciaInvalidaError(ValueError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ContextoLocalEvidencia:
+    local: LocalObra
+    progresso: ProgressoMarco
 
 
 async def registrar_arquivo_evidencia(
@@ -56,45 +85,93 @@ async def criar_evidencia(
     session: AsyncSession,
     *,
     empreendimento_id: int,
-    usuario_id: int,
+    usuario: Usuario,
     arquivo: ArquivoEvidencia,
     dados: EvidenciaCriar_Schema,
+    contexto: ContextoLocalEvidencia | None = None,
 ) -> Evidencia:
     """Persiste metadados somente quando local, marco e arquivo sao coerentes."""
-    local = await _repositorio_evidencias.buscar_local(session, dados.local_obra_id)
-    if local is None or local.empreendimento_id != empreendimento_id:
-        raise ValueError("Local da obra inexistente no empreendimento")
-
-    await _exigir_marco(session, dados.marco_id)
-    progresso = await _repositorio_evidencias.buscar_progresso(
-        session, dados.local_obra_id, dados.marco_id
+    contexto = contexto or await validar_local_da_evidencia(
+        session,
+        empreendimento_id=empreendimento_id,
+        usuario=usuario,
+        dados=dados,
     )
-    if progresso is None:
-        raise ValueError("Progresso inexistente para o local e marco informados")
+    local = contexto.local
+    progresso = contexto.progresso
+
     if arquivo.empreendimento_id != empreendimento_id:
-        raise ValueError("Arquivo de evidencia pertence a outro empreendimento")
+        raise EvidenciaInvalidaError("Arquivo de evidência pertence a outro empreendimento")
 
     if dados.item_protocolo_id is not None:
         item = await _repositorio_itens.buscar_item_por_id(
             session, dados.item_protocolo_id
         )
         if item is None:
-            raise ValueError("Item de protocolo inexistente")
+            raise EvidenciaInvalidaError("Item de protocolo inexistente")
         protocolo = await _repositorio.buscar_protocolo_por_id(session, item.protocolo_id)
         if protocolo is None or protocolo.marco_id != dados.marco_id:
-            raise ValueError("Item de protocolo nao pertence ao marco informado")
+            raise EvidenciaInvalidaError(
+                "Item de protocolo não pertence ao marco informado"
+            )
 
     return await _repositorio_evidencias.criar(
         session,
         progresso_marco_id=progresso.id,
-        local_obra_id=dados.local_obra_id,
+        local=local,
+        local_obra_id=local.id,
         marco_id=dados.marco_id,
         item_protocolo_id=dados.item_protocolo_id,
         arquivo=arquivo,
         descricao_tecnica=dados.descricao_tecnica,
-        capturado_por=usuario_id,
+        capturado_por=usuario.id,
         capturado_em=dados.capturado_em,
     )
+
+
+async def validar_local_da_evidencia(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    usuario: Usuario,
+    dados: EvidenciaCriar_Schema,
+) -> ContextoLocalEvidencia:
+    """Valida existência, pertencimento, autorização e a regra de unidade da V1."""
+    local = await _repositorio_evidencias.buscar_local(session, dados.local_obra_id)
+    if local is None:
+        raise LocalObraNaoEncontradoError(
+            f"Local da obra inexistente: {dados.local_obra_id}"
+        )
+    if local.empreendimento_id != empreendimento_id:
+        raise EvidenciaInvalidaError(
+            "Local da obra não pertence ao empreendimento informado"
+        )
+
+    acesso_gestao = await pode_gerir(session, usuario.id, empreendimento_id)
+    acesso_comprador = False
+    if usuario.papel == Papel.COMPRADOR:
+        if local.tipo != TipoLocal.UNIDADE:
+            raise EvidenciaInvalidaError(
+                "Evidência registrada por comprador deve estar vinculada a uma unidade"
+            )
+        acesso_comprador = await pode_ler_unidade(session, usuario.id, local.id)
+    if not acesso_gestao and not acesso_comprador:
+        raise AcessoLocalObraNegadoError("Acesso negado ao empreendimento do local")
+
+    try:
+        await exigir_marco_do_empreendimento(
+            session, empreendimento_id, dados.marco_id
+        )
+    except ValueError as erro:
+        raise EvidenciaInvalidaError(str(erro)) from erro
+    progresso = await _repositorio_evidencias.buscar_progresso(
+        session, local.id, dados.marco_id
+    )
+    if progresso is None:
+        raise EvidenciaInvalidaError(
+            "Progresso inexistente para o local e marco informados"
+        )
+    return ContextoLocalEvidencia(local=local, progresso=progresso)
 
 
 async def buscar_evidencia(
@@ -256,10 +333,14 @@ async def registrar_evidencia_no_item(
     )
     if arquivo is None:
         raise ValueError("Arquivo de evidência inexistente no empreendimento")
+    local = await _repositorio_evidencias.buscar_local(session, progresso.local_obra_id)
+    if local is None:
+        raise ValueError("Local da obra da evidência não existe")
 
     return await _repositorio_evidencias.criar(
         session,
         progresso_marco_id=progresso.id,
+        local=local,
         local_obra_id=progresso.local_obra_id,
         marco_id=progresso.marco_id,
         item_protocolo_id=item_id,

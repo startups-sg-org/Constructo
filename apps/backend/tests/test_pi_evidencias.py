@@ -32,7 +32,7 @@ from backend.modulos.evidencias.schemas import (
 )
 from backend.modulos.evidencias.storage import LocalStorage, obter_storage
 from backend.modulos.usuarios.modelos import Usuario
-from backend.modulos.usuarios.rotas import get_admin_ou_gestor
+from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_autenticado
 
 
 @pytest.fixture
@@ -49,7 +49,9 @@ def cliente(monkeypatch):
         return None
 
     app.dependency_overrides[get_db] = fornecer_sessao
-    app.dependency_overrides[get_admin_ou_gestor] = lambda: SimpleNamespace(id=1, papel="ADMIN")
+    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
+    app.dependency_overrides[get_admin_ou_gestor] = lambda: usuario
+    app.dependency_overrides[get_usuario_autenticado] = lambda: usuario
     monkeypatch.setattr(routes, "exigir_acesso_ao_empreendimento", permitir_acesso)
     monkeypatch.setattr(routes, "exigir_marco_do_empreendimento", permitir_marco)
 
@@ -593,17 +595,17 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
     arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
     progresso = SimpleNamespace(id=9, local_obra_id=3, marco_id=7)
     evidencia = SimpleNamespace(id=31, arquivo_evidencia_id=arquivo.id)
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.TORRE)
     repositorio_evidencias = SimpleNamespace(
-        buscar_local=AsyncMock(return_value=SimpleNamespace(id=3, empreendimento_id=42)),
+        buscar_local=AsyncMock(return_value=local),
         buscar_progresso=AsyncMock(return_value=progresso),
         criar=AsyncMock(return_value=evidencia),
     )
     monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
     monkeypatch.setattr(
-        servicos,
-        "_repositorio",
-        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=SimpleNamespace(id=7))),
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=SimpleNamespace(id=7))
     )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
     dados = EvidenciaCriar_Schema(
         local_obra_id=3,
         marco_id=7,
@@ -611,12 +613,13 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
         capturado_em=agora,
     )
     session = object()
+    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
 
     resultado = asyncio.run(
         servicos.criar_evidencia(
             session,
             empreendimento_id=42,
-            usuario_id=1,
+            usuario=usuario,
             arquivo=arquivo,
             dados=dados,
         )
@@ -626,6 +629,7 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
     repositorio_evidencias.criar.assert_awaited_once_with(
         session,
         progresso_marco_id=9,
+        local=local,
         local_obra_id=3,
         marco_id=7,
         item_protocolo_id=None,
@@ -634,6 +638,117 @@ def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
         capturado_por=1,
         capturado_em=agora,
     )
+
+
+def test_servico_rejeita_local_inexistente(monkeypatch):
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=None),
+        buscar_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=999,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.LocalObraNaoEncontradoError):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=1, papel="GESTOR", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    repositorio_evidencias.buscar_progresso.assert_not_awaited()
+
+
+def test_servico_bloqueia_usuario_sem_acesso_ao_empreendimento(monkeypatch):
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.TORRE)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=False))
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.AcessoLocalObraNegadoError):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=8, papel="GESTOR", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    repositorio_evidencias.buscar_progresso.assert_not_awaited()
+
+
+def test_api_retorna_403_sem_salvar_arquivo_quando_usuario_nao_tem_acesso(
+    cliente, monkeypatch
+):
+    test_client, _ = cliente
+    validar = AsyncMock(
+        side_effect=servicos.AcessoLocalObraNegadoError(
+            "Acesso negado ao empreendimento do local"
+        )
+    )
+    salvar = AsyncMock()
+    monkeypatch.setattr(routes, "validar_local_da_evidencia", validar)
+    monkeypatch.setattr(routes, "salvar_evidencia", salvar)
+
+    resposta = test_client.post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "3",
+            "marco_id": "7",
+            "capturado_em": datetime.now(UTC).isoformat(),
+        },
+        files={"file": ("foto.png", b"\x89PNG\r\n\x1a\nconteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 403
+    salvar.assert_not_awaited()
+
+
+def test_comprador_so_pode_registrar_na_unidade_vinculada(monkeypatch):
+    local = SimpleNamespace(id=12, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    progresso = SimpleNamespace(id=9, local_obra_id=12, marco_id=7)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(return_value=progresso),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=False))
+    monkeypatch.setattr(servicos, "pode_ler_unidade", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=SimpleNamespace(id=7))
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=12,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    contexto = asyncio.run(
+        servicos.validar_local_da_evidencia(
+            object(),
+            empreendimento_id=42,
+            usuario=SimpleNamespace(id=15, papel="COMPRADOR", ativo=True),
+            dados=dados,
+        )
+    )
+
+    assert contexto.local is local
+    assert contexto.progresso is progresso
 
 
 def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
@@ -654,6 +769,12 @@ def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
             capturado_em=agora,
             criado_em=agora,
             atualizado_em=agora,
+            local_obra=SimpleNamespace(
+                id=3,
+                nome="Torre A",
+                tipo=TipoLocal.TORRE,
+                parent_id=None,
+            ),
         )
 
     monkeypatch.setattr(routes, "buscar_evidencia", buscar)
@@ -664,6 +785,51 @@ def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
     assert resposta.json()["local_obra_id"] == 3
     assert resposta.json()["marco_id"] == 7
     assert resposta.json()["capturado_por"] == 1
+    assert resposta.json()["local_obra"] == {
+        "id": 3,
+        "nome": "Torre A",
+        "tipo": "TORRE",
+        "parent_id": None,
+    }
+
+
+def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+    listar = AsyncMock(
+        return_value=[
+            SimpleNamespace(
+                id=31,
+                arquivo_url="/uploads/foto.png",
+                descricao_tecnica=None,
+                local_obra_id=12,
+                marco_id=7,
+                item_protocolo_id=None,
+                capturado_por=1,
+                capturado_em=agora,
+                criado_em=agora,
+                atualizado_em=agora,
+                local_obra=SimpleNamespace(
+                    id=12,
+                    nome="Unidade 101",
+                    tipo=TipoLocal.UNIDADE,
+                    parent_id=5,
+                ),
+            )
+        ]
+    )
+    monkeypatch.setattr(routes, "listar_evidencias", listar)
+
+    resposta = test_client.get("/empreendimentos/42/evidencias?local_obra_id=12")
+
+    assert resposta.status_code == 200
+    assert resposta.json()[0]["local_obra"]["tipo"] == "UNIDADE"
+    listar.assert_awaited_once_with(
+        session,
+        42,
+        local_obra_id=12,
+        marco_id=None,
+    )
 
 
 def test_status_real_separa_minimo_de_itens_obrigatorios():

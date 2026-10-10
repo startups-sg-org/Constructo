@@ -9,12 +9,12 @@ from backend.modulos.dominio.esquemas import EvidenciaLer
 from backend.modulos.dominio.rotas import exigir_acesso_ao_empreendimento
 from backend.modulos.dominio.servicos import exigir_marco_do_empreendimento
 from backend.modulos.usuarios.modelos import Usuario
-from backend.modulos.usuarios.rotas import get_admin_ou_gestor
+from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_autenticado
 
 from .schemas import (
-    Evidencia_FromDB_Schema,
     EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
+    EvidenciaResponse,
     EvidenciaUpload_FromDB_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromDB_Schema,
@@ -26,6 +26,9 @@ from .schemas import (
     ProtocoloEvidencia_Status_Schema,
 )
 from .servicos import (
+    AcessoLocalObraNegadoError,
+    EvidenciaInvalidaError,
+    LocalObraNaoEncontradoError,
     associar_protocolo_ao_marco,
     atualizar_item_protocolo,
     atualizar_quantidade_minima,
@@ -41,6 +44,7 @@ from .servicos import (
     registrar_evidencia_no_item,
     remover_associacao_do_protocolo,
     remover_item_protocolo,
+    validar_local_da_evidencia,
 )
 from .storage import Storage, obter_storage
 from .upload_service import ErroValidacaoUpload, salvar_evidencia
@@ -51,7 +55,7 @@ upload_router = APIRouter(prefix="/api/evidences", tags=["evidências"])
 
 @router.post(
     "/{empreendimento_id}/evidencias",
-    response_model=Evidencia_FromDB_Schema,
+    response_model=EvidenciaResponse,
     status_code=201,
 )
 async def cadastrar_evidencia(
@@ -61,22 +65,26 @@ async def cadastrar_evidencia(
     capturado_em: Annotated[datetime, Form()],
     arquivo: Annotated[UploadFile, File(alias="file")],
     session: Annotated[AsyncSession, Depends(get_db)],
-    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
     storage: Annotated[Storage, Depends(obter_storage)],
     item_protocolo_id: Annotated[int | None, Form(gt=0)] = None,
     descricao_tecnica: Annotated[str | None, Form(max_length=4000)] = None,
 ):
     """Envia o arquivo e cria a evidência com seus metadados no mesmo fluxo."""
-    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     arquivo_salvo = None
     try:
-        await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
         dados = EvidenciaCriar_Schema(
             local_obra_id=local_obra_id,
             marco_id=marco_id,
             item_protocolo_id=item_protocolo_id,
             descricao_tecnica=descricao_tecnica,
             capturado_em=capturado_em,
+        )
+        contexto = await validar_local_da_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario=usuario,
+            dados=dados,
         )
         arquivo_salvo = await salvar_evidencia(storage, arquivo, empreendimento_id)
         registro_arquivo = await registrar_arquivo_evidencia(
@@ -93,19 +101,26 @@ async def cadastrar_evidencia(
         evidencia = await criar_evidencia(
             session,
             empreendimento_id=empreendimento_id,
-            usuario_id=usuario.id,
+            usuario=usuario,
             arquivo=registro_arquivo,
             dados=dados,
+            contexto=contexto,
         )
         # Garante que arquivo, metadados e evidência foram persistidos juntos.
         await session.commit()
         return evidencia
     except ErroValidacaoUpload as erro:
         raise HTTPException(status_code=erro.status_code, detail=str(erro)) from erro
-    except ValueError as erro:
+    except LocalObraNaoEncontradoError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except AcessoLocalObraNegadoError as erro:
+        raise HTTPException(status_code=403, detail=str(erro)) from erro
+    except EvidenciaInvalidaError as erro:
         if arquivo_salvo is not None:
             await storage.remover(arquivo_salvo.caminho)
-        raise HTTPException(status_code=400, detail=str(erro)) from erro
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
     except Exception:
         if arquivo_salvo is not None:
             await storage.remover(arquivo_salvo.caminho)
@@ -116,7 +131,7 @@ async def cadastrar_evidencia(
 
 @router.get(
     "/{empreendimento_id}/evidencias/{evidencia_id}",
-    response_model=Evidencia_FromDB_Schema,
+    response_model=EvidenciaResponse,
 )
 async def consultar_evidencia(
     empreendimento_id: int,
@@ -133,7 +148,7 @@ async def consultar_evidencia(
 
 @router.get(
     "/{empreendimento_id}/evidencias",
-    response_model=list[Evidencia_FromDB_Schema],
+    response_model=list[EvidenciaResponse],
 )
 async def consultar_evidencias(
     empreendimento_id: int,
