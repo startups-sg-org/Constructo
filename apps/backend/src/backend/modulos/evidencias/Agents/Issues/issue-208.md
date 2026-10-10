@@ -102,3 +102,36 @@ Protocolo incompleto
 - Esta issue mede quantidade total. Validar que cada item obrigatório do
   protocolo recebeu uma evidência exige uma futura ligação explícita entre
   `Evidencia` e `ItemProtocolo`.
+
+## Relatório de verificação
+
+### Itens atendidos
+
+- `ProtocoloEvidencia.quantidade_minima` aceita `0`, possui default `0` no
+  model e é protegido pela constraint `quantidade_minima >= 0`.
+- A migration `20261009_0014` altera a constraint e o default do banco.
+- Os schemas de criação e atualização aplicam `ge=0`, rejeitando valores
+  negativos antes da persistência.
+- A regra pura `quantidade_minima_atendida` implementa exatamente
+  `evidencias_registradas >= quantidade_minima`.
+- O repositório conta evidências por `progresso_marco_id`; o service confirma
+  que esse progresso pertence ao mesmo marco do protocolo antes de calcular.
+- O endpoint `PATCH` atualiza a quantidade mínima e o endpoint `GET /status`
+  retorna mínimo, quantidade registrada e o booleano `quantidade_atendida`.
+
+### Itens parcialmente atendidos
+
+1 - Os testes agora cobrem atualização para `0`, status insuficiente, status
+  atendido e rejeição de quantidade negativa. A cobertura de status ainda usa
+  o service simulado; falta teste de integração para a consulta `COUNT` real e
+  evidências de outro progresso ou marco.
+2 - Foi tentada a aplicação de `alembic upgrade head`, mas o comando não
+  retornou resultado antes do limite de 30 segundos neste ambiente. A migration
+  continua pendente de confirmação em banco acessível.
+
+### Conclusão
+
+A funcionalidade e os cenários unitários de mínimo atendido, mínimo
+insuficiente e valor negativo estão implementados. Para evidência de conclusão
+integral, faltam somente o teste de integração da contagem real e a aplicação
+confirmada da migration em banco de validação.

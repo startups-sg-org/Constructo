@@ -1,12 +1,18 @@
+import asyncio
 from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from backend.banco_de_dados.connections.database_postgres import get_db
+from backend.banco_de_dados.connections.database_postgres import Base, get_db
 from backend.main import app
+from backend.modulos.dominio.modelos import Evidencia
 from backend.modulos.evidencias import routes
+from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
+from backend.modulos.evidencias.schemas import ProtocoloEvidencia_FromRequest_Schema
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 
@@ -204,3 +210,75 @@ def test_atualiza_quantidade_minima_e_consulta_status_do_protocolo(cliente, monk
         "evidencias_registradas": 3,
         "quantidade_atendida": False,
     }
+
+
+def test_rejeita_quantidade_minima_negativa():
+    with pytest.raises(ValidationError):
+        ProtocoloEvidencia_FromRequest_Schema(nome="Impermeabilização", quantidade_minima=-1)
+
+
+def test_status_indica_quantidade_minima_atendida(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def consultar_status(session_recebida, marco_id, protocolo_id, progresso_marco_id):
+        assert session_recebida is session
+        assert (marco_id, protocolo_id, progresso_marco_id) == (7, 1, 9)
+        return {
+            "protocolo_id": 1,
+            "quantidade_minima": 3,
+            "evidencias_registradas": 3,
+            "quantidade_atendida": True,
+        }
+
+    monkeypatch.setattr(routes, "consultar_status_protocolo", consultar_status)
+    resposta = test_client.get(
+        "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1/status?progresso_marco_id=9"
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["quantidade_atendida"] is True
+
+
+def test_conta_apenas_evidencias_do_progresso_informado():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+
+            fabrica_sessao = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica_sessao() as session:
+                agora = datetime.now(UTC)
+                session.add_all(
+                    [
+                        Evidencia(
+                            progresso_marco_id=9,
+                            arquivo_url="privado/um.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=9,
+                            arquivo_url="privado/dois.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=10,
+                            arquivo_url="privado/outro-progresso.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                    ]
+                )
+                await session.flush()
+
+                total = await ProtocolosEvidenciaRepo().contar_evidencias_do_progresso(
+                    session, 9
+                )
+
+            assert total == 2
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
