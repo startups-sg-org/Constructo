@@ -656,6 +656,10 @@ async def concluir_progresso(
     progresso = await _exigir(session, ProgressoMarco, progresso_id)
     if not await pode_gerir_empreendimento_do_progresso(session, usuario_id, progresso):
         raise ValueError("Usuário não pode alterar este progresso")
+    # Importação tardia evita ciclo entre o service de domínio e o de evidências.
+    from backend.modulos.evidencias.servicos import validar_conclusao_progresso
+
+    await validar_conclusao_progresso(session, progresso_id)
     # A máquina de estados exige EM_ANDAMENTO e preserva iniciado_em.
     return await alterar_estado(session, progresso_id, EstadoMarco.CONCLUIDO, usuario_id=usuario_id)
 

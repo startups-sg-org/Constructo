@@ -29,9 +29,14 @@ htmlcov/
 # Logs e arquivos locais
 *.log
 *.local
+apps/backend/uploads/
 .DS_Store
 
 # Editores
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+#ambiente virutal python
+.venv
+venv/

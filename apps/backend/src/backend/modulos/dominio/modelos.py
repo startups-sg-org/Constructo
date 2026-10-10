@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -17,6 +18,10 @@ from sqlalchemy.types import TypeDecorator
 from backend.banco_de_dados.connections.database_postgres import Base
 
 from .regras import ProgressStatus, TipoLocal
+
+# Disponível apenas para analisadores de tipo; evita importação circular em execução.
+if TYPE_CHECKING:
+    from backend.modulos.evidencias.modulos import ProtocoloEvidencia
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):
@@ -160,6 +165,9 @@ class Marco(Base):
     descricao_cliente: Mapped[str | None] = mapped_column(Text)
     ordem: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     progressos_marco: Mapped[list["ProgressoMarco"]] = relationship(back_populates="marco")
+    protocolos_evidencia: Mapped[list["ProtocoloEvidencia"]] = relationship(
+        "ProtocoloEvidencia", back_populates="marco"
+    )
 
 
 class ProgressoMarco(Base):
@@ -227,6 +235,9 @@ class Evidencia(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     progresso_marco_id: Mapped[int] = mapped_column(
         ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    item_protocolo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("itens_protocolo.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     arquivo_url: Mapped[str] = mapped_column(String(1000), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
