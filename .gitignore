@@ -36,3 +36,7 @@ apps/backend/uploads/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+#ambiente virutal python
+.venv
+venv/
