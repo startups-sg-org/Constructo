@@ -392,6 +392,7 @@ class ProgressoEtapaLer(BaseModel):
 
 class EvidenciaCriar(BaseModel):
     progresso_marco_id: int
+    item_protocolo_id: int | None = None
     arquivo_url: str = Field(min_length=1, max_length=1000)
     descricao: str | None = None
     capturado_em: datetime

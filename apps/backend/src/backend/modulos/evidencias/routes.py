@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
+from backend.modulos.dominio.esquemas import EvidenciaLer
 from backend.modulos.dominio.rotas import exigir_acesso_ao_empreendimento
 from backend.modulos.dominio.servicos import exigir_marco_do_empreendimento
 from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 from .schemas import (
+    EvidenciaItem_FromRequest_Schema,
     EvidenciaUpload_FromDB_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromDB_Schema,
@@ -30,6 +32,7 @@ from .servicos import (
     listar_itens_protocolo,
     listar_protocolos_evidencia,
     registrar_arquivo_evidencia,
+    registrar_evidencia_no_item,
     remover_associacao_do_protocolo,
     remover_item_protocolo,
 )
@@ -52,6 +55,11 @@ async def upload_evidencia(
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
     storage: Annotated[Storage, Depends(obter_storage)],
 ) -> EvidenciaUpload_FromDB_Schema:
+    """Recebe uma imagem e persiste seus metadados no empreendimento.
+
+    Requer administrador ou gestor com acesso. Recebe `file` e
+    `empreendimento_id` como multipart/form-data; retorna os dados do arquivo.
+    """
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     evidencia = None
     try:
@@ -102,6 +110,11 @@ async def cadastrar_protocolo_evidencia(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Cria um protocolo de evidência associado ao marco informado.
+
+    Requer administrador ou gestor com acesso ao empreendimento. O corpo
+    segue `ProtocoloEvidencia_FromRequest_Schema`; retorna o protocolo criado.
+    """
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -120,6 +133,7 @@ async def consultar_protocolos_evidencia(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Lista os protocolos associados ao marco, incluindo seus itens ordenados."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -137,6 +151,7 @@ async def associar_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Associa ou transfere o protocolo indicado para o marco da URL."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -154,6 +169,7 @@ async def remover_associacao_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Response:
+    """Remove do marco o vínculo com o protocolo, preservando o protocolo."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -173,6 +189,10 @@ async def editar_quantidade_minima_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Atualiza a quantidade mínima de evidências exigida pelo protocolo.
+
+    O corpo contém `quantidade_minima`, que deve ser maior ou igual a zero.
+    """
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -190,10 +210,52 @@ async def consultar_status_do_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Consulta o atendimento do protocolo para um progresso de marco.
+
+    O query parameter `progresso_marco_id` limita a contagem àquele local e a
+    resposta informa a quantidade registrada, o mínimo e os itens pendentes.
+    """
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
         return await consultar_status_protocolo(session, marco_id, protocolo_id, progresso_marco_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.post(
+    "/{empreendimento_id}/taxonomia/marcos/{marco_id}/protocolos-evidencia/"
+    "{protocolo_id}/itens/{item_id}/evidencias",
+    response_model=EvidenciaLer,
+    status_code=201,
+)
+async def registrar_evidencia_item(
+    empreendimento_id: int,
+    marco_id: int,
+    protocolo_id: int,
+    item_id: int,
+    dados: EvidenciaItem_FromRequest_Schema,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    """Registra uma evidência vinculada ao item do protocolo indicado.
+
+    O corpo informa o progresso, URL do arquivo, descrição e data de captura.
+    A URL deve corresponder a um upload registrado no mesmo empreendimento. O
+    usuário capturador é obtido da sessão autenticada.
+    """
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
+        return await registrar_evidencia_no_item(
+            session,
+            empreendimento_id=empreendimento_id,
+            marco_id=marco_id,
+            protocolo_id=protocolo_id,
+            item_id=item_id,
+            usuario_id=usuario.id,
+            dados=dados,
+        )
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro)) from erro
 
@@ -212,6 +274,7 @@ async def cadastrar_item_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Cria um item no protocolo; aceita nome, ordem e se é obrigatório."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -232,6 +295,7 @@ async def consultar_itens_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Lista os itens do protocolo ordenados pela posição configurada."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -254,6 +318,7 @@ async def editar_item_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Atualiza parcialmente nome, descrição, obrigatoriedade ou ordem do item."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
@@ -275,6 +340,7 @@ async def excluir_item_protocolo(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ) -> Response:
+    """Exclui o item informado do protocolo e retorna HTTP 204."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)

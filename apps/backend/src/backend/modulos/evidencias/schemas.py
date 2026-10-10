@@ -72,6 +72,26 @@ class ProtocoloEvidencia_Status_Schema(BaseModel):
     quantidade_minima: int
     evidencias_registradas: int
     quantidade_atendida: bool
+    itens_pendentes: list["ItemProtocolo_Pendente_Schema"] = Field(default_factory=list)
+    itens_obrigatorios_atendidos: bool
+
+
+class ItemProtocolo_Pendente_Schema(BaseModel):
+    id: int
+    nome: str
+    ordem: int
+
+
+ProtocoloEvidencia_Status_Schema.model_rebuild()
+
+
+class EvidenciaItem_FromRequest_Schema(BaseModel):
+    """Dados da evidência registrada em um item obrigatório ou opcional."""
+
+    progresso_marco_id: int = Field(gt=0)
+    arquivo_url: str = Field(min_length=1, max_length=1000)
+    descricao: str | None = None
+    capturado_em: datetime
 
 
 class ItemProtocolo_FromRequest_Schema(BaseModel):

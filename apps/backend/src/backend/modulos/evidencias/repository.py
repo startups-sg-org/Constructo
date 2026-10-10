@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -73,11 +73,16 @@ class ProtocolosEvidenciaRepo:
     ) -> ProgressoMarco | None:
         return await db.get(ProgressoMarco, progresso_marco_id)
 
-    async def contar_evidencias_do_progresso(
-        self, db: AsyncSession, progresso_marco_id: int
+    async def contar_evidencias_do_protocolo(
+        self, db: AsyncSession, protocolo_id: int, progresso_marco_id: int
     ) -> int:
         return await db.scalar(
-            select(func.count(Evidencia.id)).where(Evidencia.progresso_marco_id == progresso_marco_id)
+            select(func.count(Evidencia.id))
+            .join(ItemProtocolo, ItemProtocolo.id == Evidencia.item_protocolo_id)
+            .where(
+                ItemProtocolo.protocolo_id == protocolo_id,
+                Evidencia.progresso_marco_id == progresso_marco_id,
+            )
         ) or 0
 
 
@@ -102,6 +107,25 @@ class ItensProtocoloRepo:
         itens = await db.scalars(
             select(ItemProtocolo)
             .where(ItemProtocolo.protocolo_id == protocolo_id)
+            .order_by(ItemProtocolo.ordem, ItemProtocolo.id)
+        )
+        return list(itens.all())
+
+    async def listar_itens_obrigatorios_pendentes(
+        self, db: AsyncSession, protocolo_id: int, progresso_marco_id: int
+    ) -> list[ItemProtocolo]:
+        itens = await db.scalars(
+            select(ItemProtocolo)
+            .where(
+                ItemProtocolo.protocolo_id == protocolo_id,
+                ItemProtocolo.obrigatorio.is_(True),
+                ~exists(
+                    select(Evidencia.id).where(
+                        Evidencia.item_protocolo_id == ItemProtocolo.id,
+                        Evidencia.progresso_marco_id == progresso_marco_id,
+                    )
+                ),
+            )
             .order_by(ItemProtocolo.ordem, ItemProtocolo.id)
         )
         return list(itens.all())
@@ -132,6 +156,16 @@ class ItensProtocoloRepo:
 
 class ArquivosEvidenciaRepo:
     """Persistência dos metadados dos arquivos enviados."""
+
+    async def buscar_por_url_no_empreendimento(
+        self, db: AsyncSession, empreendimento_id: int, url: str
+    ) -> ArquivoEvidencia | None:
+        return await db.scalar(
+            select(ArquivoEvidencia).where(
+                ArquivoEvidencia.empreendimento_id == empreendimento_id,
+                ArquivoEvidencia.url == url,
+            )
+        )
 
     async def criar(
         self,

@@ -10,15 +10,27 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.banco_de_dados.connections.database_postgres import Base, get_db
 from backend.main import app
-from backend.modulos.dominio.modelos import Evidencia
+from backend.modulos.dominio.modelos import (
+    Empreendimento,
+    Etapa,
+    Evidencia,
+    LocalObra,
+    Marco,
+    ProgressoMarco,
+    Taxonomia,
+)
+from backend.modulos.dominio.regras import TipoLocal
 from backend.modulos.evidencias import routes, servicos
+from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
 from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
 from backend.modulos.evidencias.schemas import (
+    EvidenciaItem_FromRequest_Schema,
     ProtocoloEvidencia_Atualizar_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
 )
 from backend.modulos.evidencias.storage import LocalStorage, obter_storage
+from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 
@@ -267,6 +279,8 @@ def test_atualiza_quantidade_minima_e_consulta_status_do_protocolo(cliente, monk
             "quantidade_minima": 5,
             "evidencias_registradas": 3,
             "quantidade_atendida": False,
+            "itens_pendentes": [],
+            "itens_obrigatorios_atendidos": True,
         }
 
     monkeypatch.setattr(routes, "atualizar_quantidade_minima", atualizar)
@@ -284,6 +298,8 @@ def test_atualiza_quantidade_minima_e_consulta_status_do_protocolo(cliente, monk
         "quantidade_minima": 5,
         "evidencias_registradas": 3,
         "quantidade_atendida": False,
+        "itens_pendentes": [],
+        "itens_obrigatorios_atendidos": True,
     }
 
 
@@ -330,6 +346,8 @@ def test_status_indica_quantidade_minima_atendida(cliente, monkeypatch):
             "quantidade_minima": 3,
             "evidencias_registradas": 3,
             "quantidade_atendida": True,
+            "itens_pendentes": [],
+            "itens_obrigatorios_atendidos": True,
         }
 
     monkeypatch.setattr(routes, "consultar_status_protocolo", consultar_status)
@@ -348,9 +366,14 @@ def test_servico_atualiza_quantidade_e_calcula_status(monkeypatch):
         buscar_protocolo_por_id=AsyncMock(return_value=protocolo),
         atualizar_quantidade_minima=AsyncMock(return_value=protocolo),
         buscar_progresso_por_id=AsyncMock(return_value=progresso),
-        contar_evidencias_do_progresso=AsyncMock(return_value=3),
+        contar_evidencias_do_protocolo=AsyncMock(return_value=3),
     )
     monkeypatch.setattr(servicos, "_repositorio", repositorio)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_itens",
+        SimpleNamespace(listar_itens_obrigatorios_pendentes=AsyncMock(return_value=[])),
+    )
     session = object()
 
     async def executar_teste():
@@ -363,12 +386,14 @@ def test_servico_atualiza_quantidade_e_calcula_status(monkeypatch):
 
     assert atualizado is protocolo
     repositorio.atualizar_quantidade_minima.assert_awaited_once_with(session, protocolo, 0)
-    repositorio.contar_evidencias_do_progresso.assert_awaited_once_with(session, 9)
+    repositorio.contar_evidencias_do_protocolo.assert_awaited_once_with(session, 1, 9)
     assert status == {
         "protocolo_id": 1,
         "quantidade_minima": 3,
         "evidencias_registradas": 3,
         "quantidade_atendida": True,
+        "itens_pendentes": [],
+        "itens_obrigatorios_atendidos": True,
     }
 
 
@@ -377,7 +402,7 @@ def test_servico_rejeita_progresso_de_outro_marco(monkeypatch):
     repositorio = SimpleNamespace(
         buscar_protocolo_por_id=AsyncMock(return_value=protocolo),
         buscar_progresso_por_id=AsyncMock(return_value=SimpleNamespace(id=9, marco_id=8)),
-        contar_evidencias_do_progresso=AsyncMock(),
+        contar_evidencias_do_protocolo=AsyncMock(),
     )
     monkeypatch.setattr(servicos, "_repositorio", repositorio)
 
@@ -386,10 +411,10 @@ def test_servico_rejeita_progresso_de_outro_marco(monkeypatch):
             await servicos.consultar_status_protocolo(object(), 7, 1, 9)
 
     asyncio.run(executar_teste())
-    repositorio.contar_evidencias_do_progresso.assert_not_awaited()
+    repositorio.contar_evidencias_do_protocolo.assert_not_awaited()
 
 
-def test_conta_apenas_evidencias_do_progresso_informado():
+def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
     async def executar_teste():
         engine = create_async_engine("sqlite+aiosqlite:///:memory:")
         try:
@@ -398,23 +423,43 @@ def test_conta_apenas_evidencias_do_progresso_informado():
 
             fabrica_sessao = async_sessionmaker(engine, expire_on_commit=False)
             async with fabrica_sessao() as session:
+                protocolo = ProtocoloEvidencia(marco_id=7, nome="Protocolo A")
+                outro_protocolo = ProtocoloEvidencia(marco_id=7, nome="Protocolo B")
+                session.add_all([protocolo, outro_protocolo])
+                await session.flush()
+                item = ItemProtocolo(protocolo_id=protocolo.id, nome="Item A", ordem=0)
+                outro_item = ItemProtocolo(
+                    protocolo_id=outro_protocolo.id, nome="Item B", ordem=0
+                )
+                session.add_all([item, outro_item])
+                await session.flush()
                 agora = datetime.now(UTC)
                 session.add_all(
                     [
                         Evidencia(
                             progresso_marco_id=9,
+                            item_protocolo_id=item.id,
                             arquivo_url="privado/um.jpg",
                             capturado_em=agora,
                             usuario_id=1,
                         ),
                         Evidencia(
                             progresso_marco_id=9,
+                            item_protocolo_id=item.id,
                             arquivo_url="privado/dois.jpg",
                             capturado_em=agora,
                             usuario_id=1,
                         ),
                         Evidencia(
+                            progresso_marco_id=9,
+                            item_protocolo_id=outro_item.id,
+                            arquivo_url="privado/outro-protocolo.jpg",
+                            capturado_em=agora,
+                            usuario_id=1,
+                        ),
+                        Evidencia(
                             progresso_marco_id=10,
+                            item_protocolo_id=item.id,
                             arquivo_url="privado/outro-progresso.jpg",
                             capturado_em=agora,
                             usuario_id=1,
@@ -423,11 +468,204 @@ def test_conta_apenas_evidencias_do_progresso_informado():
                 )
                 await session.flush()
 
-                total = await ProtocolosEvidenciaRepo().contar_evidencias_do_progresso(
-                    session, 9
+                total = await ProtocolosEvidenciaRepo().contar_evidencias_do_protocolo(
+                    session, protocolo.id, 9
                 )
 
             assert total == 2
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
+
+
+def test_registra_evidencia_associada_ao_item_pela_api(cliente, monkeypatch):
+    test_client, session = cliente
+    chamadas = []
+    agora = datetime.now(UTC)
+
+    async def registrar(session_recebida, **dados):
+        assert session_recebida is session
+        chamadas.append(dados)
+        return SimpleNamespace(
+            id=31,
+            progresso_marco_id=dados["dados"].progresso_marco_id,
+            item_protocolo_id=dados["item_id"],
+            arquivo_url=dados["dados"].arquivo_url,
+            descricao=dados["dados"].descricao,
+            capturado_em=dados["dados"].capturado_em,
+            usuario_id=dados["usuario_id"],
+        )
+
+    monkeypatch.setattr(routes, "registrar_evidencia_no_item", registrar)
+    resposta = test_client.post(
+        "/empreendimentos/42/taxonomia/marcos/7/protocolos-evidencia/1/itens/4/evidencias",
+        json={
+            "progresso_marco_id": 9,
+            "arquivo_url": "privado/ralo.jpg",
+            "descricao": "Detalhe do ralo",
+            "capturado_em": agora.isoformat(),
+        },
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json()["item_protocolo_id"] == 4
+    assert resposta.json()["usuario_id"] == 1
+    assert chamadas[0]["empreendimento_id"] == 42
+    assert chamadas[0]["marco_id"] == 7
+    assert chamadas[0]["protocolo_id"] == 1
+
+
+def test_servico_rejeita_arquivo_nao_registrado_no_empreendimento(monkeypatch):
+    monkeypatch.setattr(
+        servicos,
+        "exigir_item_do_protocolo",
+        AsyncMock(return_value=SimpleNamespace(id=4, protocolo_id=1)),
+    )
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(
+            buscar_progresso_por_id=AsyncMock(return_value=SimpleNamespace(id=9, marco_id=7))
+        ),
+    )
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_arquivos",
+        SimpleNamespace(buscar_por_url_no_empreendimento=AsyncMock(return_value=None)),
+    )
+    registrar = AsyncMock()
+    monkeypatch.setattr(servicos, "registrar_evidencia_dominio", registrar)
+    dados = EvidenciaItem_FromRequest_Schema(
+        progresso_marco_id=9,
+        arquivo_url="/uploads/empreendimentos/42/evidencias/inexistente.jpg",
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(
+            ValueError, match="Arquivo de evidência inexistente no empreendimento"
+        ):
+            await servicos.registrar_evidencia_no_item(
+                object(),
+                empreendimento_id=42,
+                marco_id=7,
+                protocolo_id=1,
+                item_id=4,
+                usuario_id=1,
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    registrar.assert_not_awaited()
+
+
+def test_status_real_separa_minimo_de_itens_obrigatorios():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+
+            fabrica_sessao = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica_sessao() as session:
+                usuario = Usuario(
+                    cpf="12345678901",
+                    nome="Gestor",
+                    sobrenome="Teste",
+                    email="gestor@example.com",
+                    senha="hash",
+                    telefone="63999999999",
+                    empreendimento="Obra",
+                    unidade="101",
+                    papel="ADMIN",
+                )
+                empreendimento = Empreendimento(nome="Obra teste")
+                session.add_all([usuario, empreendimento])
+                await session.flush()
+
+                local = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    nome="Torre A",
+                    tipo=TipoLocal.TORRE,
+                )
+                taxonomia = Taxonomia(empreendimento_id=empreendimento.id, nome="Padrão")
+                session.add_all([local, taxonomia])
+                await session.flush()
+
+                etapa = Etapa(taxonomia_id=taxonomia.id, nome="Impermeabilização")
+                session.add(etapa)
+                await session.flush()
+                marco = Marco(etapa_id=etapa.id, nome="Teste de estanqueidade")
+                session.add(marco)
+                await session.flush()
+                progresso = ProgressoMarco(
+                    local_obra_id=local.id, marco_id=marco.id, status="NAO_INICIADO"
+                )
+                protocolo = ProtocoloEvidencia(
+                    marco_id=marco.id, nome="Impermeabilização", quantidade_minima=2
+                )
+                session.add_all([progresso, protocolo])
+                await session.flush()
+
+                visao_geral = ItemProtocolo(
+                    protocolo_id=protocolo.id, nome="Visão geral", obrigatorio=True, ordem=0
+                )
+                ralo = ItemProtocolo(
+                    protocolo_id=protocolo.id, nome="Ralo", obrigatorio=True, ordem=1
+                )
+                detalhe_opcional = ItemProtocolo(
+                    protocolo_id=protocolo.id, nome="Detalhe lateral", obrigatorio=False, ordem=2
+                )
+                session.add_all([visao_geral, ralo, detalhe_opcional])
+                await session.flush()
+
+                agora = datetime.now(UTC)
+                session.add_all(
+                    [
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            item_protocolo_id=visao_geral.id,
+                            arquivo_url="privado/visao.jpg",
+                            capturado_em=agora,
+                            usuario_id=usuario.id,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            item_protocolo_id=detalhe_opcional.id,
+                            arquivo_url="privado/outro.jpg",
+                            capturado_em=agora,
+                            usuario_id=usuario.id,
+                        ),
+                    ]
+                )
+                await session.flush()
+
+                status = await servicos.consultar_status_protocolo(
+                    session, marco.id, protocolo.id, progresso.id
+                )
+
+                assert status["evidencias_registradas"] == 2
+                assert status["quantidade_atendida"] is True
+                assert status["itens_obrigatorios_atendidos"] is False
+                assert [item["nome"] for item in status["itens_pendentes"]] == ["Ralo"]
+
+                session.add(
+                    Evidencia(
+                        progresso_marco_id=progresso.id,
+                        item_protocolo_id=ralo.id,
+                        arquivo_url="privado/ralo.jpg",
+                        capturado_em=agora,
+                        usuario_id=usuario.id,
+                    )
+                )
+                await session.flush()
+                status_completo = await servicos.consultar_status_protocolo(
+                    session, marco.id, protocolo.id, progresso.id
+                )
+                assert status_completo["quantidade_atendida"] is True
+                assert status_completo["itens_obrigatorios_atendidos"] is True
+                assert status_completo["itens_pendentes"] == []
         finally:
             await engine.dispose()
 

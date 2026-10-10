@@ -1,10 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
-from .repository import ArquivosEvidenciaRepo, ItensProtocoloRepo, ProtocolosEvidenciaRepo
+from backend.modulos.dominio.esquemas import EvidenciaCriar
+from backend.modulos.dominio.servicos import registrar_evidencia as registrar_evidencia_dominio
 
-from .regras import quantidade_minima_atendida
+from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
+from .regras import itens_obrigatorios_atendidos, quantidade_minima_atendida
+from .repository import ArquivosEvidenciaRepo, ItensProtocoloRepo, ProtocolosEvidenciaRepo
 from .schemas import (
+    EvidenciaItem_FromRequest_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
@@ -92,16 +95,70 @@ async def atualizar_quantidade_minima(
 
 async def consultar_status_protocolo(
     session: AsyncSession, marco_id: int, protocolo_id: int, progresso_marco_id: int
-) -> dict[str, int | bool]:
+) -> dict[str, int | bool | list[dict[str, int | str]]]:
     await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
     progresso = await _repositorio.buscar_progresso_por_id(session, progresso_marco_id)
     if progresso is None or progresso.marco_id != marco_id:
         raise ValueError(f"Progresso inexistente no marco: {progresso_marco_id}")
     protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
-    registradas = await _repositorio.contar_evidencias_do_progresso(session, progresso_marco_id)
-    return {"protocolo_id": protocolo.id, "quantidade_minima": protocolo.quantidade_minima,
-            "evidencias_registradas": registradas,
-            "quantidade_atendida": quantidade_minima_atendida(registradas, protocolo.quantidade_minima)}
+    registradas = await _repositorio.contar_evidencias_do_protocolo(
+        session, protocolo_id, progresso_marco_id
+    )
+    pendentes = await _repositorio_itens.listar_itens_obrigatorios_pendentes(
+        session, protocolo_id, progresso_marco_id
+    )
+    return {
+        "protocolo_id": protocolo.id,
+        "quantidade_minima": protocolo.quantidade_minima,
+        "evidencias_registradas": registradas,
+        "quantidade_atendida": quantidade_minima_atendida(registradas, protocolo.quantidade_minima),
+        "itens_pendentes": [
+            {"id": item.id, "nome": item.nome, "ordem": item.ordem} for item in pendentes
+        ],
+        "itens_obrigatorios_atendidos": itens_obrigatorios_atendidos(len(pendentes)),
+    }
+
+
+async def registrar_evidencia_no_item(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    marco_id: int,
+    protocolo_id: int,
+    item_id: int,
+    usuario_id: int,
+    dados: EvidenciaItem_FromRequest_Schema,
+):
+    await exigir_item_do_protocolo(session, marco_id, protocolo_id, item_id)
+    progresso = await _repositorio.buscar_progresso_por_id(session, dados.progresso_marco_id)
+    if progresso is None or progresso.marco_id != marco_id:
+        raise ValueError("O progresso informado não pertence ao marco da evidência")
+
+    arquivo = await _repositorio_arquivos.buscar_por_url_no_empreendimento(
+        session, empreendimento_id, dados.arquivo_url
+    )
+    if arquivo is None:
+        raise ValueError("Arquivo de evidência inexistente no empreendimento")
+
+    evidencia = EvidenciaCriar(
+        progresso_marco_id=dados.progresso_marco_id,
+        item_protocolo_id=item_id,
+        arquivo_url=dados.arquivo_url,
+        descricao=dados.descricao,
+        capturado_em=dados.capturado_em,
+        usuario_id=usuario_id,
+    )
+    return await registrar_evidencia_dominio(session, evidencia)
+
+
+async def exigir_item_do_protocolo(
+    session: AsyncSession, marco_id: int, protocolo_id: int, item_id: int
+) -> ItemProtocolo:
+    await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
+    item = await _repositorio_itens.buscar_item_protocolo(session, protocolo_id, item_id)
+    if item is None:
+        raise ValueError(f"Item de protocolo inexistente: {item_id}")
+    return item
 
 
 async def _exigir_protocolo_do_marco(

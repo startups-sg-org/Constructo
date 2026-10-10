@@ -236,6 +236,9 @@ class Evidencia(Base):
     progresso_marco_id: Mapped[int] = mapped_column(
         ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
     )
+    item_protocolo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("itens_protocolo.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
     arquivo_url: Mapped[str] = mapped_column(String(1000), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text)
     capturado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
