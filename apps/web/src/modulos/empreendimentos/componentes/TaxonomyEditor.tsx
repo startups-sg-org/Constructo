@@ -1,5 +1,5 @@
 import React from "react";
-import { useFetcher, useLoaderData } from "react-router-dom";
+import { Link, useFetcher, useLoaderData } from "react-router-dom";
 import type { Etapa, Marco } from "../../../features/empreendimentos/empreendimentos.service";
 import type { carregarTaxonomia } from "../../../features/empreendimentos/taxonomia.loader";
 import "./TaxonomyEditor.css";
@@ -38,6 +38,7 @@ function TaxonomyTreeItem({ item, empreendimentoId, nivel = 0, selecionado, onSe
             <ul>{filhos.sort((a: Etapa | Marco, b: Etapa | Marco) => a.ordem - b.ordem).map((filho) => <TaxonomyTreeItem key={filho.id} item={filho} empreendimentoId={empreendimentoId} nivel={nivel + 1} selecionado={selecionado} onSelect={onSelect} />)}</ul>
         </>}
         {!etapa && <ItemForm marco={item as Marco} />}
+        {!etapa && <Link to={`/admin/empreendimentos/${empreendimentoId}/taxonomia/marcos/${item.id}/protocolos`}>Protocolos de evidências — {item.nome}</Link>}
     </li>;
 }
 

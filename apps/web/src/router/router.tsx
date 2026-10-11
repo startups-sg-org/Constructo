@@ -14,6 +14,10 @@ import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/component
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
 import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
 import TaxonomyEditor from "../modulos/empreendimentos/componentes/TaxonomyEditor";
+import ProtocolEditor from "../modulos/evidencias/componentes/ProtocolEditor/ProtocolEditor";
+import ProtocolList from "../modulos/evidencias/componentes/ProtocolEditor/ProtocolList";
+import { carregarProtocoloEditor } from "../features/evidencias/protocolos.loader";
+import { alterarProtocoloEditor } from "../features/evidencias/protocolos.action";
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
@@ -43,6 +47,16 @@ async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
 async function alterarUsuarioComoAdmin(args: ActionFunctionArgs) {
   await exigirAcessoAoPainel(args);
   return alterarUsuario(args);
+}
+
+async function carregarEditorProtocoloAutenticado(args: LoaderFunctionArgs) {
+  await exigirAcessoAoPainel(args);
+  return carregarProtocoloEditor(args);
+}
+
+async function alterarEditorProtocoloAutenticado(args: ActionFunctionArgs) {
+  await exigirAcessoAoPainel(args);
+  return alterarProtocoloEditor(args);
 }
 export const rotas: RouteObject[] = [
   {
@@ -105,7 +119,7 @@ export const rotas: RouteObject[] = [
             element: (
               <PaginaPainel
                 titulo="Empreendimentos"
-                subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
+                subtitulo="Gerencie suas obras em um só lugar."
               >
                 <ListaEmpreendimentos />
                 <FormularioEmpreendimento />
@@ -168,6 +182,24 @@ export const rotas: RouteObject[] = [
             element: (
               <PaginaPainel titulo="Contratos" subtitulo="Consulte e administre os contratos." />
             ),
+          },
+          ...["novo", ":protocoloId"].map((destino): RouteObject => ({
+            path: `empreendimentos/:empreendimentoId/taxonomia/marcos/:marcoId/protocolos/${destino}`,
+            loader: carregarEditorProtocoloAutenticado,
+            action: alterarEditorProtocoloAutenticado,
+            element: (
+              <PaginaPainel
+                titulo="Protocolo de evidências"
+                subtitulo="Configure os registros exigidos para o marco."
+              >
+                <ProtocolEditor />
+              </PaginaPainel>
+            ),
+          })),
+          {
+            path: "empreendimentos/:empreendimentoId/taxonomia/marcos/:marcoId/protocolos",
+            loader: carregarEditorProtocoloAutenticado,
+            element: <PaginaPainel titulo="Protocolos de evidências" subtitulo="Escolha ou crie um protocolo para o marco."><ProtocolList /></PaginaPainel>,
           },
           {
             path: "medicoes",

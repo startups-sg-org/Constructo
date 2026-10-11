@@ -63,7 +63,7 @@ export default function FormularioEmpreendimento() {
     if (usuario?.papel !== "ADMIN" && usuario?.papel !== "GESTOR") return null;
 
     return (
-        <section className="empreendimento-card superficie-painel" aria-labelledby="novo-empreendimento-titulo">
+        <section id="novo-empreendimento" className="empreendimento-card superficie-painel" aria-labelledby="novo-empreendimento-titulo">
             <CabecalhoSecao
                 etiqueta="Novo cadastro"
                 titulo="Cadastrar empreendimento"
