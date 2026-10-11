@@ -21,7 +21,7 @@ from backend.modulos.dominio.modelos import (
     Taxonomia,
 )
 from backend.modulos.dominio.regras import TipoLocal
-from backend.modulos.evidencias import routes, servicos
+from backend.modulos.evidencias import routes, schemas, servicos
 from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
 from backend.modulos.evidencias.repository import EvidenciasRepo, ProtocolosEvidenciaRepo
@@ -1496,6 +1496,191 @@ def test_repositorio_filtra_evidencias_pelo_periodo_de_captura():
                     "Tubulação concluída na unidade 704."
                 )
                 assert atualizada.atualizado_em.year > 2020
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
+
+
+def test_schemas_validam_filtros_de_evidencia():
+    valido = schemas.FiltrosEvidencia_Query_Schema(
+        local_obra_id=10,
+        tipo_local=TipoLocal.TORRE,
+        incluir_descendentes_local=True,
+        etapa_id=5,
+        incluir_subetapas=True,
+        marco_id=18,
+        data_captura_inicio=datetime(2026, 1, 1, tzinfo=UTC),
+        data_captura_fim=datetime(2026, 1, 31, tzinfo=UTC),
+    )
+    assert valido.local_obra_id == 10
+    assert valido.tipo_local == TipoLocal.TORRE
+
+    with pytest.raises(ValueError, match="não pode ser posterior"):
+        schemas.FiltrosEvidencia_Query_Schema(
+            data_captura_inicio=datetime(2026, 2, 1, tzinfo=UTC),
+            data_captura_fim=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+
+
+def test_api_aceita_filtros_de_local_com_descendentes_e_etapa(cliente, monkeypatch):
+    test_client, session = cliente
+    listar = AsyncMock(return_value=[])
+    monkeypatch.setattr(routes, "listar_evidencias", listar)
+
+    resposta = test_client.get(
+        "/empreendimentos/42/evidencias",
+        params={
+            "local_obra_id": 10,
+            "tipo_local": "TORRE",
+            "incluir_descendentes_local": "false",
+            "etapa_id": 3,
+            "incluir_subetapas": "true",
+            "marco_id": 8,
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert listar.await_count == 1
+    call_args = listar.await_args
+    assert call_args.args[1] == 42
+    assert call_args.kwargs == {
+        "local_obra_id": 10,
+        "tipo_local": TipoLocal.TORRE,
+        "incluir_descendentes_local": False,
+        "etapa_id": 3,
+        "incluir_subetapas": True,
+        "marco_id": 8,
+        "data_captura_inicio": None,
+        "data_captura_fim": None,
+    }
+
+
+def test_repositorio_filtra_evidencias_por_hierarquia_de_local_e_etapa():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+            fabrica = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica() as session:
+                usuario = Usuario(
+                    cpf="12345678901",
+                    nome="Fiscal",
+                    sobrenome="Obra",
+                    email="fiscal-hierarquia@example.com",
+                    senha="hash",
+                    telefone="63999999999",
+                    empreendimento="Obra",
+                    unidade="101",
+                    papel="ADMIN",
+                )
+                empreendimento = Empreendimento(nome="Residencial Alpha")
+                session.add_all([usuario, empreendimento])
+                await session.flush()
+
+                torre = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    nome="Torre A",
+                    tipo=TipoLocal.TORRE,
+                )
+                session.add(torre)
+                await session.flush()
+
+                pavimento = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    parent_id=torre.id,
+                    nome="Pavimento 1",
+                    tipo=TipoLocal.PAVIMENTO,
+                )
+                session.add(pavimento)
+                await session.flush()
+
+                unidade = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    parent_id=pavimento.id,
+                    nome="Unidade 101",
+                    tipo=TipoLocal.UNIDADE,
+                )
+                session.add(unidade)
+                await session.flush()
+
+                taxonomia = Taxonomia(empreendimento_id=empreendimento.id, nome="Padrão")
+                session.add(taxonomia)
+                await session.flush()
+
+                etapa_pai = Etapa(taxonomia_id=taxonomia.id, nome="Estrutura")
+                session.add(etapa_pai)
+                await session.flush()
+
+                subetapa = Etapa(
+                    taxonomia_id=taxonomia.id, parent_id=etapa_pai.id, nome="Fundação"
+                )
+                session.add(subetapa)
+                await session.flush()
+
+                marco = Marco(etapa_id=subetapa.id, nome="Escavação")
+                session.add(marco)
+                await session.flush()
+
+                progresso = ProgressoMarco(
+                    local_obra_id=unidade.id,
+                    marco_id=marco.id,
+                    status="EM_ANDAMENTO",
+                    iniciado_em=datetime(2026, 5, 1, tzinfo=UTC),
+                )
+                session.add(progresso)
+                await session.flush()
+
+                evidencia = Evidencia(
+                    progresso_marco_id=progresso.id,
+                    local_obra_id=unidade.id,
+                    marco_id=marco.id,
+                    arquivo_url="privado/unidade101.jpg",
+                    capturado_em=datetime(2026, 5, 10, tzinfo=UTC),
+                    capturado_por=usuario.id,
+                )
+                session.add(evidencia)
+                await session.flush()
+
+                repositorio = EvidenciasRepo()
+
+                descendentes_torre = await repositorio.obter_ids_locais_descendentes(
+                    session, empreendimento.id, torre.id
+                )
+                assert torre.id in descendentes_torre
+                assert pavimento.id in descendentes_torre
+                assert unidade.id in descendentes_torre
+
+                marcos_etapa_pai = await repositorio.obter_ids_marcos_por_etapa(
+                    session, empreendimento.id, etapa_pai.id, incluir_subetapas=True
+                )
+                assert marco.id in marcos_etapa_pai
+
+                resultado_local = await servicos.listar_evidencias(
+                    session,
+                    empreendimento.id,
+                    local_obra_id=torre.id,
+                    incluir_descendentes_local=True,
+                )
+                assert len(resultado_local) == 1
+                assert resultado_local[0].arquivo_url == "privado/unidade101.jpg"
+
+                resultado_exato = await servicos.listar_evidencias(
+                    session,
+                    empreendimento.id,
+                    local_obra_id=torre.id,
+                    incluir_descendentes_local=False,
+                )
+                assert len(resultado_exato) == 0
+
+                resultado_etapa = await servicos.listar_evidencias(
+                    session,
+                    empreendimento.id,
+                    etapa_id=etapa_pai.id,
+                    incluir_subetapas=True,
+                )
+                assert len(resultado_etapa) == 1
         finally:
             await engine.dispose()
 

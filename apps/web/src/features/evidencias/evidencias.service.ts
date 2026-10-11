@@ -49,6 +49,18 @@ export function listarEvidencias(
     if (filtros.localObraId) {
         parametros.set("local_obra_id", String(filtros.localObraId));
     }
+    if (filtros.tipoLocal) {
+        parametros.set("tipo_local", filtros.tipoLocal);
+    }
+    if (filtros.incluirDescendentesLocal !== undefined) {
+        parametros.set("incluir_descendentes_local", String(filtros.incluirDescendentesLocal));
+    }
+    if (filtros.etapaId) {
+        parametros.set("etapa_id", String(filtros.etapaId));
+    }
+    if (filtros.incluirSubetapas !== undefined) {
+        parametros.set("incluir_subetapas", String(filtros.incluirSubetapas));
+    }
     if (filtros.marcoId) {
         parametros.set("marco_id", String(filtros.marcoId));
     }

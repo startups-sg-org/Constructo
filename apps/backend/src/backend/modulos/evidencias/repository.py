@@ -4,8 +4,15 @@ from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from backend.modulos.dominio.modelos import Evidencia, LocalObra, Marco, ProgressoMarco
-from backend.modulos.dominio.regras import ProgressStatus
+from backend.modulos.dominio.modelos import (
+    Etapa,
+    Evidencia,
+    LocalObra,
+    Marco,
+    ProgressoMarco,
+    Taxonomia,
+)
+from backend.modulos.dominio.regras import ProgressStatus, TipoLocal
 from backend.modulos.usuarios.modelos import Usuario
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
@@ -302,13 +309,72 @@ class EvidenciasRepo:
         )
         return evidencia
 
+    async def obter_ids_locais_descendentes(
+        self, db: AsyncSession, empreendimento_id: int, local_obra_id: int
+    ) -> list[int]:
+        stmt = select(LocalObra.id, LocalObra.parent_id).where(
+            LocalObra.empreendimento_id == empreendimento_id
+        )
+        resultado = await db.execute(stmt)
+        todos_locais = resultado.all()
+
+        filhos_por_pai: dict[int | None, list[int]] = {}
+        for lid, parent_id in todos_locais:
+            filhos_por_pai.setdefault(parent_id, []).append(lid)
+
+        ids: list[int] = [local_obra_id]
+        fila = [local_obra_id]
+        while fila:
+            atual = fila.pop(0)
+            for filho in filhos_por_pai.get(atual, []):
+                if filho not in ids:
+                    ids.append(filho)
+                    fila.append(filho)
+        return ids
+
+    async def obter_ids_marcos_por_etapa(
+        self,
+        db: AsyncSession,
+        empreendimento_id: int,
+        etapa_id: int,
+        *,
+        incluir_subetapas: bool = True,
+    ) -> list[int]:
+        etapa = await db.get(Etapa, etapa_id)
+        if etapa is None:
+            return []
+
+        taxonomia_id = etapa.taxonomia_id
+        etapas_alvo: list[int] = [etapa_id]
+        if incluir_subetapas:
+            stmt = select(Etapa.id, Etapa.parent_id).where(Etapa.taxonomia_id == taxonomia_id)
+            resultado = await db.execute(stmt)
+            todas_etapas = resultado.all()
+            filhos_por_pai: dict[int | None, list[int]] = {}
+            for eid, parent_id in todas_etapas:
+                filhos_por_pai.setdefault(parent_id, []).append(eid)
+            fila = [etapa_id]
+            while fila:
+                atual = fila.pop(0)
+                for filho in filhos_por_pai.get(atual, []):
+                    if filho not in etapas_alvo:
+                        etapas_alvo.append(filho)
+                        fila.append(filho)
+
+        marcos_stmt = select(Marco.id).where(Marco.etapa_id.in_(etapas_alvo))
+        resultado_marcos = await db.execute(marcos_stmt)
+        return list(resultado_marcos.scalars().all())
+
     async def listar(
         self,
         db: AsyncSession,
         empreendimento_id: int,
         *,
         local_obra_id: int | None = None,
+        locais_obra_ids: list[int] | None = None,
+        tipo_local: TipoLocal | None = None,
         marco_id: int | None = None,
+        marcos_ids: list[int] | None = None,
         data_captura_inicio: datetime | None = None,
         data_captura_fim: datetime | None = None,
     ) -> list[Evidencia]:
@@ -320,10 +386,19 @@ class EvidenciasRepo:
             .options(joinedload(Evidencia.responsavel))
             .where(LocalObra.empreendimento_id == empreendimento_id)
         )
-        if local_obra_id is not None:
+        if locais_obra_ids is not None:
+            consulta = consulta.where(Evidencia.local_obra_id.in_(locais_obra_ids))
+        elif local_obra_id is not None:
             consulta = consulta.where(Evidencia.local_obra_id == local_obra_id)
-        if marco_id is not None:
+
+        if tipo_local is not None:
+            consulta = consulta.where(LocalObra.tipo == tipo_local)
+
+        if marcos_ids is not None:
+            consulta = consulta.where(Evidencia.marco_id.in_(marcos_ids))
+        elif marco_id is not None:
             consulta = consulta.where(Evidencia.marco_id == marco_id)
+
         if data_captura_inicio is not None:
             consulta = consulta.where(Evidencia.capturado_em >= data_captura_inicio)
         if data_captura_fim is not None:

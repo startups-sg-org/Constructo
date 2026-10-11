@@ -400,9 +400,8 @@ describe("novo sistema de rotas", () => {
 
     await waitFor(() => {
       expect(router.state.location.search).toBe("?localId=51");
+      expect(screen.getByRole("treeitem", { name: /Unidade 704/ })).toHaveAttribute("aria-selected", "true");
     });
-    const unidadeSelecionada = screen.getByRole("treeitem", { name: /Unidade 704/ });
-    expect(unidadeSelecionada).toHaveAttribute("aria-selected", "true");
 
     const painel = screen.getByRole("complementary", { name: "Unidade 704" });
     expect(within(painel).getByText("51")).toBeInTheDocument();
@@ -529,7 +528,7 @@ describe("novo sistema de rotas", () => {
       expect.anything(),
     );
     expect(await screen.findByText("1º pavimento")).toBeInTheDocument();
-    expect(screen.getByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
+    expect(await screen.findByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
   });
 
   it("cadastra uma unidade no pavimento selecionado e atualiza a árvore", async () => {
@@ -589,7 +588,7 @@ describe("novo sistema de rotas", () => {
     expect(unidadeCriada).not.toBeNull();
     expect(within(unidadeCriada!).getByText("Unidade")).toBeInTheDocument();
     expect(within(unidadeCriada!).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("Unidade “101” adicionada com sucesso.")).toBeInTheDocument();
+    expect(await screen.findByText("Unidade “101” adicionada com sucesso.")).toBeInTheDocument();
   });
 
   it("trata empreendimento inexistente", async () => {

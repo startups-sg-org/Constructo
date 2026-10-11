@@ -39,6 +39,33 @@ describe("serviço de evidências", () => {
         );
     });
 
+    it("traduz filtros de hierarquia de local e etapa para a query da API", async () => {
+        const fetchMock = vi.fn().mockResolvedValue(new Response("[]", {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        await listarEvidencias(12, {
+            localObraId: 10,
+            tipoLocal: "TORRE",
+            incluirDescendentesLocal: false,
+            etapaId: 5,
+            incluirSubetapas: true,
+            marcoId: 18,
+        });
+
+        const url = new URL(fetchMock.mock.calls[0][0] as string);
+        expect(Object.fromEntries(url.searchParams)).toEqual({
+            local_obra_id: "10",
+            tipo_local: "TORRE",
+            incluir_descendentes_local: "false",
+            etapa_id: "5",
+            incluir_subetapas: "true",
+            marco_id: "18",
+        });
+    });
+
     it("resolve URLs relativas de arquivos contra a API", () => {
         expect(resolverUrlEvidencia("/uploads/foto.jpg"))
             .toBe(`${API_URL}/uploads/foto.jpg`);

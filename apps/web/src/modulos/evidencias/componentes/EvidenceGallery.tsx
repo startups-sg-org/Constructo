@@ -26,6 +26,10 @@ type EvidenceGalleryProps = {
 
 type CamposFiltro = {
     localObraId: string;
+    tipoLocal: string;
+    incluirDescendentesLocal: boolean;
+    etapaId: string;
+    incluirSubetapas: boolean;
     marcoId: string;
     dataInicio: string;
     dataFim: string;
@@ -33,6 +37,10 @@ type CamposFiltro = {
 
 const FILTROS_VAZIOS: CamposFiltro = {
     localObraId: "",
+    tipoLocal: "",
+    incluirDescendentesLocal: true,
+    etapaId: "",
+    incluirSubetapas: true,
     marcoId: "",
     dataInicio: "",
     dataFim: "",
@@ -47,12 +55,16 @@ function fimDoDia(valor: string): string | undefined {
 }
 
 function montarFiltros(campos: CamposFiltro): FiltrosEvidencia {
-    return {
-        localObraId: campos.localObraId ? Number(campos.localObraId) : undefined,
-        marcoId: campos.marcoId ? Number(campos.marcoId) : undefined,
-        dataCapturaInicio: inicioDoDia(campos.dataInicio),
-        dataCapturaFim: fimDoDia(campos.dataFim),
-    };
+    const filtros: FiltrosEvidencia = {};
+    if (campos.localObraId) filtros.localObraId = Number(campos.localObraId);
+    if (campos.tipoLocal) filtros.tipoLocal = campos.tipoLocal as FiltrosEvidencia["tipoLocal"];
+    if (!campos.incluirDescendentesLocal) filtros.incluirDescendentesLocal = false;
+    if (campos.etapaId) filtros.etapaId = Number(campos.etapaId);
+    if (!campos.incluirSubetapas) filtros.incluirSubetapas = false;
+    if (campos.marcoId) filtros.marcoId = Number(campos.marcoId);
+    if (campos.dataInicio) filtros.dataCapturaInicio = inicioDoDia(campos.dataInicio);
+    if (campos.dataFim) filtros.dataCapturaFim = fimDoDia(campos.dataFim);
+    return filtros;
 }
 
 function mensagemErro(erro: unknown): string {
@@ -158,6 +170,62 @@ export default function EvidenceGallery({ empreendimentoId }: EvidenceGalleryPro
                         })}
                         placeholder="Ex.: 704"
                     />
+                    <label className="evidence-gallery__filtro-checkbox" htmlFor="evidencia-descendentes">
+                        <input
+                            id="evidencia-descendentes"
+                            type="checkbox"
+                            checked={camposFiltro.incluirDescendentesLocal}
+                            onChange={(evento) => setCamposFiltro({
+                                ...camposFiltro,
+                                incluirDescendentesLocal: evento.target.checked,
+                            })}
+                        />
+                        Incluir descendentes
+                    </label>
+                </div>
+                <div className="evidence-gallery__filtro">
+                    <label htmlFor="evidencia-tipo-local">Tipo de local</label>
+                    <select
+                        id="evidencia-tipo-local"
+                        value={camposFiltro.tipoLocal}
+                        onChange={(evento) => setCamposFiltro({
+                            ...camposFiltro,
+                            tipoLocal: evento.target.value,
+                        })}
+                    >
+                        <option value="">Todos os tipos</option>
+                        <option value="TORRE">Torre</option>
+                        <option value="BLOCO">Bloco</option>
+                        <option value="PAVIMENTO">Pavimento</option>
+                        <option value="UNIDADE">Unidade</option>
+                    </select>
+                </div>
+                <div className="evidence-gallery__filtro">
+                    <label htmlFor="evidencia-etapa">ID da etapa</label>
+                    <input
+                        id="evidencia-etapa"
+                        type="number"
+                        min="1"
+                        inputMode="numeric"
+                        value={camposFiltro.etapaId}
+                        onChange={(evento) => setCamposFiltro({
+                            ...camposFiltro,
+                            etapaId: evento.target.value,
+                        })}
+                        placeholder="Ex.: 5"
+                    />
+                    <label className="evidence-gallery__filtro-checkbox" htmlFor="evidencia-subetapas">
+                        <input
+                            id="evidencia-subetapas"
+                            type="checkbox"
+                            checked={camposFiltro.incluirSubetapas}
+                            onChange={(evento) => setCamposFiltro({
+                                ...camposFiltro,
+                                incluirSubetapas: evento.target.checked,
+                            })}
+                        />
+                        Incluir subetapas
+                    </label>
                 </div>
                 <div className="evidence-gallery__filtro">
                     <label htmlFor="evidencia-marco">ID do marco</label>

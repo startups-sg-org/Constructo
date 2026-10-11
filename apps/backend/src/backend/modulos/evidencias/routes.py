@@ -1,11 +1,12 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
 from backend.modulos.dominio.esquemas import EvidenciaLer
+from backend.modulos.dominio.regras import TipoLocal
 from backend.modulos.dominio.rotas import exigir_acesso_ao_empreendimento
 from backend.modulos.dominio.servicos import exigir_marco_do_empreendimento
 from backend.modulos.usuarios.modelos import Usuario
@@ -182,19 +183,35 @@ async def consultar_evidencias(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
     local_obra_id: Annotated[int | None, Query(gt=0)] = None,
+    tipo_local: Annotated[TipoLocal | None, Query()] = None,
+    incluir_descendentes_local: Annotated[bool | None, Query()] = None,
+    etapa_id: Annotated[int | None, Query(gt=0)] = None,
+    incluir_subetapas: Annotated[bool | None, Query()] = None,
     marco_id: Annotated[int | None, Query(gt=0)] = None,
     data_captura_inicio: Annotated[datetime | None, Query()] = None,
     data_captura_fim: Annotated[datetime | None, Query()] = None,
 ):
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
+        filtros_kwargs: dict[str, Any] = {
+            "local_obra_id": local_obra_id,
+            "marco_id": marco_id,
+            "data_captura_inicio": data_captura_inicio,
+            "data_captura_fim": data_captura_fim,
+        }
+        if tipo_local is not None:
+            filtros_kwargs["tipo_local"] = tipo_local
+        if incluir_descendentes_local is not None:
+            filtros_kwargs["incluir_descendentes_local"] = incluir_descendentes_local
+        if etapa_id is not None:
+            filtros_kwargs["etapa_id"] = etapa_id
+        if incluir_subetapas is not None:
+            filtros_kwargs["incluir_subetapas"] = incluir_subetapas
+
         return await listar_evidencias(
             session,
             empreendimento_id,
-            local_obra_id=local_obra_id,
-            marco_id=marco_id,
-            data_captura_inicio=data_captura_inicio,
-            data_captura_fim=data_captura_fim,
+            **filtros_kwargs,
         )
     except EvidenciaInvalidaError as erro:
         raise HTTPException(status_code=422, detail=str(erro)) from erro

@@ -42,6 +42,10 @@ export type Evidencia = {
 
 export type FiltrosEvidencia = {
     localObraId?: number;
+    tipoLocal?: TipoLocalObra;
+    incluirDescendentesLocal?: boolean;
+    etapaId?: number;
+    incluirSubetapas?: boolean;
     marcoId?: number;
     dataCapturaInicio?: string;
     dataCapturaFim?: string;
