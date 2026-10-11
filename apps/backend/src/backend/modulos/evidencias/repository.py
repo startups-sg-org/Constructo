@@ -8,6 +8,7 @@ from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
+    ProtocoloEvidencia_Atualizar_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
 )
 
@@ -64,6 +65,18 @@ class ProtocolosEvidenciaRepo:
         self, db: AsyncSession, protocolo: ProtocoloEvidencia, quantidade_minima: int
     ) -> ProtocoloEvidencia:
         protocolo.quantidade_minima = quantidade_minima
+        await db.flush()
+        await db.refresh(protocolo)
+        return protocolo
+
+    async def atualizar_protocolo(
+        self,
+        db: AsyncSession,
+        protocolo: ProtocoloEvidencia,
+        dados: ProtocoloEvidencia_Atualizar_Schema,
+    ) -> ProtocoloEvidencia:
+        for campo, valor in dados.model_dump(exclude_unset=True).items():
+            setattr(protocolo, campo, valor)
         await db.flush()
         await db.refresh(protocolo)
         return protocolo
