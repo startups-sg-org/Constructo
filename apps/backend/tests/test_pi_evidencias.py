@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.banco_de_dados.connections.database_postgres import Base, get_db
@@ -23,20 +24,22 @@ from backend.modulos.dominio.regras import TipoLocal
 from backend.modulos.evidencias import routes, servicos
 from backend.modulos.evidencias.modulos import ItemProtocolo, ProtocoloEvidencia
 from backend.modulos.evidencias.regras import quantidade_minima_atendida
-from backend.modulos.evidencias.repository import ProtocolosEvidenciaRepo
+from backend.modulos.evidencias.repository import EvidenciasRepo, ProtocolosEvidenciaRepo
 from backend.modulos.evidencias.schemas import (
+    EvidenciaAtualizar_Schema,
+    EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ProtocoloEvidencia_Atualizar_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
 )
 from backend.modulos.evidencias.storage import LocalStorage, obter_storage
 from backend.modulos.usuarios.modelos import Usuario
-from backend.modulos.usuarios.rotas import get_admin_ou_gestor
+from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_autenticado
 
 
 @pytest.fixture
 def cliente(monkeypatch):
-    session = object()
+    session = SimpleNamespace(commit=AsyncMock())
 
     async def fornecer_sessao():
         yield session
@@ -48,7 +51,15 @@ def cliente(monkeypatch):
         return None
 
     app.dependency_overrides[get_db] = fornecer_sessao
-    app.dependency_overrides[get_admin_ou_gestor] = lambda: SimpleNamespace(id=1, papel="ADMIN")
+    usuario = SimpleNamespace(
+        id=1,
+        nome="Ana",
+        email="ana@example.com",
+        papel="ADMIN",
+        ativo=True,
+    )
+    app.dependency_overrides[get_admin_ou_gestor] = lambda: usuario
+    app.dependency_overrides[get_usuario_autenticado] = lambda: usuario
     monkeypatch.setattr(routes, "exigir_acesso_ao_empreendimento", permitir_acesso)
     monkeypatch.setattr(routes, "exigir_marco_do_empreendimento", permitir_marco)
 
@@ -244,6 +255,7 @@ def test_upload_salva_imagem_em_diretorio_isolado_do_empreendimento(
         ("imagem.png", b"nao-e-uma-imagem", "image/png", 415),
         ("imagem.png", b"\x89PNG\r\n\x1a\n" + b"x" * (5 * 1024 * 1024), "image/png", 413),
     ],
+    ids=["tipo-nao-permitido", "conteudo-invalido", "arquivo-muito-grande"],
 )
 def test_upload_rejeita_formato_conteudo_e_tamanho_invalidos(
     cliente, tmp_path, nome, conteudo, tipo_mime, status
@@ -438,6 +450,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                     [
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/um.jpg",
                             capturado_em=agora,
@@ -445,6 +459,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/dois.jpg",
                             capturado_em=agora,
@@ -452,6 +468,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=9,
+                            local_obra_id=3,
+                            marco_id=7,
                             item_protocolo_id=outro_item.id,
                             arquivo_url="privado/outro-protocolo.jpg",
                             capturado_em=agora,
@@ -459,6 +477,8 @@ def test_conta_apenas_evidencias_do_protocolo_e_progresso_informados():
                         ),
                         Evidencia(
                             progresso_marco_id=10,
+                            local_obra_id=4,
+                            marco_id=7,
                             item_protocolo_id=item.id,
                             arquivo_url="privado/outro-progresso.jpg",
                             capturado_em=agora,
@@ -494,7 +514,7 @@ def test_registra_evidencia_associada_ao_item_pela_api(cliente, monkeypatch):
             arquivo_url=dados["dados"].arquivo_url,
             descricao=dados["dados"].descricao,
             capturado_em=dados["dados"].capturado_em,
-            usuario_id=dados["usuario_id"],
+            usuario_id=dados["usuario"].id,
         )
 
     monkeypatch.setattr(routes, "registrar_evidencia_no_item", registrar)
@@ -552,12 +572,934 @@ def test_servico_rejeita_arquivo_nao_registrado_no_empreendimento(monkeypatch):
                 marco_id=7,
                 protocolo_id=1,
                 item_id=4,
-                usuario_id=1,
+                usuario=SimpleNamespace(id=1),
                 dados=dados,
             )
 
     asyncio.run(executar_teste())
     registrar.assert_not_awaited()
+
+
+def test_schema_da_evidencia_aceita_data_de_captura_opcional():
+    agora = datetime.now(UTC)
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        descricao_tecnica="  Detalhe técnico  ",
+        capturado_em=agora,
+    )
+
+    assert dados.local_obra_id == 3
+    assert dados.marco_id == 7
+    assert dados.item_protocolo_id is None
+    assert dados.descricao_tecnica == "Detalhe técnico"
+
+    sem_data = EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+    assert sem_data.capturado_em is None
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            capturado_em="data-invalida",
+        )
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            capturado_em=agora,
+            capturado_por=999,
+        )
+
+    with pytest.raises(ValidationError):
+        EvidenciaCriar_Schema(
+            local_obra_id=3,
+            marco_id=7,
+            criado_em=agora,
+        )
+
+    assert Evidencia.__table__.c.descricao_tecnica.nullable is True
+
+
+def test_schema_de_atualizacao_distingue_campo_omitido_de_nulo():
+    omitido = EvidenciaAtualizar_Schema()
+    removido = EvidenciaAtualizar_Schema(descricao_tecnica=None)
+    preenchido = EvidenciaAtualizar_Schema(
+        descricao_tecnica="  Tubulação concluída na unidade 704.  "
+    )
+
+    assert omitido.model_fields_set == set()
+    assert removido.model_fields_set == {"descricao_tecnica"}
+    assert preenchido.descricao_tecnica == "Tubulação concluída na unidade 704."
+
+
+def test_api_ignora_capturado_por_enviado_e_usa_usuario_autenticado(
+    cliente, monkeypatch
+):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+    local = SimpleNamespace(
+        id=12,
+        nome="Unidade 704",
+        tipo=TipoLocal.UNIDADE,
+        parent_id=5,
+    )
+    marco = SimpleNamespace(
+        id=7,
+        nome="Tubulação hidráulica instalada",
+        descricao_tecnica=None,
+    )
+    responsavel = SimpleNamespace(
+        id=1,
+        nome="Ana",
+        email="ana@example.com",
+        papel="ADMIN",
+    )
+    arquivo_salvo = SimpleNamespace(
+        nome="foto.png",
+        caminho="empreendimentos/42/evidencias/foto.png",
+        url="/uploads/empreendimentos/42/evidencias/foto.png",
+        tipo_mime="image/png",
+        tamanho=12,
+    )
+    registro_arquivo = SimpleNamespace(id=11, empreendimento_id=42, url=arquivo_salvo.url)
+
+    monkeypatch.setattr(
+        routes,
+        "validar_local_da_evidencia",
+        AsyncMock(return_value=SimpleNamespace(local=local, marco=marco)),
+    )
+    monkeypatch.setattr(routes, "salvar_evidencia", AsyncMock(return_value=arquivo_salvo))
+    monkeypatch.setattr(
+        routes,
+        "registrar_arquivo_evidencia",
+        AsyncMock(return_value=registro_arquivo),
+    )
+
+    async def criar(_session, *, usuario, dados, **_kwargs):
+        assert usuario.id == 1
+        assert "capturado_por" not in dados.model_dump()
+        return SimpleNamespace(
+            id=31,
+            arquivo_url=arquivo_salvo.url,
+            descricao_tecnica=dados.descricao_tecnica,
+            local_obra_id=local.id,
+            marco_id=marco.id,
+            item_protocolo_id=None,
+            capturado_por=usuario.id,
+            capturado_em=dados.capturado_em,
+            criado_em=agora,
+            atualizado_em=agora,
+            local_obra=local,
+            marco=marco,
+            responsavel=responsavel,
+        )
+
+    monkeypatch.setattr(routes, "criar_evidencia", criar)
+    resposta = test_client.post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "12",
+            "marco_id": "7",
+            "capturado_em": agora.isoformat(),
+            "capturado_por": "999",
+        },
+        files={"file": ("foto.png", b"conteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json()["capturado_por"] == 1
+    assert resposta.json()["responsavel"]["id"] == 1
+    session.commit.assert_awaited_once()
+
+
+def test_api_rejeita_data_de_captura_mal_formatada(cliente):
+    resposta = cliente[0].post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "12",
+            "marco_id": "7",
+            "capturado_em": "31/02/2026 25:70",
+        },
+        files={"file": ("foto.png", b"conteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 422
+
+
+def test_servico_mantem_arquivo_e_metadados_na_mesma_evidencia(monkeypatch):
+    agora = datetime.now(UTC)
+    arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
+    progresso = SimpleNamespace(id=9, local_obra_id=3, marco_id=7)
+    evidencia = SimpleNamespace(id=31, arquivo_evidencia_id=arquivo.id)
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.TORRE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(return_value=progresso),
+        criar=AsyncMock(return_value=evidencia),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=marco)),
+    )
+    monkeypatch.setattr(
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=marco)
+    )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        descricao_tecnica="Teste de estanqueidade",
+        capturado_em=agora,
+    )
+    session = object()
+    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
+
+    resultado = asyncio.run(
+        servicos.criar_evidencia(
+            session,
+            empreendimento_id=42,
+            usuario=usuario,
+            arquivo=arquivo,
+            dados=dados,
+        )
+    )
+
+    assert resultado is evidencia
+    repositorio_evidencias.criar.assert_awaited_once_with(
+        session,
+        progresso_marco_id=9,
+        local=local,
+        marco=marco,
+        responsavel=usuario,
+        local_obra_id=3,
+        marco_id=7,
+        item_protocolo_id=None,
+        arquivo=arquivo,
+        descricao_tecnica="Teste de estanqueidade",
+        capturado_por=1,
+        capturado_em=agora,
+    )
+
+
+def test_servico_aplica_data_utc_do_servidor_quando_captura_omitida(monkeypatch):
+    arquivo = SimpleNamespace(id=11, empreendimento_id=42, url="/uploads/foto.png")
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    progresso = SimpleNamespace(id=9, local_obra_id=3, marco_id=7)
+    criar = AsyncMock(return_value=SimpleNamespace(id=31))
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(criar=criar),
+    )
+    usuario = SimpleNamespace(id=1, papel="ADMIN", ativo=True)
+    dados = EvidenciaCriar_Schema(local_obra_id=3, marco_id=7)
+    inicio = datetime.now(UTC)
+
+    asyncio.run(
+        servicos.criar_evidencia(
+            object(),
+            empreendimento_id=42,
+            usuario=usuario,
+            arquivo=arquivo,
+            dados=dados,
+            contexto=servicos.ContextoLocalEvidencia(
+                local=local,
+                marco=marco,
+                progresso=progresso,
+            ),
+        )
+    )
+    fim = datetime.now(UTC)
+
+    capturado_em = criar.await_args.kwargs["capturado_em"]
+    assert capturado_em.tzinfo is UTC
+    assert inicio <= capturado_em <= fim
+
+
+def test_servico_atualiza_apenas_descricao_tecnica_fornecida(monkeypatch):
+    evidencia = SimpleNamespace(id=31, descricao_tecnica=None)
+    atualizar = AsyncMock(return_value=evidencia)
+    repositorio = SimpleNamespace(
+        buscar=AsyncMock(return_value=evidencia),
+        atualizar_descricao=atualizar,
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio)
+    session = object()
+    dados = EvidenciaAtualizar_Schema(
+        descricao_tecnica="Tubulação concluída na unidade 704."
+    )
+
+    resultado = asyncio.run(
+        servicos.atualizar_evidencia(session, 42, 31, dados)
+    )
+
+    assert resultado is evidencia
+    atualizar.assert_awaited_once_with(
+        session,
+        evidencia,
+        "Tubulação concluída na unidade 704.",
+    )
+
+
+def test_servico_nao_altera_evidencia_quando_patch_esta_vazio(monkeypatch):
+    evidencia = SimpleNamespace(id=31, descricao_tecnica="Descrição atual")
+    atualizar = AsyncMock()
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(
+            buscar=AsyncMock(return_value=evidencia),
+            atualizar_descricao=atualizar,
+        ),
+    )
+
+    resultado = asyncio.run(
+        servicos.atualizar_evidencia(
+            object(),
+            42,
+            31,
+            EvidenciaAtualizar_Schema(),
+        )
+    )
+
+    assert resultado is evidencia
+    atualizar.assert_not_awaited()
+
+
+def test_servico_rejeita_local_inexistente(monkeypatch):
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=None),
+        buscar_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=999,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.LocalObraNaoEncontradoError):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=1, papel="GESTOR", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    repositorio_evidencias.buscar_progresso.assert_not_awaited()
+
+
+def test_servico_bloqueia_usuario_sem_acesso_ao_empreendimento(monkeypatch):
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.TORRE)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=False))
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.AcessoLocalObraNegadoError):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=8, papel="GESTOR", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    repositorio_evidencias.buscar_progresso.assert_not_awaited()
+
+
+def test_api_retorna_403_sem_salvar_arquivo_quando_usuario_nao_tem_acesso(
+    cliente, monkeypatch
+):
+    test_client, _ = cliente
+    validar = AsyncMock(
+        side_effect=servicos.AcessoLocalObraNegadoError(
+            "Acesso negado ao empreendimento do local"
+        )
+    )
+    salvar = AsyncMock()
+    monkeypatch.setattr(routes, "validar_local_da_evidencia", validar)
+    monkeypatch.setattr(routes, "salvar_evidencia", salvar)
+
+    resposta = test_client.post(
+        "/empreendimentos/42/evidencias",
+        data={
+            "local_obra_id": "3",
+            "marco_id": "7",
+            "capturado_em": datetime.now(UTC).isoformat(),
+        },
+        files={"file": ("foto.png", b"\x89PNG\r\n\x1a\nconteudo", "image/png")},
+    )
+
+    assert resposta.status_code == 403
+    salvar.assert_not_awaited()
+
+
+def test_comprador_so_pode_registrar_na_unidade_vinculada(monkeypatch):
+    local = SimpleNamespace(id=12, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    progresso = SimpleNamespace(id=9, local_obra_id=12, marco_id=7)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(return_value=progresso),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=False))
+    monkeypatch.setattr(servicos, "pode_ler_unidade", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=marco)),
+    )
+    monkeypatch.setattr(
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=marco)
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=12,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    contexto = asyncio.run(
+        servicos.validar_local_da_evidencia(
+            object(),
+            empreendimento_id=42,
+            usuario=SimpleNamespace(id=15, papel="COMPRADOR", ativo=True),
+            dados=dados,
+        )
+    )
+
+    assert contexto.local is local
+    assert contexto.marco is marco
+    assert contexto.progresso is progresso
+
+
+def test_servico_inicializa_progresso_em_andamento_para_unidade(monkeypatch):
+    local = SimpleNamespace(id=12, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    progresso = SimpleNamespace(
+        id=9,
+        local_obra_id=12,
+        marco_id=7,
+        status="EM_ANDAMENTO",
+    )
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(return_value=None),
+        iniciar_progresso=AsyncMock(return_value=progresso),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=marco)),
+    )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=marco)
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=12,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+    session = object()
+
+    contexto = asyncio.run(
+        servicos.validar_local_da_evidencia(
+            session,
+            empreendimento_id=42,
+            usuario=SimpleNamespace(id=1, papel="ADMIN", ativo=True),
+            dados=dados,
+        )
+    )
+
+    assert contexto.progresso is progresso
+    repositorio_evidencias.iniciar_progresso.assert_awaited_once_with(session, 12, 7)
+
+
+def test_inicializacao_do_progresso_participa_da_transacao_da_evidencia():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+            fabrica = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica() as session:
+                usuario = Usuario(
+                    cpf="12345678901",
+                    nome="Admin",
+                    sobrenome="Teste",
+                    email="admin-progresso@example.com",
+                    senha="hash",
+                    telefone="63999999999",
+                    empreendimento="Obra",
+                    unidade="101",
+                    papel="ADMIN",
+                )
+                empreendimento = Empreendimento(nome="Obra teste")
+                session.add_all([usuario, empreendimento])
+                await session.flush()
+                local = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    nome="Unidade 704",
+                    tipo=TipoLocal.UNIDADE,
+                )
+                taxonomia = Taxonomia(empreendimento_id=empreendimento.id, nome="Padrão")
+                session.add_all([local, taxonomia])
+                await session.flush()
+                etapa = Etapa(taxonomia_id=taxonomia.id, nome="Instalações")
+                session.add(etapa)
+                await session.flush()
+                marco = Marco(etapa_id=etapa.id, nome="Tubulação hidráulica instalada")
+                session.add(marco)
+                await session.commit()
+
+                dados = EvidenciaCriar_Schema(
+                    local_obra_id=local.id,
+                    marco_id=marco.id,
+                    capturado_em=datetime.now(UTC),
+                )
+                contexto = await servicos.validar_local_da_evidencia(
+                    session,
+                    empreendimento_id=empreendimento.id,
+                    usuario=usuario,
+                    dados=dados,
+                )
+
+                assert contexto.progresso.status == "EM_ANDAMENTO"
+                assert contexto.progresso.iniciado_em is not None
+                await session.rollback()
+                assert await session.scalar(select(ProgressoMarco)) is None
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
+
+
+def test_servico_rejeita_marco_inexistente(monkeypatch):
+    local = SimpleNamespace(id=12, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    repositorio_evidencias = SimpleNamespace(buscar_local=AsyncMock(return_value=local))
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=None)),
+    )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=12,
+        marco_id=999,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.MarcoNaoEncontradoError):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=1, papel="ADMIN", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+
+
+def test_servico_rejeita_marco_da_taxonomia_de_outro_empreendimento(monkeypatch):
+    local = SimpleNamespace(id=12, empreendimento_id=42, tipo=TipoLocal.UNIDADE)
+    marco = SimpleNamespace(id=7, nome="Marco alheio", descricao_tecnica=None)
+    repositorio_evidencias = SimpleNamespace(buscar_local=AsyncMock(return_value=local))
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=marco)),
+    )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        servicos,
+        "exigir_marco_do_empreendimento",
+        AsyncMock(side_effect=ValueError("Marco não pertence ao empreendimento")),
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=12,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.EvidenciaInvalidaError, match="não pertence"):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=1, papel="ADMIN", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+
+
+def test_servico_rejeita_marco_sem_mapeamento_em_local_nao_unidade(monkeypatch):
+    local = SimpleNamespace(id=3, empreendimento_id=42, tipo=TipoLocal.TORRE)
+    marco = SimpleNamespace(id=7, nome="Tubulação instalada", descricao_tecnica=None)
+    repositorio_evidencias = SimpleNamespace(
+        buscar_local=AsyncMock(return_value=local),
+        buscar_progresso=AsyncMock(return_value=None),
+        iniciar_progresso=AsyncMock(),
+    )
+    monkeypatch.setattr(servicos, "_repositorio_evidencias", repositorio_evidencias)
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio",
+        SimpleNamespace(buscar_marco_por_id=AsyncMock(return_value=marco)),
+    )
+    monkeypatch.setattr(servicos, "pode_gerir", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        servicos, "exigir_marco_do_empreendimento", AsyncMock(return_value=marco)
+    )
+    dados = EvidenciaCriar_Schema(
+        local_obra_id=3,
+        marco_id=7,
+        capturado_em=datetime.now(UTC),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.EvidenciaInvalidaError, match="não aplicável"):
+            await servicos.validar_local_da_evidencia(
+                object(),
+                empreendimento_id=42,
+                usuario=SimpleNamespace(id=1, papel="ADMIN", ativo=True),
+                dados=dados,
+            )
+
+    asyncio.run(executar_teste())
+    repositorio_evidencias.iniciar_progresso.assert_not_awaited()
+
+
+def test_gestor_pode_editar_descricao_tecnica_pela_api(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+
+    async def atualizar(session_recebida, empreendimento_id, evidencia_id, dados):
+        assert session_recebida is session
+        assert (empreendimento_id, evidencia_id) == (42, 31)
+        assert dados.model_fields_set == {"descricao_tecnica"}
+        return SimpleNamespace(
+            id=31,
+            arquivo_url="/uploads/foto.png",
+            descricao_tecnica=dados.descricao_tecnica,
+            local_obra_id=12,
+            marco_id=7,
+            item_protocolo_id=None,
+            capturado_por=1,
+            capturado_em=agora,
+            criado_em=agora,
+            atualizado_em=agora,
+            local_obra=SimpleNamespace(
+                id=12,
+                nome="Unidade 704",
+                tipo=TipoLocal.UNIDADE,
+                parent_id=5,
+            ),
+            marco=SimpleNamespace(
+                id=7,
+                nome="Tubulação hidráulica instalada",
+                descricao_tecnica=None,
+            ),
+            responsavel=SimpleNamespace(
+                id=1,
+                nome="Ana",
+                email="ana@example.com",
+                papel="ADMIN",
+            ),
+        )
+
+    monkeypatch.setattr(routes, "atualizar_evidencia", atualizar)
+    resposta = test_client.patch(
+        "/empreendimentos/42/evidencias/31",
+        json={
+            "descricao_tecnica": (
+                "Tubulação de água fria concluída no banheiro social da unidade 704."
+            )
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["descricao_tecnica"].startswith("Tubulação de água fria")
+
+
+def test_edicao_retorna_404_para_evidencia_inexistente(cliente, monkeypatch):
+    monkeypatch.setattr(
+        routes,
+        "atualizar_evidencia",
+        AsyncMock(side_effect=ValueError("Evidencia inexistente: 999")),
+    )
+
+    resposta = cliente[0].patch(
+        "/empreendimentos/42/evidencias/999",
+        json={"descricao_tecnica": "Descrição"},
+    )
+
+    assert resposta.status_code == 404
+
+
+def test_evidencia_pode_ser_consultada_pela_api(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+
+    async def buscar(session_recebida, empreendimento_id, evidencia_id):
+        assert session_recebida is session
+        assert (empreendimento_id, evidencia_id) == (42, 31)
+        return SimpleNamespace(
+            id=31,
+            arquivo_url="/uploads/empreendimentos/42/evidencias/foto.png",
+            descricao_tecnica="Detalhe técnico",
+            local_obra_id=3,
+            marco_id=7,
+            item_protocolo_id=None,
+            capturado_por=1,
+            capturado_em=agora,
+            criado_em=agora,
+            atualizado_em=agora,
+            local_obra=SimpleNamespace(
+                id=3,
+                nome="Torre A",
+                tipo=TipoLocal.TORRE,
+                parent_id=None,
+            ),
+            marco=SimpleNamespace(
+                id=7,
+                nome="Tubulação hidráulica instalada",
+                descricao_tecnica="Tubulação testada e fixada.",
+            ),
+            responsavel=SimpleNamespace(
+                id=1,
+                nome="Ana",
+                email="ana@example.com",
+                papel="ADMIN",
+            ),
+        )
+
+    monkeypatch.setattr(routes, "buscar_evidencia", buscar)
+    resposta = test_client.get("/empreendimentos/42/evidencias/31")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["arquivo_url"].endswith("/foto.png")
+    assert resposta.json()["local_obra_id"] == 3
+    assert resposta.json()["marco_id"] == 7
+    assert resposta.json()["capturado_por"] == 1
+    assert resposta.json()["responsavel"] == {
+        "id": 1,
+        "nome": "Ana",
+        "email": "ana@example.com",
+        "papel": "ADMIN",
+    }
+    assert resposta.json()["local_obra"] == {
+        "id": 3,
+        "nome": "Torre A",
+        "tipo": "TORRE",
+        "parent_id": None,
+    }
+    assert resposta.json()["marco"]["nome"] == "Tubulação hidráulica instalada"
+
+
+def test_lista_evidencias_filtrando_por_local(cliente, monkeypatch):
+    test_client, session = cliente
+    agora = datetime.now(UTC)
+    inicio = datetime(2026, 10, 1, tzinfo=UTC)
+    fim = datetime(2026, 10, 31, 23, 59, 59, tzinfo=UTC)
+    listar = AsyncMock(
+        return_value=[
+            SimpleNamespace(
+                id=31,
+                arquivo_url="/uploads/foto.png",
+                descricao_tecnica=None,
+                local_obra_id=12,
+                marco_id=7,
+                item_protocolo_id=None,
+                capturado_por=1,
+                capturado_em=agora,
+                criado_em=agora,
+                atualizado_em=agora,
+                local_obra=SimpleNamespace(
+                    id=12,
+                    nome="Unidade 101",
+                    tipo=TipoLocal.UNIDADE,
+                    parent_id=5,
+                ),
+                marco=SimpleNamespace(
+                    id=7,
+                    nome="Tubulação hidráulica instalada",
+                    descricao_tecnica=None,
+                ),
+                responsavel=SimpleNamespace(
+                    id=1,
+                    nome="Ana",
+                    email="ana@example.com",
+                    papel="ADMIN",
+                ),
+            )
+        ]
+    )
+    monkeypatch.setattr(routes, "listar_evidencias", listar)
+
+    resposta = test_client.get(
+        "/empreendimentos/42/evidencias",
+        params={
+            "local_obra_id": 12,
+            "marco_id": 7,
+            "data_captura_inicio": inicio.isoformat(),
+            "data_captura_fim": fim.isoformat(),
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()[0]["local_obra"]["tipo"] == "UNIDADE"
+    listar.assert_awaited_once_with(
+        session,
+        42,
+        local_obra_id=12,
+        marco_id=7,
+        data_captura_inicio=inicio,
+        data_captura_fim=fim,
+    )
+
+
+def test_servico_rejeita_periodo_de_captura_invertido(monkeypatch):
+    listar = AsyncMock()
+    monkeypatch.setattr(
+        servicos,
+        "_repositorio_evidencias",
+        SimpleNamespace(listar=listar),
+    )
+
+    async def executar_teste():
+        with pytest.raises(servicos.EvidenciaInvalidaError, match="não pode ser posterior"):
+            await servicos.listar_evidencias(
+                object(),
+                42,
+                data_captura_inicio=datetime(2026, 11, 1, tzinfo=UTC),
+                data_captura_fim=datetime(2026, 10, 1, tzinfo=UTC),
+            )
+
+    asyncio.run(executar_teste())
+    listar.assert_not_awaited()
+
+
+def test_repositorio_filtra_evidencias_pelo_periodo_de_captura():
+    async def executar_teste():
+        engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+        try:
+            async with engine.begin() as conexao:
+                await conexao.run_sync(Base.metadata.create_all)
+            fabrica = async_sessionmaker(engine, expire_on_commit=False)
+            async with fabrica() as session:
+                usuario = Usuario(
+                    cpf="12345678901",
+                    nome="Fiscal",
+                    sobrenome="Obra",
+                    email="fiscal-periodo@example.com",
+                    senha="hash",
+                    telefone="63999999999",
+                    empreendimento="Obra",
+                    unidade="704",
+                    papel="ADMIN",
+                )
+                empreendimento = Empreendimento(nome="Obra temporal")
+                session.add_all([usuario, empreendimento])
+                await session.flush()
+                local = LocalObra(
+                    empreendimento_id=empreendimento.id,
+                    nome="Unidade 704",
+                    tipo=TipoLocal.UNIDADE,
+                )
+                taxonomia = Taxonomia(
+                    empreendimento_id=empreendimento.id,
+                    nome="Padrão",
+                )
+                session.add_all([local, taxonomia])
+                await session.flush()
+                etapa = Etapa(taxonomia_id=taxonomia.id, nome="Instalações")
+                session.add(etapa)
+                await session.flush()
+                marco = Marco(etapa_id=etapa.id, nome="Tubulação instalada")
+                session.add(marco)
+                await session.flush()
+                progresso = ProgressoMarco(
+                    local_obra_id=local.id,
+                    marco_id=marco.id,
+                    status="EM_ANDAMENTO",
+                    iniciado_em=datetime(2026, 9, 1, tzinfo=UTC),
+                )
+                session.add(progresso)
+                await session.flush()
+                session.add_all(
+                    [
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
+                            arquivo_url="privado/setembro.jpg",
+                            capturado_em=datetime(2026, 9, 30, 23, 59, tzinfo=UTC),
+                            capturado_por=usuario.id,
+                        ),
+                        Evidencia(
+                            progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
+                            arquivo_url="privado/outubro.jpg",
+                            capturado_em=datetime(2026, 10, 15, 12, tzinfo=UTC),
+                            capturado_por=usuario.id,
+                        ),
+                    ]
+                )
+                await session.flush()
+
+                repositorio = EvidenciasRepo()
+                evidencias = await repositorio.listar(
+                    session,
+                    empreendimento.id,
+                    data_captura_inicio=datetime(2026, 10, 1, tzinfo=UTC),
+                    data_captura_fim=datetime(2026, 10, 31, 23, 59, 59, tzinfo=UTC),
+                )
+
+                assert [item.arquivo_url for item in evidencias] == [
+                    "privado/outubro.jpg"
+                ]
+                assert evidencias[0].criado_em is not None
+
+                evidencias[0].atualizado_em = datetime(2020, 1, 1, tzinfo=UTC)
+                await session.flush()
+                atualizada = await repositorio.atualizar_descricao(
+                    session,
+                    evidencias[0],
+                    "Tubulação concluída na unidade 704.",
+                )
+
+                assert atualizada.descricao_tecnica == (
+                    "Tubulação concluída na unidade 704."
+                )
+                assert atualizada.atualizado_em.year > 2020
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar_teste())
 
 
 def test_status_real_separa_minimo_de_itens_obrigatorios():
@@ -625,6 +1567,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                     [
                         Evidencia(
                             progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
                             item_protocolo_id=visao_geral.id,
                             arquivo_url="privado/visao.jpg",
                             capturado_em=agora,
@@ -632,6 +1576,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                         ),
                         Evidencia(
                             progresso_marco_id=progresso.id,
+                            local_obra_id=local.id,
+                            marco_id=marco.id,
                             item_protocolo_id=detalhe_opcional.id,
                             arquivo_url="privado/outro.jpg",
                             capturado_em=agora,
@@ -653,6 +1599,8 @@ def test_status_real_separa_minimo_de_itens_obrigatorios():
                 session.add(
                     Evidencia(
                         progresso_marco_id=progresso.id,
+                        local_obra_id=local.id,
+                        marco_id=marco.id,
                         item_protocolo_id=ralo.id,
                         arquivo_url="privado/ralo.jpg",
                         capturado_em=agora,

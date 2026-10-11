@@ -1,4 +1,9 @@
 import { apiRequest, type ServiceRequestOptions } from "../../services/api";
+import { API_URL } from "../../services/api";
+import type {
+    Evidencia,
+    FiltrosEvidencia,
+} from "../../modulos/evidencias/types";
 
 export const TAMANHO_MAXIMO_EVIDENCIA = 5 * 1024 * 1024;
 export const TIPOS_EVIDENCIA_PERMITIDOS = [
@@ -32,4 +37,36 @@ export function enviarEvidencia(
         body: dados,
         signal: options?.signal,
     });
+}
+
+export function listarEvidencias(
+    empreendimentoId: number,
+    filtros: FiltrosEvidencia = {},
+    options?: ServiceRequestOptions,
+): Promise<Evidencia[]> {
+    const parametros = new URLSearchParams();
+
+    if (filtros.localObraId) {
+        parametros.set("local_obra_id", String(filtros.localObraId));
+    }
+    if (filtros.marcoId) {
+        parametros.set("marco_id", String(filtros.marcoId));
+    }
+    if (filtros.dataCapturaInicio) {
+        parametros.set("data_captura_inicio", filtros.dataCapturaInicio);
+    }
+    if (filtros.dataCapturaFim) {
+        parametros.set("data_captura_fim", filtros.dataCapturaFim);
+    }
+
+    const query = parametros.toString();
+    return apiRequest<Evidencia[]>(
+        `/empreendimentos/${empreendimentoId}/evidencias${query ? `?${query}` : ""}`,
+        { signal: options?.signal },
+    );
+}
+
+export function resolverUrlEvidencia(caminho: string): string {
+    if (/^(https?:|data:|blob:)/.test(caminho)) return caminho;
+    return `${API_URL}${caminho.startsWith("/") ? caminho : `/${caminho}`}`;
 }

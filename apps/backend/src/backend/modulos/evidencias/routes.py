@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
@@ -8,10 +9,13 @@ from backend.modulos.dominio.esquemas import EvidenciaLer
 from backend.modulos.dominio.rotas import exigir_acesso_ao_empreendimento
 from backend.modulos.dominio.servicos import exigir_marco_do_empreendimento
 from backend.modulos.usuarios.modelos import Usuario
-from backend.modulos.usuarios.rotas import get_admin_ou_gestor
+from backend.modulos.usuarios.rotas import get_admin_ou_gestor, get_usuario_autenticado
 
 from .schemas import (
+    EvidenciaAtualizar_Schema,
+    EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
+    EvidenciaResponse,
     EvidenciaUpload_FromDB_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromDB_Schema,
@@ -23,24 +27,177 @@ from .schemas import (
     ProtocoloEvidencia_Status_Schema,
 )
 from .servicos import (
+    AcessoLocalObraNegadoError,
+    EvidenciaInvalidaError,
+    LocalObraNaoEncontradoError,
+    MarcoNaoEncontradoError,
     associar_protocolo_ao_marco,
+    atualizar_evidencia,
     atualizar_item_protocolo,
     atualizar_quantidade_minima,
+    buscar_evidencia,
     consultar_status_protocolo,
+    criar_evidencia,
     criar_item_protocolo,
     criar_protocolo_evidencia,
+    listar_evidencias,
     listar_itens_protocolo,
     listar_protocolos_evidencia,
     registrar_arquivo_evidencia,
     registrar_evidencia_no_item,
     remover_associacao_do_protocolo,
     remover_item_protocolo,
+    validar_local_da_evidencia,
 )
 from .storage import Storage, obter_storage
 from .upload_service import ErroValidacaoUpload, salvar_evidencia
 
 router = APIRouter(prefix="/empreendimentos", tags=["evidências"])
 upload_router = APIRouter(prefix="/api/evidences", tags=["evidências"])
+
+
+@router.post(
+    "/{empreendimento_id}/evidencias",
+    response_model=EvidenciaResponse,
+    status_code=201,
+)
+async def cadastrar_evidencia(
+    empreendimento_id: int,
+    local_obra_id: Annotated[int, Form(gt=0)],
+    marco_id: Annotated[int, Form(gt=0)],
+    arquivo: Annotated[UploadFile, File(alias="file")],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_usuario_autenticado)],
+    storage: Annotated[Storage, Depends(obter_storage)],
+    capturado_em: Annotated[datetime | None, Form()] = None,
+    item_protocolo_id: Annotated[int | None, Form(gt=0)] = None,
+    descricao_tecnica: Annotated[str | None, Form(max_length=4000)] = None,
+):
+    """Envia o arquivo e cria a evidência com seus metadados no mesmo fluxo."""
+    arquivo_salvo = None
+    try:
+        dados = EvidenciaCriar_Schema(
+            local_obra_id=local_obra_id,
+            marco_id=marco_id,
+            item_protocolo_id=item_protocolo_id,
+            descricao_tecnica=descricao_tecnica,
+            capturado_em=capturado_em,
+        )
+        contexto = await validar_local_da_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario=usuario,
+            dados=dados,
+        )
+        arquivo_salvo = await salvar_evidencia(storage, arquivo, empreendimento_id)
+        registro_arquivo = await registrar_arquivo_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario_id=usuario.id,
+            nome_original=(arquivo.filename or arquivo_salvo.nome)[:255],
+            nome_armazenado=arquivo_salvo.nome,
+            caminho=arquivo_salvo.caminho,
+            url=arquivo_salvo.url,
+            tipo_mime=arquivo_salvo.tipo_mime,
+            tamanho=arquivo_salvo.tamanho,
+        )
+        evidencia = await criar_evidencia(
+            session,
+            empreendimento_id=empreendimento_id,
+            usuario=usuario,
+            arquivo=registro_arquivo,
+            dados=dados,
+            contexto=contexto,
+        )
+        # Garante que arquivo, metadados e evidência foram persistidos juntos.
+        await session.commit()
+        return evidencia
+    except ErroValidacaoUpload as erro:
+        raise HTTPException(status_code=erro.status_code, detail=str(erro)) from erro
+    except (LocalObraNaoEncontradoError, MarcoNaoEncontradoError) as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except AcessoLocalObraNegadoError as erro:
+        raise HTTPException(status_code=403, detail=str(erro)) from erro
+    except EvidenciaInvalidaError as erro:
+        if arquivo_salvo is not None:
+            await storage.remover(arquivo_salvo.caminho)
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except Exception:
+        if arquivo_salvo is not None:
+            await storage.remover(arquivo_salvo.caminho)
+        raise
+    finally:
+        await arquivo.close()
+
+
+@router.get(
+    "/{empreendimento_id}/evidencias/{evidencia_id}",
+    response_model=EvidenciaResponse,
+)
+async def consultar_evidencia(
+    empreendimento_id: int,
+    evidencia_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await buscar_evidencia(session, empreendimento_id, evidencia_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.patch(
+    "/{empreendimento_id}/evidencias/{evidencia_id}",
+    response_model=EvidenciaResponse,
+)
+async def editar_evidencia(
+    empreendimento_id: int,
+    evidencia_id: int,
+    dados: EvidenciaAtualizar_Schema,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    """Atualiza parcialmente os metadados editáveis de uma evidência."""
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await atualizar_evidencia(
+            session,
+            empreendimento_id,
+            evidencia_id,
+            dados,
+        )
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+
+
+@router.get(
+    "/{empreendimento_id}/evidencias",
+    response_model=list[EvidenciaResponse],
+)
+async def consultar_evidencias(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+    local_obra_id: Annotated[int | None, Query(gt=0)] = None,
+    marco_id: Annotated[int | None, Query(gt=0)] = None,
+    data_captura_inicio: Annotated[datetime | None, Query()] = None,
+    data_captura_fim: Annotated[datetime | None, Query()] = None,
+):
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await listar_evidencias(
+            session,
+            empreendimento_id,
+            local_obra_id=local_obra_id,
+            marco_id=marco_id,
+            data_captura_inicio=data_captura_inicio,
+            data_captura_fim=data_captura_fim,
+        )
+    except EvidenciaInvalidaError as erro:
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
 
 
 @upload_router.post(
@@ -253,7 +410,7 @@ async def registrar_evidencia_item(
             marco_id=marco_id,
             protocolo_id=protocolo_id,
             item_id=item_id,
-            usuario_id=usuario.id,
+            usuario=usuario,
             dados=dados,
         )
     except ValueError as erro:

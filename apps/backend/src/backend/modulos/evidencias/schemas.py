@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from backend.modulos.dominio.regras import TipoLocal
+
 
 class ProtocoloEvidencia_FromRequest_Schema(BaseModel):
     """Dados recebidos da API para criar um protocolo associado a um marco.
@@ -194,3 +196,89 @@ class EvidenciaUpload_FromDB_Schema(BaseModel):
     tamanho: int
     tipo_mime: str
     criado_em: datetime
+
+
+class EvidenciaCriar_Schema(BaseModel):
+    """Metadados recebidos junto ao arquivo da evidencia."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    local_obra_id: int = Field(gt=0)
+    marco_id: int = Field(gt=0)
+    item_protocolo_id: int | None = Field(default=None, gt=0)
+    descricao_tecnica: str | None = Field(default=None, max_length=4000)
+    capturado_em: datetime | None = None
+
+    @field_validator("descricao_tecnica")
+    @classmethod
+    def normalizar_descricao_tecnica(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class EvidenciaAtualizar_Schema(BaseModel):
+    """Campos editáveis da evidência; valores omitidos permanecem inalterados."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    descricao_tecnica: str | None = Field(default=None, max_length=4000)
+
+    @field_validator("descricao_tecnica")
+    @classmethod
+    def normalizar_descricao_tecnica(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        return valor.strip() or None
+
+
+class LocalObraResumo(BaseModel):
+    """Identifica onde a evidência foi registrada na estrutura da obra."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    tipo: TipoLocal
+    parent_id: int | None
+
+
+class MarcoResumo(BaseModel):
+    """Identifica qual avanço construtivo a evidência representa."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    descricao_tecnica: str | None
+
+
+class UsuarioResumo(BaseModel):
+    """Dados minimos do usuario autenticado responsavel pela captura."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    email: str
+    papel: str
+
+
+class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
+    """Representacao completa da evidencia persistida e de seu arquivo."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    arquivo_url: str
+    capturado_por: int
+    capturado_em: datetime
+    criado_em: datetime
+    atualizado_em: datetime
+    local_obra: LocalObraResumo
+    marco: MarcoResumo
+    responsavel: UsuarioResumo
+
+
+class EvidenciaResponse(Evidencia_FromDB_Schema):
+    """Nome público do contrato retornado pelos endpoints de evidências."""

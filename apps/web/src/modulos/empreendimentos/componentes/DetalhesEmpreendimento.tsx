@@ -80,6 +80,9 @@ export default function DetalhesEmpreendimento() {
                 {taxonomia && <Link className="botao secundario" to="taxonomia">
                     Editar taxonomia
                 </Link>}
+                <Link className="botao secundario" to="evidencias">
+                    Ver evidências
+                </Link>
                 <Link className="botao primario" to="editar">Editar empreendimento</Link>
             </footer>
         </article>

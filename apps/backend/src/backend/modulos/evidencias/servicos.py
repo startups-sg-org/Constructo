@@ -1,12 +1,31 @@
+from dataclasses import dataclass
+from datetime import UTC, datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modulos.dominio.esquemas import EvidenciaCriar
-from backend.modulos.dominio.servicos import registrar_evidencia as registrar_evidencia_dominio
+from backend.modulos.dominio.modelos import Evidencia, LocalObra, Marco, ProgressoMarco
+from backend.modulos.dominio.regras import Papel, TipoLocal
+from backend.modulos.dominio.servicos import (
+    exigir_marco_do_empreendimento,
+    pode_gerir,
+    pode_ler_unidade,
+)
+from backend.modulos.dominio.servicos import (
+    registrar_evidencia as _registrar_evidencia_dominio,
+)
+from backend.modulos.usuarios.modelos import Usuario
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .regras import itens_obrigatorios_atendidos, quantidade_minima_atendida
-from .repository import ArquivosEvidenciaRepo, ItensProtocoloRepo, ProtocolosEvidenciaRepo
+from .repository import (
+    ArquivosEvidenciaRepo,
+    EvidenciasRepo,
+    ItensProtocoloRepo,
+    ProtocolosEvidenciaRepo,
+)
 from .schemas import (
+    EvidenciaAtualizar_Schema,
+    EvidenciaCriar_Schema,
     EvidenciaItem_FromRequest_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
@@ -16,6 +35,32 @@ from .schemas import (
 _repositorio = ProtocolosEvidenciaRepo()
 _repositorio_itens = ItensProtocoloRepo()
 _repositorio_arquivos = ArquivosEvidenciaRepo()
+_repositorio_evidencias = EvidenciasRepo()
+# Mantido como ponto de extensao para integracoes que importavam o nome antigo.
+registrar_evidencia_dominio = _registrar_evidencia_dominio
+
+
+class LocalObraNaoEncontradoError(ValueError):
+    pass
+
+
+class MarcoNaoEncontradoError(ValueError):
+    pass
+
+
+class AcessoLocalObraNegadoError(PermissionError):
+    pass
+
+
+class EvidenciaInvalidaError(ValueError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ContextoLocalEvidencia:
+    local: LocalObra
+    marco: Marco
+    progresso: ProgressoMarco
 
 
 async def registrar_arquivo_evidencia(
@@ -41,6 +86,181 @@ async def registrar_arquivo_evidencia(
         tipo_mime=tipo_mime,
         tamanho=tamanho,
     )
+
+
+async def criar_evidencia(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    usuario: Usuario,
+    arquivo: ArquivoEvidencia,
+    dados: EvidenciaCriar_Schema,
+    contexto: ContextoLocalEvidencia | None = None,
+) -> Evidencia:
+    """Persiste metadados somente quando local, marco e arquivo sao coerentes."""
+    contexto = contexto or await validar_local_da_evidencia(
+        session,
+        empreendimento_id=empreendimento_id,
+        usuario=usuario,
+        dados=dados,
+    )
+    local = contexto.local
+    marco = contexto.marco
+    progresso = contexto.progresso
+
+    if arquivo.empreendimento_id != empreendimento_id:
+        raise EvidenciaInvalidaError("Arquivo de evidência pertence a outro empreendimento")
+
+    if dados.item_protocolo_id is not None:
+        item = await _repositorio_itens.buscar_item_por_id(
+            session, dados.item_protocolo_id
+        )
+        if item is None:
+            raise EvidenciaInvalidaError("Item de protocolo inexistente")
+        protocolo = await _repositorio.buscar_protocolo_por_id(session, item.protocolo_id)
+        if protocolo is None or protocolo.marco_id != dados.marco_id:
+            raise EvidenciaInvalidaError(
+                "Item de protocolo não pertence ao marco informado"
+            )
+
+    return await _repositorio_evidencias.criar(
+        session,
+        progresso_marco_id=progresso.id,
+        local=local,
+        marco=marco,
+        responsavel=usuario,
+        local_obra_id=local.id,
+        marco_id=dados.marco_id,
+        item_protocolo_id=dados.item_protocolo_id,
+        arquivo=arquivo,
+        descricao_tecnica=dados.descricao_tecnica,
+        capturado_por=usuario.id,
+        capturado_em=_normalizar_data_utc(dados.capturado_em),
+    )
+
+
+async def validar_local_da_evidencia(
+    session: AsyncSession,
+    *,
+    empreendimento_id: int,
+    usuario: Usuario,
+    dados: EvidenciaCriar_Schema,
+) -> ContextoLocalEvidencia:
+    """Valida local, taxonomia, acesso e aplicabilidade do marco.
+
+    Um progresso existente representa um mapeamento explícito e é aceito em
+    qualquer nível físico. Na V1, a inicialização implícita de progresso é
+    restrita a unidades, conforme a regra vigente do domínio de progresso.
+    """
+    local = await _repositorio_evidencias.buscar_local(session, dados.local_obra_id)
+    if local is None:
+        raise LocalObraNaoEncontradoError(
+            f"Local da obra inexistente: {dados.local_obra_id}"
+        )
+    if local.empreendimento_id != empreendimento_id:
+        raise EvidenciaInvalidaError(
+            "Local da obra não pertence ao empreendimento informado"
+        )
+
+    acesso_gestao = await pode_gerir(session, usuario.id, empreendimento_id)
+    acesso_comprador = False
+    if usuario.papel == Papel.COMPRADOR:
+        if local.tipo != TipoLocal.UNIDADE:
+            raise EvidenciaInvalidaError(
+                "Evidência registrada por comprador deve estar vinculada a uma unidade"
+            )
+        acesso_comprador = await pode_ler_unidade(session, usuario.id, local.id)
+    if not acesso_gestao and not acesso_comprador:
+        raise AcessoLocalObraNegadoError("Acesso negado ao empreendimento do local")
+
+    marco = await _repositorio.buscar_marco_por_id(session, dados.marco_id)
+    if marco is None:
+        raise MarcoNaoEncontradoError(f"Marco inexistente: {dados.marco_id}")
+    try:
+        marco = await exigir_marco_do_empreendimento(
+            session, empreendimento_id, dados.marco_id
+        )
+    except ValueError as erro:
+        raise EvidenciaInvalidaError(str(erro)) from erro
+    progresso = await _repositorio_evidencias.buscar_progresso(
+        session, local.id, dados.marco_id
+    )
+    if progresso is None:
+        if local.tipo != TipoLocal.UNIDADE:
+            raise EvidenciaInvalidaError(
+                "Marco não aplicável ao nível do local: não existe mapeamento de progresso"
+            )
+        progresso = await _repositorio_evidencias.iniciar_progresso(
+            session, local.id, marco.id
+        )
+    return ContextoLocalEvidencia(local=local, marco=marco, progresso=progresso)
+
+
+async def buscar_evidencia(
+    session: AsyncSession, empreendimento_id: int, evidencia_id: int
+) -> Evidencia:
+    evidencia = await _repositorio_evidencias.buscar(
+        session, evidencia_id, empreendimento_id
+    )
+    if evidencia is None:
+        raise ValueError(f"Evidencia inexistente: {evidencia_id}")
+    return evidencia
+
+
+async def atualizar_evidencia(
+    session: AsyncSession,
+    empreendimento_id: int,
+    evidencia_id: int,
+    dados: EvidenciaAtualizar_Schema,
+) -> Evidencia:
+    evidencia = await _repositorio_evidencias.buscar(
+        session, evidencia_id, empreendimento_id
+    )
+    if evidencia is None:
+        raise ValueError(f"Evidencia inexistente: {evidencia_id}")
+
+    if "descricao_tecnica" not in dados.model_fields_set:
+        return evidencia
+
+    return await _repositorio_evidencias.atualizar_descricao(
+        session,
+        evidencia,
+        dados.descricao_tecnica,
+    )
+
+
+async def listar_evidencias(
+    session: AsyncSession,
+    empreendimento_id: int,
+    *,
+    local_obra_id: int | None = None,
+    marco_id: int | None = None,
+    data_captura_inicio: datetime | None = None,
+    data_captura_fim: datetime | None = None,
+) -> list[Evidencia]:
+    inicio = _normalizar_data_utc(data_captura_inicio) if data_captura_inicio else None
+    fim = _normalizar_data_utc(data_captura_fim) if data_captura_fim else None
+    if inicio is not None and fim is not None and inicio > fim:
+        raise EvidenciaInvalidaError(
+            "data_captura_inicio não pode ser posterior a data_captura_fim"
+        )
+    return await _repositorio_evidencias.listar(
+        session,
+        empreendimento_id,
+        local_obra_id=local_obra_id,
+        marco_id=marco_id,
+        data_captura_inicio=inicio,
+        data_captura_fim=fim,
+    )
+
+
+def _normalizar_data_utc(valor: datetime | None) -> datetime:
+    """Aplica o instante do servidor e mantém datas persistidas em UTC."""
+    if valor is None:
+        return datetime.now(UTC)
+    if valor.tzinfo is None:
+        return valor.replace(tzinfo=UTC)
+    return valor.astimezone(UTC)
 
 
 async def _exigir_marco(session: AsyncSession, marco_id: int) -> None:
@@ -163,7 +383,7 @@ async def registrar_evidencia_no_item(
     marco_id: int,
     protocolo_id: int,
     item_id: int,
-    usuario_id: int,
+    usuario: Usuario,
     dados: EvidenciaItem_FromRequest_Schema,
 ):
     await exigir_item_do_protocolo(session, marco_id, protocolo_id, item_id)
@@ -176,16 +396,27 @@ async def registrar_evidencia_no_item(
     )
     if arquivo is None:
         raise ValueError("Arquivo de evidência inexistente no empreendimento")
+    local = await _repositorio_evidencias.buscar_local(session, progresso.local_obra_id)
+    if local is None:
+        raise ValueError("Local da obra da evidência não existe")
+    marco = await _repositorio.buscar_marco_por_id(session, progresso.marco_id)
+    if marco is None:
+        raise ValueError("Marco da evidência não existe")
 
-    evidencia = EvidenciaCriar(
-        progresso_marco_id=dados.progresso_marco_id,
+    return await _repositorio_evidencias.criar(
+        session,
+        progresso_marco_id=progresso.id,
+        local=local,
+        marco=marco,
+        responsavel=usuario,
+        local_obra_id=progresso.local_obra_id,
+        marco_id=progresso.marco_id,
         item_protocolo_id=item_id,
-        arquivo_url=dados.arquivo_url,
-        descricao=dados.descricao,
+        arquivo=arquivo,
+        descricao_tecnica=dados.descricao,
+        capturado_por=usuario.id,
         capturado_em=dados.capturado_em,
-        usuario_id=usuario_id,
     )
-    return await registrar_evidencia_dominio(session, evidencia)
 
 
 async def exigir_item_do_protocolo(
