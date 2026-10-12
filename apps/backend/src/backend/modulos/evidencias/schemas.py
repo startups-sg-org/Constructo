@@ -66,7 +66,26 @@ class ProtocoloEvidencia_FromDB_Schema(ProtocoloEvidencia_FromRequest_Schema):
 
 
 class ProtocoloEvidencia_Atualizar_Schema(BaseModel):
-    quantidade_minima: int = Field(ge=0)
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    descricao: str | None = None
+    quantidade_minima: int | None = Field(default=None, ge=0)
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome: str | None) -> str | None:
+        if nome is None:
+            return None
+        nome = nome.strip()
+        if not nome:
+            raise ValueError("Nome é obrigatório")
+        return nome
+
+    @field_validator("descricao")
+    @classmethod
+    def normalizar_descricao(cls, descricao: str | None) -> str | None:
+        if descricao is None:
+            return None
+        return descricao.strip() or None
 
 
 class ProtocoloEvidencia_Status_Schema(BaseModel):
