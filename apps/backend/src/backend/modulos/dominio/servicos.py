@@ -772,7 +772,10 @@ async def registrar_evidencia(session: AsyncSession, dados: EvidenciaCriar) -> E
     progresso = await _exigir(session, ProgressoMarco, dados.progresso_marco_id)
     if not await pode_gerir_empreendimento_do_progresso(session, dados.usuario_id, progresso):
         raise ValueError("Evidência requer gestor autorizado")
-    evidencia = Evidencia(**dados.model_dump())
+    valores = dados.model_dump()
+    valores["local_obra_id"] = progresso.local_obra_id
+    valores["marco_id"] = progresso.marco_id
+    evidencia = Evidencia(**valores)
     session.add(evidencia)
     await session.flush()
     return evidencia
