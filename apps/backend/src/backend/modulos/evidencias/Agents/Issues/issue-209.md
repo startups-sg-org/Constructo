@@ -74,12 +74,12 @@ Mesmo com 5 fotos, o protocolo continuará incompleto caso não exista evidênci
 
 ## Criar
 
-1. Model e migration da FK `Evidencia.item_protocolo_id`[x].
-2. Schemas de registro e status com itens pendentes[x].
-3. Consultas no repositório para contar evidências por item[x].
-4. Regras e service de validação do protocolo[x].
-5. Endpoints para registrar item e consultar status[x].
-6. Testes unitários e de integração[x].
+- [x] Model e migration da FK `Evidencia.item_protocolo_id`.
+- [x] Schemas de registro e status com itens pendentes.
+- [x] Consultas no repositório para contar evidências por item.
+- [x] Regras e service de validação do protocolo.
+- [x] Endpoints para registrar item e consultar status.
+- [x] Testes unitários e de integração.
 
 ## Relatório de verificação
 
@@ -100,30 +100,30 @@ Mesmo com 5 fotos, o protocolo continuará incompleto caso não exista evidênci
   de `quantidade_atendida`, `itens_obrigatorios_atendidos` e `itens_pendentes`.
 - A quantidade mínima conta somente evidências vinculadas aos itens do protocolo
   consultado e ao progresso informado; evidências de outros protocolos não são
-  incluídas.
-- O registro da evidência confirma que `arquivo_url` pertence a um upload
-  persistido no mesmo empreendimento antes de criar o vínculo com o item.
+  incluídas.[x]
 - A API de status retorna os identificadores, nomes e ordem dos itens ainda
-  pendentes.
+  pendentes.[x]
 - O lint dos arquivos envolvidos passou e o Alembic reconhece
-  `20261010_0015` como único `head`.
+  `20261010_0015` como único `head`.[x]
 
 ### Itens parcialmente atendidos
 
-1. Existem testes para o endpoint de associação e para a separação entre mínimo,
+- [x] Existem testes para o endpoint de associação e para a separação entre mínimo,
    item obrigatório e item opcional, mas falta teste do service rejeitando uma
    associação com item de outro protocolo/marco.[x]
-2. Os testes não foram confirmados nesta verificação. Uma execução focada
+- [x] Os testes não foram confirmados nesta verificação. Uma execução focada
    anterior atingiu o limite de 60 segundos sem resultado; por orientação do
    usuário, não foram executados novos comandos `pytest`.[x]
 
 ### Itens não implementados
 
-- Nenhum item identificado nesta verificação permanece sem implementação.
+- [x] Não foi encontrada uma validação explícita de que `arquivo_url` corresponde a
+  um arquivo previamente registrado pelo fluxo de upload. Se “evidência válida”
+  exigir essa confirmação, ela ainda precisa ser definida e implementada.[x]
 
 ### Conclusão
 
-A associação da evidência ao item, a identificação dos itens obrigatórios
+- [x] A associação da evidência ao item, a identificação dos itens obrigatórios
 pendentes, a contagem mínima isolada por protocolo e o retorno pela API estão
 implementados. A issue permanece parcialmente atendida até os cenários de
 validação serem confirmados por testes executados.[x]

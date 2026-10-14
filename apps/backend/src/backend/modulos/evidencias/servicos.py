@@ -29,6 +29,7 @@ from .schemas import (
     EvidenciaItem_FromRequest_Schema,
     ItemProtocolo_Atualizar_Schema,
     ItemProtocolo_FromRequest_Schema,
+    ProtocoloEvidencia_Atualizar_Schema,
     ProtocoloEvidencia_FromRequest_Schema,
 )
 
@@ -338,6 +339,17 @@ async def atualizar_quantidade_minima(
     await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
     protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
     return await _repositorio.atualizar_quantidade_minima(session, protocolo, quantidade_minima)
+
+
+async def atualizar_protocolo(
+    session: AsyncSession,
+    marco_id: int,
+    protocolo_id: int,
+    dados: ProtocoloEvidencia_Atualizar_Schema,
+) -> ProtocoloEvidencia:
+    await _exigir_protocolo_do_marco(session, marco_id, protocolo_id)
+    protocolo = await _repositorio.buscar_protocolo_por_id(session, protocolo_id)
+    return await _repositorio.atualizar_protocolo(session, protocolo, dados)
 
 
 async def consultar_status_protocolo(

@@ -35,6 +35,7 @@ from .servicos import (
     associar_protocolo_ao_marco,
     atualizar_evidencia,
     atualizar_item_protocolo,
+    atualizar_protocolo,
     atualizar_quantidade_minima,
     buscar_evidencia,
     consultar_status_protocolo,
@@ -357,20 +358,21 @@ async def remover_associacao_protocolo(
     "/{empreendimento_id}/taxonomia/marcos/{marco_id}/protocolos-evidencia/{protocolo_id}",
     response_model=ProtocoloEvidencia_FromDB_Schema,
 )
-async def editar_quantidade_minima_protocolo(
+async def editar_protocolo(
     empreendimento_id: int, marco_id: int, protocolo_id: int,
     dados: ProtocoloEvidencia_Atualizar_Schema,
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
-    """Atualiza a quantidade mínima de evidências exigida pelo protocolo.
-
-    O corpo contém `quantidade_minima`, que deve ser maior ou igual a zero.
-    """
+    """Atualiza nome, descrição e quantidade mínima do protocolo."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         await exigir_marco_do_empreendimento(session, empreendimento_id, marco_id)
-        return await atualizar_quantidade_minima(session, marco_id, protocolo_id, dados.quantidade_minima)
+        if dados.model_fields_set == {"quantidade_minima"}:
+            return await atualizar_quantidade_minima(
+                session, marco_id, protocolo_id, dados.quantidade_minima
+            )
+        return await atualizar_protocolo(session, marco_id, protocolo_id, dados)
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro)) from erro
 
