@@ -15,6 +15,16 @@
     font-weight: 700;
 }
 
+.lista-empreendimentos__ferramentas .form-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .375rem;
+}
+
+.lista-empreendimentos__ferramentas .form-field .form-select {
+    min-height: 44px;
+}
+
 .lista-empreendimentos__ferramentas .bi-plus-lg {
     margin-right: 8px;
     font-size: 1.25rem;
@@ -33,14 +43,15 @@
 
 .lista-empreendimentos__tabela-container {
     overflow: hidden;
-    border: 1px solid var(--cor-borda);
+    border: 8px solid var(--cor-borda);
+    min-width: 1000px;
     border-radius: var(--raio-card);
     background: var(--cor-superficie);
     box-shadow: var(--sombra-card);
 }
 
 .lista-empreendimentos__tabela {
-    min-width: 900px;
+    min-width: 1000px;
     margin-bottom: 0;
     vertical-align: middle;
 }
@@ -57,7 +68,7 @@
 .lista-empreendimentos__tabela tbody th,
 .lista-empreendimentos__tabela tbody td {
     padding: 14px 18px;
-    color: #4d605b;
+    color: var(--cor-texto-forte);
     font-size: 0.875rem;
     vertical-align: middle;
 }
@@ -138,5 +149,84 @@
 
     .detalhes-empreendimento__acoes .botao {
         width: 100%;
+    }
+
+    .lista-empreendimentos__tabela-container .table-responsive {
+        overflow-x: visible;
+    }
+
+    .lista-empreendimentos__tabela {
+        display: block;
+        min-width: 0;
+    }
+
+    .lista-empreendimentos__tabela thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .lista-empreendimentos__tabela tbody,
+    .lista-empreendimentos__tabela tr,
+    .lista-empreendimentos__tabela th,
+    .lista-empreendimentos__tabela td {
+        display: block;
+    }
+
+    .lista-empreendimentos__tabela tbody tr {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--cor-borda);
+    }
+
+    .lista-empreendimentos__tabela tbody tr:last-child {
+        border-bottom: 0;
+    }
+
+    .lista-empreendimentos__tabela tbody th,
+    .lista-empreendimentos__tabela tbody td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 7px 0;
+        border: 0;
+        text-align: right;
+    }
+
+    .lista-empreendimentos__tabela tbody th::before,
+    .lista-empreendimentos__tabela tbody td::before {
+        flex: 0 0 auto;
+        color: var(--cor-texto-suave);
+        content: attr(data-label);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    .lista-empreendimentos__tabela tbody th {
+        display: block;
+        padding-top: 0;
+        text-align: left;
+    }
+
+    .lista-empreendimentos__tabela tbody th::before {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .lista-empreendimentos__tabela tbody td:last-child {
+        justify-content: flex-end;
+    }
+
+    .lista-empreendimentos__tabela tbody td:last-child::before {
+        display: none;
     }
 }

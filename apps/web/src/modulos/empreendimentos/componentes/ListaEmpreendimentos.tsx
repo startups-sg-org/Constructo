@@ -64,38 +64,57 @@ export default function ListaEmpreendimentos() {
                         />
                     </Col>
                     <Col xs={12} sm={6} lg={2}>
-                        <Form.Label htmlFor="filtro-status" className="visually-hidden">
-                            Filtrar por status
-                        </Form.Label>
-                        <Form.Select
-                            id="filtro-status"
-                            value={status}
-                            onChange={(evento) => setStatus(evento.target.value as typeof status)}
-                        >
-                            <option value="TODOS">Status: todos</option>
-                            <option value="PLANEJADO">Planejado</option>
-                            <option value="EM_ANDAMENTO">Em andamento</option>
-                            <option value="CONCLUIDO">Concluído</option>
-                            <option value="INATIVO">Inativo</option>
-                        </Form.Select>
+                        <div className="form-field">
+                            <Form.Label htmlFor="filtro-status" className="visually-hidden">
+                                Filtrar por status
+                            </Form.Label>
+                            <Form.Select
+                                id="filtro-status"
+                                value={status}
+                                aria-describedby="filtro-status-ajuda"
+                                onChange={(evento) => setStatus(evento.target.value as typeof status)}
+                            >
+                                <option value="TODOS">Todos os status</option>
+                                <option value="PLANEJADO">Planejado</option>
+                                <option value="EM_ANDAMENTO">Em andamento</option>
+                                <option value="CONCLUIDO">Concluído</option>
+                                <option value="INATIVO">Inativo</option>
+                            </Form.Select>
+                            <Form.Text id="filtro-status-ajuda" className="visually-hidden">
+                                Filtre os empreendimentos pelo status atual.
+                            </Form.Text>
+                        </div>
                     </Col>
                     <Col xs={12} sm={6} lg={3}>
-                        <Form.Label htmlFor="ordenacao-empreendimentos" className="visually-hidden">
-                            Ordenar empreendimentos
-                        </Form.Label>
-                        <Form.Select
-                            id="ordenacao-empreendimentos"
-                            value={ordenacao}
-                            onChange={(evento) => setOrdenacao(evento.target.value as Ordenacao)}
-                        >
-                            <option value="atualizado-desc">Atualizado mais recentemente</option>
-                            <option value="atualizado-asc">Atualizado há mais tempo</option>
-                            <option value="nome-asc">Nome: A–Z</option>
-                            <option value="nome-desc">Nome: Z–A</option>
-                        </Form.Select>
+                        <div className="form-field">
+                            <Form.Label htmlFor="ordenacao-empreendimentos" className="visually-hidden">
+                                Ordenar empreendimentos
+                            </Form.Label>
+                            <Form.Select
+                                id="ordenacao-empreendimentos"
+                                value={ordenacao}
+                                aria-describedby="ordenacao-empreendimentos-ajuda"
+                                onChange={(evento) => setOrdenacao(evento.target.value as Ordenacao)}
+                            >
+                                <option value="atualizado-desc">Atualizado mais recentemente</option>
+                                <option value="atualizado-asc">Atualizado há mais tempo</option>
+                                <option value="nome-asc">Nome: A–Z</option>
+                                <option value="nome-desc">Nome: Z–A</option>
+                            </Form.Select>
+                            <Form.Text id="ordenacao-empreendimentos-ajuda" className="visually-hidden">
+                                Escolha como ordenar a lista de empreendimentos.
+                            </Form.Text>
+                        </div>
                     </Col>
                     <Col xs={12} lg={2} className="d-grid">
-                        <Button href="#novo-empreendimento" variant="primary">
+                        <Button
+                            href="#novo-empreendimento"
+                            variant="primary"
+                            aria-controls="novo-empreendimento"
+                            onClick={() => {
+                                window.setTimeout(() => document.getElementById("nome")?.focus(), 0);
+                            }}
+                        >
                             <i className="bi bi-plus-lg" aria-hidden="true" />
                             Criar empreendimento
                         </Button>
@@ -128,8 +147,8 @@ export default function ListaEmpreendimentos() {
                 />
             ) : (
                 <div className="lista-empreendimentos__tabela-container">
-                    <Table responsive hover className="lista-empreendimentos__tabela">
-                        <thead>
+                    <Table responsive hover className="table table-responsive-sm " aria-label="Lista de empreendimentos">
+                        <thead className = "thead-dark">
                             <tr>
                                 <th scope="col">Empreendimento</th>
                                 <th scope="col">Descrição</th>
@@ -142,7 +161,7 @@ export default function ListaEmpreendimentos() {
                         <tbody>
                             {empreendimentosVisiveis.map((empreendimento) => (
                                 <tr key={empreendimento.id}>
-                                    <th scope="row">
+                                    <th scope="row" data-label="Empreendimento">
                                         <Link
                                             className="lista-empreendimentos__nome"
                                             to={`/admin/empreendimentos/${empreendimento.id}`}
@@ -153,15 +172,15 @@ export default function ListaEmpreendimentos() {
                                             <span>{empreendimento.nome}</span>
                                         </Link>
                                     </th>
-                                    <td>{empreendimento.descricao || "Descrição não informada"}</td>
-                                    <td>{empreendimento.endereco || "Localização não informada"}</td>
-                                    <td>
+                                    <td data-label="Descrição">{empreendimento.descricao || "Descrição não informada"}</td>
+                                    <td data-label="Localização">{empreendimento.endereco || "Localização não informada"}</td>
+                                    <td data-label="Status">
                                         <BadgeStatus tom={obterTomStatus(empreendimento.status)}>
                                             {obterRotuloStatus(empreendimento.status)}
                                         </BadgeStatus>
                                     </td>
-                                    <td>{formatarDataEmpreendimento(empreendimento.atualizado_em)}</td>
-                                    <td>
+                                    <td data-label="Atualizado em">{formatarDataEmpreendimento(empreendimento.atualizado_em)}</td>
+                                    <td data-label="Ação">
                                         <Link
                                             className="lista-empreendimentos__abrir"
                                             to={`/admin/empreendimentos/${empreendimento.id}`}
@@ -182,11 +201,16 @@ export default function ListaEmpreendimentos() {
 function compararEmpreendimentos(a: Empreendimento, b: Empreendimento, ordenacao: Ordenacao): number {
     if (ordenacao === "nome-asc" || ordenacao === "nome-desc") {
         const resultado = a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" });
-        return ordenacao === "nome-desc" ? -resultado : resultado;
+        if (resultado !== 0) return ordenacao === "nome-desc" ? -resultado : resultado;
+        return a.id - b.id;
     }
 
     const dataA = new Date(a.atualizado_em).getTime();
     const dataB = new Date(b.atualizado_em).getTime();
     const resultado = (Number.isNaN(dataA) ? 0 : dataA) - (Number.isNaN(dataB) ? 0 : dataB);
-    return ordenacao === "atualizado-desc" ? -resultado : resultado;
+    if (resultado !== 0) return ordenacao === "atualizado-desc" ? -resultado : resultado;
+
+    const desempatePorNome = a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" });
+    if (desempatePorNome !== 0) return desempatePorNome;
+    return a.id - b.id;
 }

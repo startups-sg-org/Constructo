@@ -311,6 +311,50 @@ describe("novo sistema de rotas", () => {
     );
   });
 
+  it("renderiza cada empreendimento uma vez e mantém destinos acessíveis por teclado", async () => {
+    const itens = ([
+      [12, "Residencial Aurora", "PLANEJADO"],
+      [13, "Parque das Águas", "EM_ANDAMENTO"],
+      [14, "Vila Cerrado", "CONCLUIDO"],
+      [15, "Estação Norte", "INATIVO"],
+    ] as const).map(([id, nome, status]) => ({
+      ...empreendimento,
+      id,
+      nome,
+      status,
+    }));
+    listarEmpreendimentosMock.mockResolvedValue(itens);
+    montarRota("/admin/obras");
+    const rotulosStatus = {
+      PLANEJADO: "Planejado",
+      EM_ANDAMENTO: "Em andamento",
+      CONCLUIDO: "Concluído",
+      INATIVO: "Inativo",
+    } as const;
+
+    const linhas = await screen.findAllByRole("row");
+    expect(linhas).toHaveLength(5);
+    expect(screen.getByRole("columnheader", { name: "Empreendimento" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Descrição" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Localização" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Status" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Atualizado em" })).toBeInTheDocument();
+
+    for (const item of itens) {
+      expect(screen.getAllByRole("link", { name: item.nome })).toHaveLength(1);
+      expect(screen.getByRole("row", { name: new RegExp(item.nome) })).toHaveTextContent(
+        rotulosStatus[item.status],
+      );
+    }
+
+    const linha = screen.getByRole("row", { name: /Residencial Aurora/ });
+    expect(linha).not.toHaveAttribute("tabindex");
+    expect(within(linha).getByRole("link", { name: "Abrir" })).toHaveAttribute(
+      "href",
+      "/admin/empreendimentos/12",
+    );
+  });
+
   it("filtra e ordena a listagem localmente", async () => {
     const segundoEmpreendimento = {
       ...empreendimento,
