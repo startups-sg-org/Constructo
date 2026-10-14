@@ -46,7 +46,7 @@ export default function TaxonomyEditor() {
     const { empreendimento, taxonomia } = useLoaderData<typeof carregarTaxonomia>();
     const [selecionado, setSelecionado] = React.useState<number>();
     return <section className="taxonomy-editor" aria-labelledby="taxonomy-title">
-        <header><h2 id="taxonomy-title">Taxonomia — {empreendimento.nome}</h2><p>{taxonomia.descricao || "Estrutura personalizada do empreendimento."}</p></header>
+        <header><h2 id="taxonomy-title">Taxonomia</h2><p>{taxonomia.descricao || "Estrutura personalizada do empreendimento."}</p></header>
         <ItemForm />
         <ul className="taxonomy-tree">{(taxonomia.etapas ?? []).sort((a: Etapa, b: Etapa) => a.ordem - b.ordem).map((etapa: Etapa) => <TaxonomyTreeItem key={etapa.id} item={etapa} empreendimentoId={empreendimento.id} selecionado={selecionado} onSelect={(item) => setSelecionado(item.id)} />)}</ul>
     </section>;

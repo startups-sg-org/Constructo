@@ -401,9 +401,8 @@ describe("novo sistema de rotas", () => {
     await user.click(await screen.findByRole("link", { name: "Abrir" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+      await screen.findByRole("heading", { name: "Residencial Aurora" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
     expect(screen.getByText("Duas torres")).toBeInTheDocument();
     expect(screen.getByText("Avenida Central, 100")).toBeInTheDocument();
     expect(screen.getByText("Planejado")).toBeInTheDocument();
@@ -704,7 +703,7 @@ describe("novo sistema de rotas", () => {
     expect(await screen.findByRole("status")).toHaveTextContent("Carregando página...");
     concluirCarregamento(empreendimento);
     expect(
-      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+      await screen.findByRole("heading", { name: "Residencial Aurora" }),
     ).toBeInTheDocument();
   });
 

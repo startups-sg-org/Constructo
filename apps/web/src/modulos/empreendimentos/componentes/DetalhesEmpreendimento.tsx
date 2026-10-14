@@ -1,50 +1,44 @@
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, useRouteLoaderData } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
 import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
 import UploadEvidencia from "../../../componentes/UploadEvidencia/UploadEvidencia";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import { obterTaxonomia, type Taxonomia } from "../../../features/empreendimentos/empreendimentos.service";
 import { ApiError } from "../../../services/api";
 import TaxonomyConfiguration from "./TaxonomyConfiguration";
-import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
+import { formatarDataEmpreendimento } from "./empreendimentoFormatters";
 import "./ListaEmpreendimentos.css";
 
 export default function DetalhesEmpreendimento() {
-    const empreendimento = useLoaderData<typeof carregarEmpreendimento>();
+    const empreendimento = useRouteLoaderData<typeof carregarEmpreendimento>("empreendimento");
+    const empreendimentoId = empreendimento?.id;
     const [taxonomia, setTaxonomia] = useState<Taxonomia | null>(null);
     const [carregandoTaxonomia, setCarregandoTaxonomia] = useState(true);
 
     useEffect(() => {
+        if (!empreendimentoId) return;
         let ativo = true;
-        obterTaxonomia(empreendimento.id)
+        obterTaxonomia(empreendimentoId)
             .then((dados) => ativo && setTaxonomia(dados))
             .catch((erro) => {
                 if (!(erro instanceof ApiError && erro.status === 404)) throw erro;
             })
             .finally(() => ativo && setCarregandoTaxonomia(false));
         return () => { ativo = false; };
-    }, [empreendimento.id]);
+    }, [empreendimentoId]);
+
+    if (!empreendimento) return null;
 
     return (
         <article className="detalhes-empreendimento superficie-painel">
             <CabecalhoSecao
                 etiqueta="Dados da obra"
-                titulo={empreendimento.nome}
+                titulo="Dados gerais"
                 comDivisor
-                complemento={(
-                    <BadgeStatus tom={obterTomStatus(empreendimento.status)}>
-                        {obterRotuloStatus(empreendimento.status)}
-                    </BadgeStatus>
-                )}
             />
 
             <dl className="detalhes-empreendimento__dados lista-dados">
-                <div>
-                    <dt>Endereço</dt>
-                    <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
-                </div>
                 <div>
                     <dt>Data de criação</dt>
                     <dd>{formatarDataEmpreendimento(empreendimento.criado_em)}</dd>

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import CabecalhoPagina from "../../componentes/CabecalhoPagina/CabecalhoPagina";
 
 type PaginaPainelProps = {
-    titulo: string;
+    titulo?: string;
     subtitulo?: string;
     acao?: ReactNode;
     children?: ReactNode;

@@ -20,7 +20,6 @@ import {
     obterLocalSelecionadoId,
 } from "../../../features/empreendimentos/localSelecionado";
 import LocationDetails from "./LocationDetails";
-import StructureHeader from "./StructureHeader";
 import "./FormularioEmpreendimento.css";
 import "./StructureManagementPage.css";
 
@@ -79,17 +78,13 @@ export default function StructureManagementPage() {
         <>
             <section
                 className="detalhes-empreendimento estrutura-fisica superficie-painel"
-                aria-labelledby="estrutura-fisica-empreendimento-titulo"
+                aria-labelledby="estrutura-fisica-titulo"
             >
-                <StructureHeader
-                    empreendimentoId={empreendimento.id}
-                    empreendimentoNome={empreendimento.nome}
-                />
-
                 <CabecalhoSecao
                     className="estrutura-fisica__cabecalho-lista"
                     etiqueta="Visão hierárquica"
                     titulo="Torres, blocos, pavimentos e unidades"
+                    tituloId="estrutura-fisica-titulo"
                     nivel={3}
                     complemento={(
                         <p className="cabecalho-secao__apoio">
