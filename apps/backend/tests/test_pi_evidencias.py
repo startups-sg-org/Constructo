@@ -1524,7 +1524,7 @@ def test_schemas_validam_filtros_de_evidencia():
 
 
 def test_api_aceita_filtros_de_local_com_descendentes_e_etapa(cliente, monkeypatch):
-    test_client, session = cliente
+    test_client, _ = cliente
     listar = AsyncMock(return_value=[])
     monkeypatch.setattr(routes, "listar_evidencias", listar)
 
