@@ -8,6 +8,8 @@ type StructureTreeProps = {
     items: EstruturaLocal[];
     selectedId: number | null;
     onSelect: (item: EstruturaLocal) => void;
+    expandedIds: ReadonlySet<number>;
+    onToggle: (item: EstruturaLocal) => void;
     renderActions?: (item: EstruturaLocal) => ReactNode;
 };
 
@@ -15,10 +17,12 @@ export default function StructureTree({
     items,
     selectedId,
     onSelect,
+    expandedIds,
+    onToggle,
     renderActions,
 }: StructureTreeProps) {
     return (
-        <ul className="structure-tree" role="tree" aria-label="Estrutura física">
+        <ul className="structure-tree" aria-label="Estrutura física">
             {items.map((item) => (
                 <StructureTreeItem
                     key={item.id}
@@ -26,6 +30,8 @@ export default function StructureTree({
                     level={1}
                     selectedId={selectedId}
                     onSelect={onSelect}
+                    expandedIds={expandedIds}
+                    onToggle={onToggle}
                     renderActions={renderActions}
                 />
             ))}

@@ -12,8 +12,14 @@ import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
+import AbaIndisponivel from "../modulos/empreendimentos/componentes/AbaIndisponivel";
+import LayoutEmpreendimentos from "../modulos/empreendimentos/componentes/LayoutEmpreendimentos";
 import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
 import TaxonomyEditor from "../modulos/empreendimentos/componentes/TaxonomyEditor";
+import ProtocolEditor from "../modulos/evidencias/componentes/ProtocolEditor/ProtocolEditor";
+import ProtocolList from "../modulos/evidencias/componentes/ProtocolEditor/ProtocolList";
+import { carregarProtocoloEditor } from "../features/evidencias/protocolos.loader";
+import { alterarProtocoloEditor } from "../features/evidencias/protocolos.action";
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
@@ -44,6 +50,16 @@ async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
 async function alterarUsuarioComoAdmin(args: ActionFunctionArgs) {
   await exigirAcessoAoPainel(args);
   return alterarUsuario(args);
+}
+
+async function carregarEditorProtocoloAutenticado(args: LoaderFunctionArgs) {
+  await exigirAcessoAoPainel(args);
+  return carregarProtocoloEditor(args);
+}
+
+async function alterarEditorProtocoloAutenticado(args: ActionFunctionArgs) {
+  await exigirAcessoAoPainel(args);
+  return alterarProtocoloEditor(args);
 }
 export const rotas: RouteObject[] = [
   {
@@ -106,7 +122,7 @@ export const rotas: RouteObject[] = [
             element: (
               <PaginaPainel
                 titulo="Empreendimentos"
-                subtitulo="Cadastre e gerencie as raízes da estrutura física das obras."
+                subtitulo="Gerencie suas obras em um só lugar."
               >
                 <ListaEmpreendimentos />
                 <FormularioEmpreendimento />
@@ -115,54 +131,113 @@ export const rotas: RouteObject[] = [
           },
           {
             path: "empreendimentos/:empreendimentoId",
+            id: "empreendimento",
             loader: carregarEmpreendimento,
-            element: (
-              <PaginaPainel
-                titulo="Visualizar empreendimento"
-                subtitulo="Consulte os dados gerais da obra selecionada."
-              >
-                <DetalhesEmpreendimento />
-              </PaginaPainel>
-            ),
-          },
-          {
-            path: "empreendimentos/:empreendimentoId/editar",
-            loader: carregarEmpreendimento,
-            action: editarEmpreendimento,
-            element: (
-              <PaginaPainel
-                titulo="Editar empreendimento"
-                subtitulo="Atualize os dados gerais sem alterar a estrutura física da obra."
-              >
-                <FormularioEdicaoEmpreendimento />
-              </PaginaPainel>
-            ),
-          },
-          {
-            path: "empreendimentos/:empreendimentoId/estrutura",
-            loader: carregarEstruturaFisica,
-            action: cadastrarLocalRaiz,
-            element: (
-              <PaginaPainel
-                titulo="Estrutura física"
-                subtitulo="Gerencie a organização física do empreendimento selecionado."
-              >
-                <StructureManagementPage />
-              </PaginaPainel>
-            ),
-          },
-          {
-            path: "empreendimentos/:empreendimentoId/taxonomia",
-            loader: carregarTaxonomia,
-            action: alterarTaxonomia,
-            element: (
-              <PaginaPainel
-                titulo="Editor de taxonomia"
-                subtitulo="Personalize etapas, subetapas e marcos do empreendimento."
-              >
-                <TaxonomyEditor />
-              </PaginaPainel>
-            ),
+            errorElement: <ErroRota />,
+            element: <LayoutEmpreendimentos />,
+            children: [
+              {
+                index: true,
+                element: (
+                  <PaginaPainel
+                    titulo=""
+                    subtitulo="Consulte os dados gerais da obra selecionada."
+                  >
+                    <DetalhesEmpreendimento />
+                  </PaginaPainel>
+                ),
+              },
+              {
+                path: "editar",
+                loader: carregarEmpreendimento,
+                action: editarEmpreendimento,
+                element: (
+                  <PaginaPainel
+                    titulo="Editar empreendimento"
+                    subtitulo="Atualize os dados gerais sem alterar a estrutura física da obra."
+                  >
+                    <FormularioEdicaoEmpreendimento />
+                  </PaginaPainel>
+                ),
+              },
+              {
+                path: "estrutura",
+                loader: carregarEstruturaFisica,
+                action: cadastrarLocalRaiz,
+                element: (
+                  <PaginaPainel
+                    titulo=""
+                    subtitulo=""
+                  >
+                    <StructureManagementPage />
+                  </PaginaPainel>
+                ),
+              },
+              {
+                path: "taxonomia",
+                loader: carregarTaxonomia,
+                action: alterarTaxonomia,
+                element: (
+                  <PaginaPainel
+                    titulo=""
+                    subtitulo=""
+                  >
+                    <TaxonomyEditor />
+                  </PaginaPainel>
+                ),
+              },
+              ...["novo", ":protocoloId"].map((destino): RouteObject => ({
+                path: `taxonomia/marcos/:marcoId/protocolos/${destino}`,
+                loader: carregarEditorProtocoloAutenticado,
+                action: alterarEditorProtocoloAutenticado,
+                element: (
+                  <PaginaPainel
+                    titulo="Protocolo de evidências"
+                    subtitulo="Configure os registros exigidos para o marco."
+                  >
+                    <ProtocolEditor />
+                  </PaginaPainel>
+                ),
+              })),
+              {
+                path: "taxonomia/marcos/:marcoId/protocolos",
+                loader: carregarEditorProtocoloAutenticado,
+                element: <PaginaPainel titulo="Protocolos de evidências" subtitulo="Escolha ou crie um protocolo para o marco."><ProtocolList /></PaginaPainel>,
+              },
+              {
+                path: "contratos",
+                element: (
+                  <PaginaPainel titulo="Contratos" subtitulo="Contratos vinculados a este empreendimento.">
+                    <AbaIndisponivel
+                      titulo="Contratos ainda não disponíveis"
+                      descricao="A integração de contratos por empreendimento será disponibilizada em breve."
+                    />
+                  </PaginaPainel>
+                ),
+              },
+              {
+                path: "medicoes",
+                element: (
+                  <PaginaPainel titulo="Medições" subtitulo="Medições vinculadas a este empreendimento.">
+                    <AbaIndisponivel
+                      titulo="Medições ainda não disponíveis"
+                      descricao="A integração de medições por empreendimento será disponibilizada em breve."
+                    />
+                  </PaginaPainel>
+                ),
+              },
+              {
+                path: "documentos",
+                element: (
+                  <PaginaPainel titulo="Documentos" subtitulo="Documentos vinculados a este empreendimento.">
+                    <AbaIndisponivel
+                      titulo="Documentos ainda não disponíveis"
+                      descricao="O módulo de documentos será disponibilizado em breve."
+                    />
+                  </PaginaPainel>
+                ),
+              },
+            ],
           },
           {
             path: "empreendimentos/:empreendimentoId/evidencias",

@@ -16,6 +16,7 @@ import {
   obterEmpreendimento,
   obterTaxonomia,
 } from "../features/empreendimentos/empreendimentos.service";
+import { listarProtocolosRecentes } from "../features/evidencias/evidencias.service";
 import { ApiError } from "../services/api";
 import {
   createUser,
@@ -42,6 +43,10 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   obterTaxonomia: vi.fn(),
 }));
 
+vi.mock("../features/evidencias/evidencias.service", () => ({
+  listarProtocolosRecentes: vi.fn(),
+}));
+
 
 vi.mock("../features/usuarios/usuarios.service", () => ({
   createUser: vi.fn(),
@@ -63,6 +68,7 @@ const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const obterEstruturaFisicaMock = vi.mocked(obterEstruturaFisica);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const obterTaxonomiaMock = vi.mocked(obterTaxonomia);
+const listarProtocolosRecentesMock = vi.mocked(listarProtocolosRecentes);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
 const getUsersCountMock = vi.mocked(getUsersCount);
@@ -117,6 +123,7 @@ describe("novo sistema de rotas", () => {
       descricao: "Taxonomia do empreendimento",
       is_padrao: false,
     });
+    listarProtocolosRecentesMock.mockResolvedValue([]);
   });
 
   it("renderiza a rota pública principal", async () => {
@@ -293,20 +300,96 @@ describe("novo sistema de rotas", () => {
     listarEmpreendimentosMock.mockResolvedValue([empreendimento]);
     montarRota("/admin/obras");
 
-    const titulo = await screen.findByRole("heading", { name: "Residencial Aurora" });
-    const card = titulo.closest("article");
-    expect(card).not.toBeNull();
-    expect(within(card!).getByText("Planejado")).toBeInTheDocument();
-    expect(within(card!).getByText("Avenida Central, 100")).toBeInTheDocument();
-    expect(within(card!).getByText(/25.*2026/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Visualizar" })).toHaveAttribute(
+    const linha = await screen.findByRole("row", { name: /Residencial Aurora/ });
+    expect(within(linha).getByText("Planejado")).toBeInTheDocument();
+    expect(within(linha).getByText("Avenida Central, 100")).toBeInTheDocument();
+    expect(within(linha).getByText(/25.*2026/)).toBeInTheDocument();
+    expect(within(linha).getByRole("link", { name: "Abrir" })).toHaveAttribute(
       "href",
       "/admin/empreendimentos/12",
     );
-    expect(screen.getByRole("link", { name: "Editar" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Residencial Aurora" })).toHaveAttribute(
       "href",
-      "/admin/empreendimentos/12/editar",
+      "/admin/empreendimentos/12",
     );
+    expect(screen.getByRole("button", { name: /Criar empreendimento/ })).toHaveAttribute(
+      "href",
+      "#novo-empreendimento",
+    );
+  });
+
+  it("renderiza cada empreendimento uma vez e mantém destinos acessíveis por teclado", async () => {
+    const itens = ([
+      [12, "Residencial Aurora", "PLANEJADO"],
+      [13, "Parque das Águas", "EM_ANDAMENTO"],
+      [14, "Vila Cerrado", "CONCLUIDO"],
+      [15, "Estação Norte", "INATIVO"],
+    ] as const).map(([id, nome, status]) => ({
+      ...empreendimento,
+      id,
+      nome,
+      status,
+    }));
+    listarEmpreendimentosMock.mockResolvedValue(itens);
+    montarRota("/admin/obras");
+    const rotulosStatus = {
+      PLANEJADO: "Planejado",
+      EM_ANDAMENTO: "Em andamento",
+      CONCLUIDO: "Concluído",
+      INATIVO: "Inativo",
+    } as const;
+
+    const linhas = await screen.findAllByRole("row");
+    expect(linhas).toHaveLength(5);
+    expect(screen.getByRole("columnheader", { name: "Empreendimento" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Descrição" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Localização" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Status" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Atualizado em" })).toBeInTheDocument();
+
+    for (const item of itens) {
+      expect(screen.getAllByRole("link", { name: item.nome })).toHaveLength(1);
+      expect(screen.getByRole("row", { name: new RegExp(item.nome) })).toHaveTextContent(
+        rotulosStatus[item.status],
+      );
+    }
+
+    const linha = screen.getByRole("row", { name: /Residencial Aurora/ });
+    expect(linha).not.toHaveAttribute("tabindex");
+    expect(within(linha).getByRole("link", { name: "Abrir" })).toHaveAttribute(
+      "href",
+      "/admin/empreendimentos/12",
+    );
+  });
+
+  it("filtra e ordena a listagem localmente", async () => {
+    const segundoEmpreendimento = {
+      ...empreendimento,
+      id: 13,
+      nome: "Parque das Águas",
+      descricao: "Conjunto habitacional",
+      endereco: "Rua das Águas, 20",
+      status: "CONCLUIDO" as const,
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    listarEmpreendimentosMock.mockResolvedValue([empreendimento, segundoEmpreendimento]);
+    const user = userEvent.setup();
+    montarRota("/admin/obras");
+
+    expect(await screen.findByRole("link", { name: "Parque das Águas" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Buscar empreendimento"), "Parque");
+    expect(screen.getByRole("link", { name: "Parque das Águas" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Residencial Aurora" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    await user.selectOptions(screen.getByLabelText("Filtrar por status"), "PLANEJADO");
+    expect(screen.getByRole("link", { name: "Residencial Aurora" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Parque das Águas" })).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Filtrar por status"), "TODOS");
+    await user.selectOptions(screen.getByLabelText("Ordenar empreendimentos"), "nome-asc");
+    const linhas = screen.getAllByRole("row").slice(1);
+    expect(within(linhas[0]).getByRole("link", { name: "Parque das Águas" })).toBeInTheDocument();
   });
 
   it("trata a lista vazia de empreendimentos", async () => {
@@ -322,25 +405,18 @@ describe("novo sistema de rotas", () => {
     const user = userEvent.setup();
     montarRota("/admin/obras");
 
-    await user.click(await screen.findByRole("link", { name: "Visualizar" }));
+    await user.click(await screen.findByRole("link", { name: "Abrir" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+      await screen.findByRole("heading", { name: "Residencial Aurora" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
     expect(screen.getByText("Duas torres")).toBeInTheDocument();
-    expect(screen.getByText("Avenida Central, 100")).toBeInTheDocument();
+    expect(screen.getAllByText("Avenida Central, 100")).toHaveLength(2);
     expect(screen.getByText("Planejado")).toBeInTheDocument();
     expect(screen.getByText("Data de criação")).toBeInTheDocument();
-    expect(screen.getByText("Data de atualização")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Editar empreendimento" })).toHaveAttribute(
-      "href",
-      "/admin/empreendimentos/12/editar",
-    );
-    expect(screen.getByRole("link", { name: "Gerenciar estrutura física" })).toHaveAttribute(
-      "href",
-      "/admin/empreendimentos/12/estrutura",
-    );
+    expect(screen.getByText("Atualizado em")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Editar empreendimento" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Gerenciar estrutura física" })).not.toBeInTheDocument();
     expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
   });
 
@@ -348,9 +424,7 @@ describe("novo sistema de rotas", () => {
     const user = userEvent.setup();
     montarRota("/admin/empreendimentos/12");
 
-    await user.click(
-      await screen.findByRole("link", { name: "Gerenciar estrutura física" }),
-    );
+    await user.click(await screen.findByRole("link", { name: "Estrutura" }));
 
     expect(
       await screen.findByRole("heading", { name: "Estrutura física" }),
@@ -396,13 +470,13 @@ describe("novo sistema de rotas", () => {
     const router = montarRota("/admin/empreendimentos/12/estrutura");
 
     expect(await screen.findByRole("heading", { name: "Selecione um local" })).toBeInTheDocument();
-    await user.click(screen.getByRole("treeitem", { name: /Unidade 704/ }));
+    await user.click(screen.getByRole("button", { name: "Unidade 704" }));
 
     await waitFor(() => {
       expect(router.state.location.search).toBe("?localId=51");
     });
-    const unidadeSelecionada = screen.getByRole("treeitem", { name: /Unidade 704/ });
-    expect(unidadeSelecionada).toHaveAttribute("aria-selected", "true");
+    const unidadeSelecionada = screen.getByRole("button", { name: "Unidade 704" });
+    expect(unidadeSelecionada).toHaveAttribute("aria-current", "true");
 
     const painel = screen.getByRole("complementary", { name: "Unidade 704" });
     expect(within(painel).getByText("51")).toBeInTheDocument();
@@ -424,8 +498,8 @@ describe("novo sistema de rotas", () => {
     await router.navigate(-1);
 
     expect(
-      await screen.findByRole("treeitem", { name: /Unidade 704/ }),
-    ).toHaveAttribute("aria-selected", "true");
+      await screen.findByRole("button", { name: "Unidade 704" }),
+    ).toHaveAttribute("aria-current", "true");
     expect(router.state.location.search).toBe("?localId=51");
   });
 
@@ -445,8 +519,8 @@ describe("novo sistema de rotas", () => {
 
     montarRota("/admin/empreendimentos/12/estrutura?localId=32");
 
-    expect(await screen.findByRole("treeitem", { name: /Bloco Norte/ }))
-      .toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("button", { name: "Bloco Norte" }))
+      .toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("complementary", { name: "Bloco Norte" }))
       .toHaveTextContent("Bloco");
   });
@@ -623,12 +697,12 @@ describe("novo sistema de rotas", () => {
     const user = userEvent.setup();
     montarRota("/admin/obras");
 
-    await user.click(await screen.findByRole("link", { name: "Visualizar" }));
+    await user.click(await screen.findByRole("link", { name: "Abrir" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent("Carregando página...");
     concluirCarregamento(empreendimento);
     expect(
-      await screen.findByRole("heading", { name: "Visualizar empreendimento" }),
+      await screen.findByRole("heading", { name: "Residencial Aurora" }),
     ).toBeInTheDocument();
   });
 
@@ -763,8 +837,8 @@ describe("novo sistema de rotas", () => {
       expect.anything(),
     );
     expect(await screen.findByRole("heading", { name: "Bloco Sul" })).toBeInTheDocument();
-    expect(screen.getByRole("treeitem", { name: /Bloco Sul/ })).toHaveAttribute(
-      "aria-selected",
+    expect(screen.getByRole("button", { name: "Bloco Sul" })).toHaveAttribute(
+      "aria-current",
       "true",
     );
   });

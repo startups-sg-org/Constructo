@@ -286,6 +286,14 @@ async def listar_protocolos_evidencia(
     return await _repositorio.listar_protocolos_evidencia(session, marco_id)
 
 
+async def listar_protocolos_recentes_do_empreendimento(
+    session: AsyncSession, empreendimento_id: int, limite: int
+) -> list[ProtocoloEvidencia]:
+    return await _repositorio.listar_protocolos_recentes_do_empreendimento(
+        session, empreendimento_id, limite
+    )
+
+
 async def associar_protocolo_ao_marco(
     session: AsyncSession, marco_id: int, protocolo_id: int
 ) -> ProtocoloEvidencia:
