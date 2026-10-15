@@ -120,13 +120,20 @@ async def editar_empreendimento(
         raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
 
 
-async def _exigir_acesso_ao_empreendimento(
+async def exigir_acesso_ao_empreendimento(
     session: AsyncSession, usuario: Usuario, empreendimento_id: int
 ) -> None:
     if usuario.papel == Papel.ADMIN:
         return
     if not await pode_gerir(session, usuario.id, empreendimento_id):
         raise HTTPException(status_code=403, detail="Acesso negado ao empreendimento")
+
+
+async def _exigir_acesso_ao_empreendimento(
+    session: AsyncSession, usuario: Usuario, empreendimento_id: int
+) -> None:
+    """Compatibilidade para as rotas de domínio que ainda usam o nome privado."""
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
 
 
 @router.get("/{empreendimento_id}/taxonomia", response_model=TaxonomiaLer)
@@ -324,6 +331,11 @@ async def iniciar_progresso_marco(
 @router.post(
     "/{empreendimento_id}/progressos/{progresso_id}/concluir",
     response_model=ProgressoMarcoLer,
+    responses={
+        400: {
+            "description": "Marco não pode ser concluído; a resposta informa as pendências.",
+        }
+    },
 )
 async def concluir_progresso_marco(
     empreendimento_id: int,
@@ -331,6 +343,7 @@ async def concluir_progresso_marco(
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
 ):
+    """Conclui um marco ou retorna as pendências de evidências em HTTP 400."""
     await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
     try:
         progresso = await concluir_progresso(session, progresso_id, usuario_id=usuario.id)

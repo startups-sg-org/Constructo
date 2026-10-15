@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import func, select
 
 from backend.banco_de_dados.connections.database_postgres import postgres
+from backend.banco_de_dados.registro_modelos import registrar_modelos
 from backend.modulos.dominio.modelos import (
     Empreendimento,
     Etapa,
@@ -280,6 +281,7 @@ async def criar_taxonomia(session, empreendimento: Empreendimento) -> list[Marco
 
 
 async def popular(senha: str) -> None:
+    registrar_modelos()
     async with postgres.get_session() as session:
         marcador = await session.scalar(select(Usuario.id).where(Usuario.email == EMAIL_MARCADOR))
         if marcador is not None:

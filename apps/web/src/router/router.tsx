@@ -17,6 +17,7 @@ import TaxonomyEditor from "../modulos/empreendimentos/componentes/TaxonomyEdito
 import ListaEmpreendimentos from "../modulos/empreendimentos/componentes/ListaEmpreendimentos";
 import Formulario from "../modulos/usuarios/componentes/Formulario";
 import ListaUsuarios from "../modulos/usuarios/componentes/ListaUsuarios";
+import EvidenceGallery from "../modulos/evidencias/componentes/EvidenceGallery";
 import ErroRota, { PaginaNaoEncontrada } from "../pages/ErroRota/ErroRota";
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
@@ -160,6 +161,17 @@ export const rotas: RouteObject[] = [
                 subtitulo="Personalize etapas, subetapas e marcos do empreendimento."
               >
                 <TaxonomyEditor />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/:empreendimentoId/evidencias",
+            element: (
+              <PaginaPainel
+                titulo="Galeria de evidências"
+                subtitulo="Consulte e filtre os registros visuais do avanço da obra."
+              >
+                <EvidenceGallery />
               </PaginaPainel>
             ),
           },
