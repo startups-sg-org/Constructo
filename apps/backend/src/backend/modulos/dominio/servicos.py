@@ -566,6 +566,9 @@ async def vincular_comprador(
     local = await _exigir(session, LocalObra, local_id)
     if not usuario.ativo or usuario.papel != Papel.COMPRADOR or local.tipo != TipoLocal.UNIDADE:
         raise ValueError("Vínculo requer comprador ativo e local do tipo UNIDADE")
+    existente = await session.get(UsuarioUnidade, (usuario_id, local_id))
+    if existente is not None:
+        return existente
     vinculo = UsuarioUnidade(usuario_id=usuario_id, local_obra_id=local_id)
     session.add(vinculo)
     await session.flush()

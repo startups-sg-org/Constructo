@@ -211,6 +211,64 @@ def test_rejeita_usuario_sem_acesso_ao_empreendimento(cliente, monkeypatch):
     assert resposta.json() == {"detail": "Acesso negado ao empreendimento"}
 
 
+def test_vincula_comprador_a_unidade(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def buscar(_session, local_id):
+        assert _session is session
+        assert local_id == 9
+        return SimpleNamespace(id=local_id, empreendimento_id=42, tipo="UNIDADE")
+
+    async def vincular(_session, usuario_id, local_id):
+        assert _session is session
+        return SimpleNamespace(usuario_id=usuario_id, local_obra_id=local_id)
+
+    monkeypatch.setattr(rotas, "buscar_local", buscar)
+    monkeypatch.setattr(rotas, "vincular_comprador", vincular)
+
+    resposta = test_client.post(
+        "/empreendimentos/42/locais/9/compradores",
+        json={"usuario_id": 17},
+    )
+
+    assert resposta.status_code == 201
+    assert resposta.json() == {"usuario_id": 17, "local_obra_id": 9}
+
+
+def test_rejeita_vinculo_de_unidade_de_outro_empreendimento(cliente, monkeypatch):
+    async def buscar(_session, local_id):
+        return SimpleNamespace(id=local_id, empreendimento_id=99, tipo="UNIDADE")
+
+    monkeypatch.setattr(rotas, "buscar_local", buscar)
+
+    resposta = cliente[0].post(
+        "/empreendimentos/42/locais/9/compradores",
+        json={"usuario_id": 17},
+    )
+
+    assert resposta.status_code == 404
+    assert resposta.json() == {"detail": "Unidade não pertence ao empreendimento"}
+
+
+def test_rejeita_vinculo_quando_regra_do_comprador_nao_e_atendida(cliente, monkeypatch):
+    async def buscar(_session, local_id):
+        return SimpleNamespace(id=local_id, empreendimento_id=42, tipo="UNIDADE")
+
+    async def vincular(_session, _usuario_id, _local_id):
+        raise ValueError("Vínculo requer comprador ativo e local do tipo UNIDADE")
+
+    monkeypatch.setattr(rotas, "buscar_local", buscar)
+    monkeypatch.setattr(rotas, "vincular_comprador", vincular)
+
+    resposta = cliente[0].post(
+        "/empreendimentos/42/locais/9/compradores",
+        json={"usuario_id": 17},
+    )
+
+    assert resposta.status_code == 400
+    assert resposta.json() == {"detail": "Vínculo requer comprador ativo e local do tipo UNIDADE"}
+
+
 def test_lista_somente_locais_raiz_do_empreendimento(cliente, monkeypatch):
     async def listar(_session, empreendimento_id, *, parent_id=None):
         assert empreendimento_id == 42
