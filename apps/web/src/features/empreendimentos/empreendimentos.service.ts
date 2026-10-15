@@ -43,6 +43,11 @@ export type Taxonomia = {
     etapas?: Etapa[];
 };
 
+export type VinculoCompradorUnidade = {
+    usuario_id: number;
+    local_obra_id: number;
+};
+
 export function obterTaxonomia(empreendimentoId: number, options?: ServiceRequestOptions) {
     return apiRequest<Taxonomia>(`/empreendimentos/${empreendimentoId}/taxonomia`, {
         signal: options?.signal,
@@ -274,5 +279,32 @@ export function criarUnidade(
             body: JSON.stringify(dados),
             signal: options?.signal,
         },
+    );
+}
+
+export function vincularCompradorAUnidade(
+    empreendimentoId: number,
+    unidadeId: number,
+    usuarioId: number,
+    options?: ServiceRequestOptions,
+): Promise<VinculoCompradorUnidade> {
+    return apiRequest<VinculoCompradorUnidade>(
+        `/empreendimentos/${empreendimentoId}/locais/${unidadeId}/compradores`,
+        {
+            method: "POST",
+            body: JSON.stringify({ usuario_id: usuarioId }),
+            signal: options?.signal,
+        },
+    );
+}
+
+export function listarCompradoresDaUnidade(
+    empreendimentoId: number,
+    unidadeId: number,
+    options?: ServiceRequestOptions,
+): Promise<VinculoCompradorUnidade[]> {
+    return apiRequest<VinculoCompradorUnidade[]>(
+        `/empreendimentos/${empreendimentoId}/locais/${unidadeId}/compradores`,
+        { signal: options?.signal },
     );
 }

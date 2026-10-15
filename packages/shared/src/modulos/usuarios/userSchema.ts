@@ -71,7 +71,8 @@ export type User = Omit<userFormData, "confirmarSenha">
 
 export const editUserSchema = userBaseSchema.omit({
     senha: true,
-    confirmarSenha: true
+    confirmarSenha: true,
+    papel: true,
 }).extend({
     ativo: z.boolean()
 })
