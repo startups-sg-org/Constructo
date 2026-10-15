@@ -1,5 +1,5 @@
 import type { EstruturaLocal } from "@constructo/shared";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Card, Form as BootstrapForm } from "react-bootstrap";
 import { useLoaderData, useLocation, useSearchParams } from "react-router-dom";
 
@@ -10,6 +10,7 @@ import { encontrarLocalSelecionado, LOCAL_SELECIONADO_PARAM, obterLocalSeleciona
 import LocationDetails from "./LocationDetails";
 import StructureBreadcrumb from "./StructureBreadcrumb";
 import StructureList from "./StructureList";
+import UnitBuyerLink, { type CompradorVinculado } from "./UnitBuyerLink";
 import "./StructureManagementPage.css";
 
 function ramosIniciais(items: EstruturaLocal[]): Set<number> {
@@ -25,6 +26,7 @@ export default function StructureManagementPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [expandedIds, setExpandedIds] = useState<Set<number>>(() => ramosIniciais(estrutura));
     const [busca, setBusca] = useState("");
+    const [compradoresPorUnidade, setCompradoresPorUnidade] = useState<Record<number, CompradorVinculado[]>>({});
     const selectedId = obterLocalSelecionadoId(new URL(`${location.pathname}${location.search}`, window.location.origin));
     const selecao = useMemo(() => encontrarLocalSelecionado(estrutura, selectedId), [estrutura, selectedId]);
     const localAtual = selecao?.local ?? null;
@@ -46,6 +48,19 @@ export default function StructureManagementPage() {
             return proximo;
         });
     }
+
+    const registrarCompradorVinculado = useCallback((unidadeId: number, comprador: CompradorVinculado) => {
+        setCompradoresPorUnidade((atuais) => {
+            const compradores = atuais[unidadeId] ?? [];
+            if (compradores.some((item) => item.id === comprador.id)) return atuais;
+
+            return { ...atuais, [unidadeId]: [...compradores, comprador] };
+        });
+    }, []);
+
+    const registrarCompradoresCarregados = useCallback((unidadeId: number, compradores: CompradorVinculado[]) => {
+        setCompradoresPorUnidade((atuais) => ({ ...atuais, [unidadeId]: compradores }));
+    }, []);
 
     return (
         <section className="estrutura-gerenciamento" aria-labelledby="estrutura-gerenciamento-titulo">
@@ -75,6 +90,22 @@ export default function StructureManagementPage() {
                             <BootstrapForm.Text>A busca considera apenas os filhos diretos.</BootstrapForm.Text>
                         </BootstrapForm.Group>
                         <StructureList items={filhos} busca={busca} contexto={localAtual?.nome ?? "A estrutura"} onSelect={(local) => selecionarPorId(local.id)} />
+                        {localAtual?.tipo === "UNIDADE" && (
+                            <section className="border-top mt-4 pt-3" aria-labelledby="compradores-unidade-titulo">
+                                <h4 id="compradores-unidade-titulo" className="h5">Compradores vinculados</h4>
+                                {(compradoresPorUnidade[localAtual.id] ?? []).length === 0 ? (
+                                    <p className="text-body-secondary mb-0">Nenhum comprador vinculado a esta unidade.</p>
+                                ) : (
+                                    <ul className="mb-0">
+                                        {(compradoresPorUnidade[localAtual.id] ?? []).map((comprador) => (
+                                            <li key={comprador.id}>
+                                                {comprador.nome}{comprador.email && ` — ${comprador.email}`}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </section>
+                        )}
                     </Card.Body>
                 </Card>
 
@@ -82,6 +113,15 @@ export default function StructureManagementPage() {
                     <Card.Body>
                         <Card.Title as="h3">Detalhes do local</Card.Title>
                         <LocationDetails selecao={selecao} empreendimentoNome={empreendimento.nome} />
+                        {localAtual?.tipo === "UNIDADE" && (
+                            <UnitBuyerLink
+                                key={localAtual.id}
+                                empreendimentoId={empreendimento.id}
+                                unidadeId={localAtual.id}
+                                onVinculado={registrarCompradorVinculado}
+                                onCompradoresCarregados={registrarCompradoresCarregados}
+                            />
+                        )}
                     </Card.Body>
                 </Card>
             </div>

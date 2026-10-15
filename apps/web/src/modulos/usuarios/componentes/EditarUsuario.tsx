@@ -2,11 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
     editUserSchema,
     type EditUserData,
+    type Empreendimento,
+    type EstruturaLocal,
     type UserReponse,
 } from "@constructo/shared";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { useFetcher } from "react-router-dom";
+import { listarEmpreendimentos, obterEstruturaFisica } from "../../../features/empreendimentos/empreendimentos.service";
 import type { UsuariosActionData } from "../../../features/usuarios/usuarios.action";
 
 type EditarUsuarioProps = {
@@ -14,14 +17,33 @@ type EditarUsuarioProps = {
     aoCancelar: () => void;
 };
 
+function listarUnidades(locais: EstruturaLocal[]): EstruturaLocal[] {
+    return locais.flatMap((local) => [
+        ...(local.tipo === "UNIDADE" ? [local] : []),
+        ...listarUnidades(local.filhos),
+    ]);
+}
+
+function mensagemDeErro(erro: unknown, fallback: string): string {
+    return erro instanceof Error && erro.message ? erro.message : fallback;
+}
+
 export default function EditarUsuario({
     usuario,
     aoCancelar,
 }: EditarUsuarioProps) {
     const fetcher = useFetcher<UsuariosActionData>();
+    const [empreendimentos, setEmpreendimentos] = useState<Empreendimento[]>([]);
+    const [unidades, setUnidades] = useState<EstruturaLocal[]>([]);
+    const [carregandoEmpreendimentos, setCarregandoEmpreendimentos] = useState(usuario.papel === "COMPRADOR");
+    const [unidadesCarregadasPara, setUnidadesCarregadasPara] = useState<number | null>(null);
+    const [erroEmpreendimentos, setErroEmpreendimentos] = useState("");
+    const [erroUnidades, setErroUnidades] = useState<{ empreendimentoId: number; mensagem: string } | null>(null);
     const {
         register,
         handleSubmit,
+        setValue,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<EditUserData>({
         resolver: zodResolver(editUserSchema),
@@ -39,6 +61,16 @@ export default function EditarUsuario({
         },
     });
     const usuarioId = usuario.id;
+    const empreendimentoSelecionado = useWatch({ control, name: "empreendimento" });
+    const unidadeSelecionada = useWatch({ control, name: "unidade" });
+    const empreendimentoAtual = empreendimentos.find(
+        (empreendimento) => empreendimento.nome === empreendimentoSelecionado,
+    );
+    const unidadesDisponiveis = unidadesCarregadasPara === empreendimentoAtual?.id ? unidades : [];
+    const carregandoUnidades = Boolean(empreendimentoAtual && unidadesCarregadasPara !== empreendimentoAtual.id);
+    const erroUnidadesAtual = erroUnidades && erroUnidades.empreendimentoId === empreendimentoAtual?.id
+        ? erroUnidades.mensagem
+        : "";
 
     const resultadoDestaEdicao =
         fetcher.data?.intent === "update" && fetcher.data.usuarioId === usuarioId
@@ -59,6 +91,51 @@ export default function EditarUsuario({
             aoCancelar();
         }
     }, [aoCancelar, fetcher.state, resultadoDestaEdicao]);
+
+    useEffect(() => {
+        if (usuario.papel !== "COMPRADOR") return;
+
+        let montado = true;
+        void listarEmpreendimentos()
+            .then((resultado) => {
+                if (montado) setEmpreendimentos(resultado);
+            })
+            .catch((erro: unknown) => {
+                if (montado) setErroEmpreendimentos(mensagemDeErro(erro, "Não foi possível carregar os empreendimentos."));
+            })
+            .finally(() => {
+                if (montado) setCarregandoEmpreendimentos(false);
+            });
+
+        return () => {
+            montado = false;
+        };
+    }, [usuario.papel]);
+
+    useEffect(() => {
+        if (usuario.papel !== "COMPRADOR" || !empreendimentoAtual) return;
+
+        let montado = true;
+        void obterEstruturaFisica(empreendimentoAtual.id)
+            .then((estrutura) => {
+                if (!montado) return;
+                setUnidades(listarUnidades(estrutura));
+                setUnidadesCarregadasPara(empreendimentoAtual.id);
+            })
+            .catch((erro: unknown) => {
+                if (!montado) return;
+                setUnidades([]);
+                setUnidadesCarregadasPara(empreendimentoAtual.id);
+                setErroUnidades({
+                    empreendimentoId: empreendimentoAtual.id,
+                    mensagem: mensagemDeErro(erro, "Não foi possível carregar as unidades."),
+                });
+            });
+
+        return () => {
+            montado = false;
+        };
+    }, [empreendimentoAtual, usuario.papel]);
 
     function mensagemCampo(campo: keyof EditUserData) {
         return errors[campo]?.message ?? erroAction?.campos?.[campo];
@@ -130,16 +207,65 @@ export default function EditarUsuario({
                         <input id="editar-telefone" type="tel" {...register("telefone")} disabled={salvando} />
                         {mensagemCampo("telefone") && <span>{mensagemCampo("telefone")}</span>}
                     </div>
-                    <div className="campo">
-                        <label htmlFor="editar-empreendimento">Empreendimento</label>
-                        <input id="editar-empreendimento" {...register("empreendimento")} disabled={salvando} />
-                        {mensagemCampo("empreendimento") && <span>{mensagemCampo("empreendimento")}</span>}
-                    </div>
-                    <div className="campo">
-                        <label htmlFor="editar-unidade">Unidade</label>
-                        <input id="editar-unidade" {...register("unidade")} disabled={salvando} />
-                        {mensagemCampo("unidade") && <span>{mensagemCampo("unidade")}</span>}
-                    </div>
+                    {usuario.papel === "COMPRADOR" ? (
+                        <>
+                            <div className="campo">
+                                <label htmlFor="editar-empreendimento">Empreendimento</label>
+                                <select
+                                    id="editar-empreendimento"
+                                    {...register("empreendimento")}
+                                    disabled={salvando || carregandoEmpreendimentos}
+                                    value={empreendimentoSelecionado ?? ""}
+                                    onChange={(evento) => {
+                                        setValue("empreendimento", evento.target.value, { shouldDirty: true });
+                                        setValue("unidade", "", { shouldDirty: true });
+                                    }}
+                                >
+                                    <option value="">Selecione um empreendimento</option>
+                                    {empreendimentoSelecionado && !empreendimentoAtual && (
+                                        <option value={empreendimentoSelecionado}>{empreendimentoSelecionado}</option>
+                                    )}
+                                    {empreendimentos.map((empreendimento) => (
+                                        <option key={empreendimento.id} value={empreendimento.nome}>{empreendimento.nome}</option>
+                                    ))}
+                                </select>
+                                {erroEmpreendimentos && <span role="alert">{erroEmpreendimentos}</span>}
+                                {mensagemCampo("empreendimento") && <span>{mensagemCampo("empreendimento")}</span>}
+                            </div>
+                            <div className="campo">
+                                <label htmlFor="editar-unidade">Unidade</label>
+                                <select
+                                    id="editar-unidade"
+                                    {...register("unidade")}
+                                    disabled={salvando || !empreendimentoAtual || carregandoUnidades}
+                                    value={unidadeSelecionada ?? ""}
+                                >
+                                    <option value="">{carregandoUnidades ? "Carregando unidades..." : "Selecione uma unidade"}</option>
+                                    {unidadeSelecionada && !unidadesDisponiveis.some((unidade) => unidade.nome === unidadeSelecionada) && (
+                                        <option value={unidadeSelecionada}>{unidadeSelecionada}</option>
+                                    )}
+                                    {unidadesDisponiveis.map((unidade) => (
+                                        <option key={unidade.id} value={unidade.nome}>{unidade.nome}</option>
+                                    ))}
+                                </select>
+                                {erroUnidadesAtual && <span role="alert">{erroUnidadesAtual}</span>}
+                                {mensagemCampo("unidade") && <span>{mensagemCampo("unidade")}</span>}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="campo">
+                                <label htmlFor="editar-empreendimento">Empreendimento</label>
+                                <input id="editar-empreendimento" {...register("empreendimento")} disabled={salvando} />
+                                {mensagemCampo("empreendimento") && <span>{mensagemCampo("empreendimento")}</span>}
+                            </div>
+                            <div className="campo">
+                                <label htmlFor="editar-unidade">Unidade</label>
+                                <input id="editar-unidade" {...register("unidade")} disabled={salvando} />
+                                {mensagemCampo("unidade") && <span>{mensagemCampo("unidade")}</span>}
+                            </div>
+                        </>
+                    )}
                     <div className="campo">
                         <label htmlFor="editar-canal">Canal preferido</label>
                         <select id="editar-canal" {...register("canal_preferido")} disabled={salvando}>
