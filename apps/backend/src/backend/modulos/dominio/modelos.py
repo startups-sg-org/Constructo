@@ -21,7 +21,8 @@ from .regras import ProgressStatus, TipoLocal
 
 # Disponível apenas para analisadores de tipo; evita importação circular em execução.
 if TYPE_CHECKING:
-    from backend.modulos.evidencias.modulos import ProtocoloEvidencia
+    from backend.modulos.evidencias.modulos import ArquivoEvidencia, ProtocoloEvidencia
+    from backend.modulos.usuarios.modelos import Usuario
 
 
 class TipoLocalBanco(TypeDecorator[TipoLocal]):
@@ -236,15 +237,53 @@ class Evidencia(Base):
     progresso_marco_id: Mapped[int] = mapped_column(
         ForeignKey("progressos_marco.id", ondelete="RESTRICT"), nullable=False, index=True
     )
+    local_obra_id: Mapped[int] = mapped_column(
+        ForeignKey("locais_obra.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    marco_id: Mapped[int] = mapped_column(
+        ForeignKey("marcos.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
     item_protocolo_id: Mapped[int | None] = mapped_column(
         ForeignKey("itens_protocolo.id", ondelete="RESTRICT"), nullable=True, index=True
     )
+    arquivo_evidencia_id: Mapped[int | None] = mapped_column(
+        ForeignKey("arquivos_evidencia.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
     arquivo_url: Mapped[str] = mapped_column(String(1000), nullable=False)
-    descricao: Mapped[str | None] = mapped_column(Text)
+    descricao_tecnica: Mapped[str | None] = mapped_column(Text, nullable=True)
     capturado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    usuario_id: Mapped[int] = mapped_column(
+    capturado_por: Mapped[int] = mapped_column(
         ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=False
     )
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    progresso_marco: Mapped[ProgressoMarco] = relationship()
+    local_obra: Mapped[LocalObra] = relationship(foreign_keys=[local_obra_id])
+    marco: Mapped[Marco] = relationship(foreign_keys=[marco_id])
+    responsavel: Mapped["Usuario"] = relationship(foreign_keys=[capturado_por])
+    arquivo: Mapped["ArquivoEvidencia | None"] = relationship("ArquivoEvidencia")
+
+    # Compatibilidade temporaria com os contratos anteriores do dominio.
+    @property
+    def descricao(self) -> str | None:
+        return self.descricao_tecnica
+
+    @descricao.setter
+    def descricao(self, valor: str | None) -> None:
+        self.descricao_tecnica = valor
+
+    @property
+    def usuario_id(self) -> int:
+        return self.capturado_por
+
+    @usuario_id.setter
+    def usuario_id(self, valor: int) -> None:
+        self.capturado_por = valor
 
 
 class Publicacao(Base):

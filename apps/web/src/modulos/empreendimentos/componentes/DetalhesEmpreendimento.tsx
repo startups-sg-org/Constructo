@@ -248,7 +248,52 @@ export default function DetalhesEmpreendimento() {
                 </Card>
             </div>
 
-        </section>
+            <dl className="detalhes-empreendimento__dados lista-dados">
+                <div>
+                    <dt>Endereço</dt>
+                    <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
+                </div>
+                <div>
+                    <dt>Data de criação</dt>
+                    <dd>{formatarDataEmpreendimento(empreendimento.criado_em)}</dd>
+                </div>
+                <div>
+                    <dt>Data de atualização</dt>
+                    <dd>{formatarDataEmpreendimento(empreendimento.atualizado_em)}</dd>
+                </div>
+                <div className="detalhes-empreendimento__descricao">
+                    <dt>Descrição</dt>
+                    <dd>{empreendimento.descricao || "Descrição não informada"}</dd>
+                </div>
+                <div>
+                    <dt>Taxonomia</dt>
+                    <dd>{carregandoTaxonomia ? "Carregando…" : taxonomia?.nome || "Nenhuma taxonomia configurada"}</dd>
+                </div>
+            </dl>
+
+            {!carregandoTaxonomia && !taxonomia && (
+                <TaxonomyConfiguration
+                    empreendimentoId={empreendimento.id}
+                    onConfigured={setTaxonomia}
+                />
+            )}
+
+            <UploadEvidencia empreendimentoId={empreendimento.id} />
+
+            <footer className="detalhes-empreendimento__acoes barra-acoes">
+                <Link className="botao secundario" to="/admin/obras">Voltar à listagem</Link>
+                <Link className="botao secundario" to="estrutura">
+                    Gerenciar estrutura física
+                </Link>
+                {taxonomia && <Link className="botao secundario" to="taxonomia">
+                    Editar taxonomia
+                </Link>}
+                <Link className="botao secundario" to="evidencias">
+                    Ver evidências
+                </Link>
+                <Link className="botao primario" to="editar">Editar empreendimento</Link>
+            </footer>
+        </article>
     );
 }
 

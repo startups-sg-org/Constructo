@@ -1,4 +1,9 @@
 import { apiRequest, type ServiceRequestOptions } from "../../services/api";
+import { API_URL } from "../../services/api";
+import type {
+    Evidencia,
+    FiltrosEvidencia,
+} from "../../modulos/evidencias/types";
 
 /**
  * Cliente HTTP do domínio de evidências.
@@ -95,25 +100,29 @@ export function enviarEvidencia(
     });
 }
 
-/** Lista os protocolos de evidência de um marco, já acompanhados de seus itens. */
-export function listarProtocolosEvidencia(
+export function listarEvidencias(
     empreendimentoId: number,
-    marcoId: number,
+    filtros: FiltrosEvidencia = {},
     options?: ServiceRequestOptions,
-): Promise<ProtocoloEvidencia[]> {
-    return apiRequest<ProtocoloEvidencia[]>(
-        `/empreendimentos/${empreendimentoId}/taxonomia/marcos/${marcoId}/protocolos-evidencia`,
-        { signal: options?.signal },
-    );
-}
+): Promise<Evidencia[]> {
+    const parametros = new URLSearchParams();
 
-/** Lista os protocolos de evidência criados mais recentemente na obra. */
-export function listarProtocolosRecentes(
-    empreendimentoId: number,
-    options?: ServiceRequestOptions,
-): Promise<ProtocoloEvidenciaResumo[]> {
-    return apiRequest<ProtocoloEvidenciaResumo[]>(
-        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes`,
+    if (filtros.localObraId) {
+        parametros.set("local_obra_id", String(filtros.localObraId));
+    }
+    if (filtros.marcoId) {
+        parametros.set("marco_id", String(filtros.marcoId));
+    }
+    if (filtros.dataCapturaInicio) {
+        parametros.set("data_captura_inicio", filtros.dataCapturaInicio);
+    }
+    if (filtros.dataCapturaFim) {
+        parametros.set("data_captura_fim", filtros.dataCapturaFim);
+    }
+
+    const query = parametros.toString();
+    return apiRequest<Evidencia[]>(
+        `/empreendimentos/${empreendimentoId}/evidencias${query ? `?${query}` : ""}`,
         { signal: options?.signal },
     );
 }
@@ -248,4 +257,8 @@ export async function enviarEvidenciaParaItem(
         },
         options,
     );
+  
+ export function resolverUrlEvidencia(caminho: string): string {
+   if (/^(https?:|data:|blob:)/.test(caminho)) return caminho;
+   return `${API_URL}${caminho.startsWith("/") ? caminho : `/${caminho}`}`;
 }
