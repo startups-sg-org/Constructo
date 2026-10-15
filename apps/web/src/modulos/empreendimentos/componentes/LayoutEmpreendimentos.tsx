@@ -10,7 +10,13 @@ import {
 } from "./empreendimentoFormatters";
 import "./LayoutEmpreendimentos.css";
 
-const abas = [
+type AbaEmpreendimento = {
+    rotulo: string;
+    destino: string;
+    fimExato?: boolean;
+};
+
+const abas: readonly AbaEmpreendimento[] = [
     { rotulo: "Visualizar", destino: "", fimExato: true },
     { rotulo: "Editar", destino: "editar" },
     { rotulo: "Estrutura", destino: "estrutura" },
@@ -18,7 +24,7 @@ const abas = [
     { rotulo: "Contratos", destino: "contratos" },
     { rotulo: "Medições", destino: "medicoes" },
     { rotulo: "Documentos", destino: "documentos" },
-] as const;
+];
 
 export default function LayoutEmpreendimentos() {
     const empreendimento = useRouteLoaderData<typeof carregarEmpreendimento>("empreendimento");
@@ -56,7 +62,7 @@ export default function LayoutEmpreendimentos() {
                 {abas.map((aba) => (
                     <Nav.Link
                         as={NavLink}
-                        end={aba.fimExato}
+                        end={aba.fimExato ?? false}
                         key={aba.rotulo}
                         to={aba.destino ? `${rotaBase}/${aba.destino}` : rotaBase}
                     >

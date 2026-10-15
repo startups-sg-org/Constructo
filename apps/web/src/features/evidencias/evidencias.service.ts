@@ -1,5 +1,4 @@
-import { apiRequest, type ServiceRequestOptions } from "../../services/api";
-import { API_URL } from "../../services/api";
+import { API_URL, apiRequest, type ServiceRequestOptions } from "../../services/api";
 import type {
     Evidencia,
     FiltrosEvidencia,
@@ -99,7 +98,6 @@ export function enviarEvidencia(
         signal: options?.signal,
     });
 }
-
 export function listarEvidencias(
     empreendimentoId: number,
     filtros: FiltrosEvidencia = {},
@@ -123,6 +121,29 @@ export function listarEvidencias(
     const query = parametros.toString();
     return apiRequest<Evidencia[]>(
         `/empreendimentos/${empreendimentoId}/evidencias${query ? `?${query}` : ""}`,
+        { signal: options?.signal },
+    );
+}
+
+/** Lista os protocolos de evidência mais recentes do empreendimento. */
+export function listarProtocolosRecentes(
+    empreendimentoId: number,
+    options?: ServiceRequestOptions,
+): Promise<ProtocoloEvidenciaResumo[]> {
+    return apiRequest<ProtocoloEvidenciaResumo[]>(
+        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes`,
+        { signal: options?.signal },
+    );
+}
+
+/** Lista os protocolos e itens associados ao marco informado. */
+export function listarProtocolosEvidencia(
+    empreendimentoId: number,
+    marcoId: number,
+    options?: ServiceRequestOptions,
+): Promise<ProtocoloEvidencia[]> {
+    return apiRequest<ProtocoloEvidencia[]>(
+        `/empreendimentos/${empreendimentoId}/taxonomia/marcos/${marcoId}/protocolos-evidencia`,
         { signal: options?.signal },
     );
 }
@@ -257,8 +278,9 @@ export async function enviarEvidenciaParaItem(
         },
         options,
     );
-  
- export function resolverUrlEvidencia(caminho: string): string {
-   if (/^(https?:|data:|blob:)/.test(caminho)) return caminho;
-   return `${API_URL}${caminho.startsWith("/") ? caminho : `/${caminho}`}`;
+}
+
+export function resolverUrlEvidencia(caminho: string): string {
+    if (/^(https?:|data:|blob:)/.test(caminho)) return caminho;
+    return `${API_URL}${caminho.startsWith("/") ? caminho : `/${caminho}`}`;
 }
