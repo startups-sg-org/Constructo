@@ -3,7 +3,9 @@ node_modules/
 dist/
 dist-ssr/
 build/
-
+# Maestri
+.maestri/
+maestri/
 # Variáveis de ambiente
 .env
 .env.*
