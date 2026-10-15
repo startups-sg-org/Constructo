@@ -5,7 +5,7 @@
 
 .evidence-gallery__filtros {
     display: grid;
-    grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) auto;
     align-items: end;
     gap: 14px;
     padding: 18px;
@@ -22,9 +22,37 @@
     font-weight: 700;
 }
 
+.evidence-gallery__filtro select,
+.evidence-gallery__filtro input:not([type="checkbox"]) {
+    width: 100%;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-input, 6px);
+    background: #fff;
+    color: var(--cor-texto);
+    font-size: 0.85rem;
+}
+
+.evidence-gallery__filtro-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    color: #3f6860 !important;
+    cursor: pointer;
+}
+
+.evidence-gallery__filtro-checkbox input {
+    cursor: pointer;
+}
+
 .evidence-gallery__acoes-filtro {
     display: flex;
     gap: 8px;
+    align-self: end;
 }
 
 .evidence-gallery__resumo {

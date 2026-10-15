@@ -235,6 +235,10 @@ async def listar_evidencias(
     empreendimento_id: int,
     *,
     local_obra_id: int | None = None,
+    tipo_local: TipoLocal | None = None,
+    incluir_descendentes_local: bool = True,
+    etapa_id: int | None = None,
+    incluir_subetapas: bool = True,
     marco_id: int | None = None,
     data_captura_inicio: datetime | None = None,
     data_captura_fim: datetime | None = None,
@@ -245,11 +249,34 @@ async def listar_evidencias(
         raise EvidenciaInvalidaError(
             "data_captura_inicio não pode ser posterior a data_captura_fim"
         )
+
+    locais_obra_ids: list[int] | None = None
+    if local_obra_id is not None:
+        if incluir_descendentes_local and hasattr(_repositorio_evidencias, "obter_ids_locais_descendentes"):
+            locais_obra_ids = await _repositorio_evidencias.obter_ids_locais_descendentes(
+                session, empreendimento_id, local_obra_id
+            )
+        else:
+            locais_obra_ids = [local_obra_id]
+
+    marcos_ids: list[int] | None = None
+    if marco_id is not None:
+        marcos_ids = [marco_id]
+    elif etapa_id is not None and hasattr(_repositorio_evidencias, "obter_ids_marcos_por_etapa"):
+        marcos_ids = await _repositorio_evidencias.obter_ids_marcos_por_etapa(
+            session, empreendimento_id, etapa_id, incluir_subetapas=incluir_subetapas
+        )
+        if not marcos_ids:
+            return []
+
     return await _repositorio_evidencias.listar(
         session,
         empreendimento_id,
-        local_obra_id=local_obra_id,
-        marco_id=marco_id,
+        local_obra_id=local_obra_id if locais_obra_ids is None else None,
+        locais_obra_ids=locais_obra_ids,
+        tipo_local=tipo_local,
+        marco_id=marco_id if marcos_ids is None else None,
+        marcos_ids=marcos_ids,
         data_captura_inicio=inicio,
         data_captura_fim=fim,
     )

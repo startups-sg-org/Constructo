@@ -162,6 +162,34 @@ describe("EvidenceGallery", () => {
         });
     });
 
+    it("envia tipo de local, etapa e opções de descendentes desmarcadas", async () => {
+        const user = userEvent.setup();
+        listarEvidenciasMock.mockResolvedValue([]);
+        renderizarGaleria();
+        await screen.findByRole("heading", {
+            name: "Nenhuma evidência encontrada para estes filtros",
+        });
+
+        await user.selectOptions(screen.getByLabelText("Tipo de local"), "TORRE");
+        await user.click(screen.getByLabelText("Incluir descendentes"));
+        await user.type(screen.getByLabelText("ID da etapa"), "5");
+        await user.click(screen.getByLabelText("Incluir subetapas"));
+        await user.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+
+        await waitFor(() => {
+            expect(listarEvidenciasMock).toHaveBeenLastCalledWith(
+                12,
+                {
+                    tipoLocal: "TORRE",
+                    incluirDescendentesLocal: false,
+                    etapaId: 5,
+                    incluirSubetapas: false,
+                },
+                expect.objectContaining({ signal: expect.any(AbortSignal) }),
+            );
+        });
+    });
+
     it("pagina os cards sem montar todas as imagens ao mesmo tempo", async () => {
         const user = userEvent.setup();
         listarEvidenciasMock.mockResolvedValue(

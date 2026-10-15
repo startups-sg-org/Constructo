@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from backend.modulos.dominio.regras import TipoLocal
 
@@ -301,3 +301,38 @@ class Evidencia_FromDB_Schema(EvidenciaCriar_Schema):
 
 class EvidenciaResponse(Evidencia_FromDB_Schema):
     """Nome público do contrato retornado pelos endpoints de evidências."""
+
+
+class FiltrosEvidencia_Query_Schema(BaseModel):
+    """Parâmetros de consulta para filtragem de evidências.
+
+    Suporta:
+    - Filtro por local e seus descendentes na estrutura física (Issue #223);
+    - Filtro por etapa, subetapa e marco construtivo (Issue #224);
+    - Filtro por intervalo de datas de captura (Issue #225).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    local_obra_id: int | None = Field(default=None, gt=0)
+    tipo_local: TipoLocal | None = None
+    incluir_descendentes_local: bool = True
+
+    etapa_id: int | None = Field(default=None, gt=0)
+    incluir_subetapas: bool = True
+    marco_id: int | None = Field(default=None, gt=0)
+
+    data_captura_inicio: datetime | None = None
+    data_captura_fim: datetime | None = None
+
+    @model_validator(mode="after")
+    def validar_intervalo_datas(self) -> "FiltrosEvidencia_Query_Schema":
+        if (
+            self.data_captura_inicio is not None
+            and self.data_captura_fim is not None
+            and self.data_captura_inicio > self.data_captura_fim
+        ):
+            raise ValueError(
+                "data_captura_inicio não pode ser posterior a data_captura_fim"
+            )
+        return self
