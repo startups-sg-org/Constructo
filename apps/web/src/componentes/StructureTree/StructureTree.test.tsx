@@ -38,11 +38,18 @@ const estrutura: EstruturaLocal[] = [{
 
 function ArvoreTestavel() {
     const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [expandedIds, setExpandedIds] = useState<Set<number>>(() => new Set([1, 2]));
     return (
         <StructureTree
             items={estrutura}
             selectedId={selectedId}
             onSelect={(item) => setSelectedId(item.id)}
+            expandedIds={expandedIds}
+            onToggle={(item) => setExpandedIds((atual) => {
+                const proximo = new Set(atual);
+                if (proximo.has(item.id)) proximo.delete(item.id); else proximo.add(item.id);
+                return proximo;
+            })}
         />
     );
 }
@@ -52,7 +59,7 @@ describe("StructureTree", () => {
         const user = userEvent.setup();
         render(<ArvoreTestavel />);
 
-        expect(screen.getByRole("tree")).toBeInTheDocument();
+        expect(screen.getByLabelText("Estrutura física")).toBeInTheDocument();
         expect(screen.getByText("Torre")).toBeInTheDocument();
         expect(screen.getByText("Pavimento")).toBeInTheDocument();
         expect(screen.getByText("Unidade")).toBeInTheDocument();
@@ -69,25 +76,22 @@ describe("StructureTree", () => {
     it("permite selecionar um item com mouse e teclado", async () => {
         const user = userEvent.setup();
         render(<ArvoreTestavel />);
-        const unidade = screen.getByRole("treeitem", { name: /Unidade 101/ });
+        const unidade = screen.getByRole("button", { name: "Unidade 101" });
 
         await user.click(unidade);
-        expect(unidade).toHaveAttribute("aria-selected", "true");
+        expect(unidade).toHaveAttribute("aria-current", "true");
 
         await user.click(screen.getByRole("button", { name: "Recolher Torre A" }));
         await user.click(screen.getByRole("button", { name: "Expandir Torre A" }));
-        expect(screen.getByRole("treeitem", { name: /Unidade 101/ })).toHaveAttribute(
-            "aria-selected",
+        expect(screen.getByRole("button", { name: "Unidade 101" })).toHaveAttribute(
+            "aria-current",
             "true",
         );
 
-        const pavimento = screen.getByRole("treeitem", { name: /1º Pavimento/ });
+        const pavimento = screen.getByRole("button", { name: "1º Pavimento" });
         pavimento.focus();
         await user.keyboard("{Enter}");
-        expect(pavimento).toHaveAttribute("aria-selected", "true");
-        expect(screen.getByRole("treeitem", { name: /Unidade 101/ })).toHaveAttribute(
-            "aria-selected",
-            "false",
-        );
+        expect(pavimento).toHaveAttribute("aria-current", "true");
+        expect(screen.getByRole("button", { name: "Unidade 101" })).not.toHaveAttribute("aria-current");
     });
 });

@@ -1,6 +1,8 @@
-# Fluxo econômico para implementação de issues
+# Fluxo econômico para implementação de issues de FRONT-END
 
 ## Objetivo
+
+
 
 Executar o fluxo arquiteto → implementação → verificador com menos leitura
 repetida, menos texto e sem perder o registro das pendências.
@@ -9,13 +11,14 @@ repetida, menos texto e sem perder o registro das pendências.
 
 Ler somente:
 
-- a issue solicitada;
+- a issue solicitada em web/.agents/EPIC/ISSUES/[issue.md];
+- utilizar a SKILL create-plan.md em.agents/.SKILLS/create-plan.md
 - os agentes diretamente aplicáveis;
 - os arquivos afetados pela primeira etapa.
 
-Registrar na issue um planejamento curto contendo:
+Registrar na issue um planejamento  contendo:
 
-1. etapa;
+1. etapa sequenciais de produção da issue;
 2. arquivos envolvidos;
 3. alteração esperada;
 4. validação prevista.
@@ -35,11 +38,14 @@ Para cada etapa:
 Validações rápidas recomendadas:
 
 - `ruff check` nos arquivos alterados;
-- `python -m py_compile` nos arquivos Python alterados;
-- inspeção de migration quando houver alteração de banco.
-
-Não executar `pytest` automaticamente. Executá-lo somente quando o usuário
-autorizar ou solicitar explicitamente.
+- Inspeção estática da navegação do CTA, semântica da tabela e media queries.
+- `pnpm --filter web lint` — aprovado.
+- `pnpm --filter web exec tsc --noEmit` — aprovado.
+- `pnpm --filter web build` — aprovado; permanece apenas o aviso existente de
+  tamanho do bundle.
+- `git diff --check` — aprovado.
+- Não foram criados nem executados testes automatizados, conforme orientação
+  do usuário.
 
 ## 3. Registro da etapa
 
@@ -80,14 +86,26 @@ Quando o usuário solicitar uma pendência específica:
 2. não replanejar a issue inteira;
 3. não modificar pendências não relacionadas;
 4. atualizar apenas o trecho correspondente do relatório;
-5. validar com lint e sintaxe, sem `pytest` salvo autorização.
+
+## 6. ETAPAS DE PLANEJAMENTO
+
+**Etapas de planejamento:**
+**Status:** implementada e verificada sem criação de código de teste.
+### Entregas realizadas
+### Arquivos alterados
+### Validações executadas
+### Pendências restantes
+**Dependências**
+
 
 ## Prompt curto recomendado
 
 ```text
-Atue como agente-arquiteto/verificador na issue N.
+Atue como web/.AGENTS/agente-arquiteto/verificador na issue N.
 Leia somente os arquivos diretamente relacionados à etapa solicitada.
 Seja objetivo, não repita o planejamento e não execute pytest sem autorização.
 Altere apenas o escopo informado e registre na issue os arquivos, validações e
 pendências restantes.
 ```
+
+

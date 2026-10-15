@@ -16,6 +16,7 @@ import {
   obterEmpreendimento,
   obterTaxonomia,
 } from "../features/empreendimentos/empreendimentos.service";
+import { listarProtocolosRecentes } from "../features/evidencias/evidencias.service";
 import { ApiError } from "../services/api";
 import {
   createUser,
@@ -42,6 +43,10 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   obterTaxonomia: vi.fn(),
 }));
 
+vi.mock("../features/evidencias/evidencias.service", () => ({
+  listarProtocolosRecentes: vi.fn(),
+}));
+
 
 vi.mock("../features/usuarios/usuarios.service", () => ({
   createUser: vi.fn(),
@@ -63,6 +68,7 @@ const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const obterEstruturaFisicaMock = vi.mocked(obterEstruturaFisica);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const obterTaxonomiaMock = vi.mocked(obterTaxonomia);
+const listarProtocolosRecentesMock = vi.mocked(listarProtocolosRecentes);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
 const getUsersCountMock = vi.mocked(getUsersCount);
@@ -117,6 +123,7 @@ describe("novo sistema de rotas", () => {
       descricao: "Taxonomia do empreendimento",
       is_padrao: false,
     });
+    listarProtocolosRecentesMock.mockResolvedValue([]);
   });
 
   it("renderiza a rota pública principal", async () => {
@@ -404,18 +411,12 @@ describe("novo sistema de rotas", () => {
       await screen.findByRole("heading", { name: "Residencial Aurora" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Duas torres")).toBeInTheDocument();
-    expect(screen.getByText("Avenida Central, 100")).toBeInTheDocument();
+    expect(screen.getAllByText("Avenida Central, 100")).toHaveLength(2);
     expect(screen.getByText("Planejado")).toBeInTheDocument();
     expect(screen.getByText("Data de criação")).toBeInTheDocument();
-    expect(screen.getByText("Data de atualização")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Editar empreendimento" })).toHaveAttribute(
-      "href",
-      "/admin/empreendimentos/12/editar",
-    );
-    expect(screen.getByRole("link", { name: "Gerenciar estrutura física" })).toHaveAttribute(
-      "href",
-      "/admin/empreendimentos/12/estrutura",
-    );
+    expect(screen.getByText("Atualizado em")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Editar empreendimento" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Gerenciar estrutura física" })).not.toBeInTheDocument();
     expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
   });
 
@@ -423,9 +424,7 @@ describe("novo sistema de rotas", () => {
     const user = userEvent.setup();
     montarRota("/admin/empreendimentos/12");
 
-    await user.click(
-      await screen.findByRole("link", { name: "Gerenciar estrutura física" }),
-    );
+    await user.click(await screen.findByRole("link", { name: "Estrutura" }));
 
     expect(
       await screen.findByRole("heading", { name: "Estrutura física" }),
@@ -471,13 +470,13 @@ describe("novo sistema de rotas", () => {
     const router = montarRota("/admin/empreendimentos/12/estrutura");
 
     expect(await screen.findByRole("heading", { name: "Selecione um local" })).toBeInTheDocument();
-    await user.click(screen.getByRole("treeitem", { name: /Unidade 704/ }));
+    await user.click(screen.getByRole("button", { name: "Unidade 704" }));
 
     await waitFor(() => {
       expect(router.state.location.search).toBe("?localId=51");
     });
-    const unidadeSelecionada = screen.getByRole("treeitem", { name: /Unidade 704/ });
-    expect(unidadeSelecionada).toHaveAttribute("aria-selected", "true");
+    const unidadeSelecionada = screen.getByRole("button", { name: "Unidade 704" });
+    expect(unidadeSelecionada).toHaveAttribute("aria-current", "true");
 
     const painel = screen.getByRole("complementary", { name: "Unidade 704" });
     expect(within(painel).getByText("51")).toBeInTheDocument();
@@ -499,8 +498,8 @@ describe("novo sistema de rotas", () => {
     await router.navigate(-1);
 
     expect(
-      await screen.findByRole("treeitem", { name: /Unidade 704/ }),
-    ).toHaveAttribute("aria-selected", "true");
+      await screen.findByRole("button", { name: "Unidade 704" }),
+    ).toHaveAttribute("aria-current", "true");
     expect(router.state.location.search).toBe("?localId=51");
   });
 
@@ -520,8 +519,8 @@ describe("novo sistema de rotas", () => {
 
     montarRota("/admin/empreendimentos/12/estrutura?localId=32");
 
-    expect(await screen.findByRole("treeitem", { name: /Bloco Norte/ }))
-      .toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("button", { name: "Bloco Norte" }))
+      .toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("complementary", { name: "Bloco Norte" }))
       .toHaveTextContent("Bloco");
   });
@@ -838,8 +837,8 @@ describe("novo sistema de rotas", () => {
       expect.anything(),
     );
     expect(await screen.findByRole("heading", { name: "Bloco Sul" })).toBeInTheDocument();
-    expect(screen.getByRole("treeitem", { name: /Bloco Sul/ })).toHaveAttribute(
-      "aria-selected",
+    expect(screen.getByRole("button", { name: "Bloco Sul" })).toHaveAttribute(
+      "aria-current",
       "true",
     );
   });

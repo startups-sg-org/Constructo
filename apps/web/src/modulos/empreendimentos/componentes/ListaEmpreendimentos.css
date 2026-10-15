@@ -118,37 +118,9 @@
     margin-top: 18px;
 }
 
-.detalhes-empreendimento {
-    margin-top: 32px;
-    padding: clamp(22px, 4vw, 32px);
-}
-
-.detalhes-empreendimento__dados {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    margin: 26px 0;
-}
-
-.detalhes-empreendimento__descricao {
-    grid-column: 1 / -1;
-}
-
 @media (max-width: 700px) {
-    .detalhes-empreendimento__dados {
-        grid-template-columns: 1fr;
-    }
-
     .lista-empreendimentos__ferramentas {
         padding: 16px;
-    }
-
-    .detalhes-empreendimento__descricao {
-        grid-column: auto;
-    }
-
-    .detalhes-empreendimento__acoes .botao {
-        width: 100%;
     }
 
     .lista-empreendimentos__tabela-container .table-responsive {

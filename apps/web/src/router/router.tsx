@@ -165,8 +165,8 @@ export const rotas: RouteObject[] = [
                 action: cadastrarLocalRaiz,
                 element: (
                   <PaginaPainel
-                    titulo="Estrutura física"
-                    subtitulo="Gerencie a organização física do empreendimento selecionado."
+                    titulo=""
+                    subtitulo=""
                   >
                     <StructureManagementPage />
                   </PaginaPainel>

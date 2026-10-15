@@ -2,7 +2,7 @@ from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.modulos.dominio.modelos import Evidencia, Marco, ProgressoMarco
+from backend.modulos.dominio.modelos import Etapa, Evidencia, Marco, ProgressoMarco, Taxonomia
 
 from .modulos import ArquivoEvidencia, ItemProtocolo, ProtocoloEvidencia
 from .schemas import (
@@ -39,6 +39,21 @@ class ProtocolosEvidenciaRepo:
             .where(ProtocoloEvidencia.marco_id == marco_id)
             .options(selectinload(ProtocoloEvidencia.itens))
             .order_by(ProtocoloEvidencia.id)
+        )
+        return list(protocolos.all())
+
+    async def listar_protocolos_recentes_do_empreendimento(
+        self, db: AsyncSession, empreendimento_id: int, limite: int
+    ) -> list[ProtocoloEvidencia]:
+        """Lista os protocolos mais novos pertencentes à taxonomia da obra."""
+        protocolos = await db.scalars(
+            select(ProtocoloEvidencia)
+            .join(Marco, ProtocoloEvidencia.marco_id == Marco.id)
+            .join(Etapa, Marco.etapa_id == Etapa.id)
+            .join(Taxonomia, Etapa.taxonomia_id == Taxonomia.id)
+            .where(Taxonomia.empreendimento_id == empreendimento_id)
+            .order_by(ProtocoloEvidencia.criado_em.desc(), ProtocoloEvidencia.id.desc())
+            .limit(limite)
         )
         return list(protocolos.all())
 

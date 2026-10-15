@@ -27,7 +27,7 @@ preservando o formulário de criação existente.
   mantém acesso ao detalhe.
 - [x] Os controles e links possuem foco visível e podem ser usados por teclado.
 
-## Execução critério por critério
+# Execução critério por critério
 
 **Status:** implementada e verificada sem criação de código de teste.
 

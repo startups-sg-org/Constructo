@@ -107,6 +107,17 @@ export function listarProtocolosEvidencia(
     );
 }
 
+/** Lista os protocolos de evidência criados mais recentemente na obra. */
+export function listarProtocolosRecentes(
+    empreendimentoId: number,
+    options?: ServiceRequestOptions,
+): Promise<ProtocoloEvidenciaResumo[]> {
+    return apiRequest<ProtocoloEvidenciaResumo[]>(
+        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes`,
+        { signal: options?.signal },
+    );
+}
+
 /** Cria um protocolo de evidência para o marco informado. */
 export function criarProtocoloEvidencia(
     empreendimentoId: number,
