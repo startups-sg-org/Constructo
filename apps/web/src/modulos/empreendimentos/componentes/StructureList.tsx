@@ -1,5 +1,5 @@
 import type { EstruturaLocal } from "@constructo/shared";
-import { Button, Table } from "react-bootstrap";
+import { Button, Table } from "../../../componentes/ui/Ui";
 
 const rotulos = { TORRE: "Torre", BLOCO: "Bloco", PAVIMENTO: "Pavimento", UNIDADE: "Unidade" } as const;
 

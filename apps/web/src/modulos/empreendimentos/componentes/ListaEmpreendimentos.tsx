@@ -1,15 +1,10 @@
 import { useMemo, useState } from "react";
 import { useLoaderData, Link } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
-import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
-import Row from "react-bootstrap/Row";
-import Table from "react-bootstrap/Table";
 import type { Empreendimento } from "@constructo/shared";
 
 import EstadoVazio from "../../../componentes/EstadoVazio/EstadoVazio";
 import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
+import { Button, Col, Container, FormControl, FormLabel, FormSelect, FormText, Row, Table } from "../../../componentes/ui/Ui";
 import { carregarEmpreendimentos } from "../../../features/empreendimentos/empreendimentos.loader";
 import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
 import "./ListaEmpreendimentos.css";
@@ -52,10 +47,10 @@ export default function ListaEmpreendimentos() {
               <div className="lista-empreendimentos__ferramentas">
                 <Row className="g-3 align-items-end">
                     <Col xs={12} lg={5}>
-                        <Form.Label htmlFor="busca-empreendimento" className="visually-hidden">
+                        <FormLabel htmlFor="busca-empreendimento" className="visually-hidden">
                             Buscar empreendimento
-                        </Form.Label>
-                        <Form.Control
+                        </FormLabel>
+                        <FormControl
                             id="busca-empreendimento"
                             type="search"
                             value={busca}
@@ -65,10 +60,10 @@ export default function ListaEmpreendimentos() {
                     </Col>
                     <Col xs={12} sm={6} lg={2}>
                         <div className="form-field">
-                            <Form.Label htmlFor="filtro-status" className="visually-hidden">
+                            <FormLabel htmlFor="filtro-status" className="visually-hidden">
                                 Filtrar por status
-                            </Form.Label>
-                            <Form.Select
+                            </FormLabel>
+                            <FormSelect
                                 id="filtro-status"
                                 value={status}
                                 aria-describedby="filtro-status-ajuda"
@@ -79,18 +74,18 @@ export default function ListaEmpreendimentos() {
                                 <option value="EM_ANDAMENTO">Em andamento</option>
                                 <option value="CONCLUIDO">Concluído</option>
                                 <option value="INATIVO">Inativo</option>
-                            </Form.Select>
-                            <Form.Text id="filtro-status-ajuda" className="visually-hidden">
+                            </FormSelect>
+                            <FormText id="filtro-status-ajuda" className="visually-hidden">
                                 Filtre os empreendimentos pelo status atual.
-                            </Form.Text>
+                            </FormText>
                         </div>
                     </Col>
                     <Col xs={12} sm={6} lg={3}>
                         <div className="form-field">
-                            <Form.Label htmlFor="ordenacao-empreendimentos" className="visually-hidden">
+                            <FormLabel htmlFor="ordenacao-empreendimentos" className="visually-hidden">
                                 Ordenar empreendimentos
-                            </Form.Label>
-                            <Form.Select
+                            </FormLabel>
+                            <FormSelect
                                 id="ordenacao-empreendimentos"
                                 value={ordenacao}
                                 aria-describedby="ordenacao-empreendimentos-ajuda"
@@ -100,18 +95,19 @@ export default function ListaEmpreendimentos() {
                                 <option value="atualizado-asc">Atualizado há mais tempo</option>
                                 <option value="nome-asc">Nome: A–Z</option>
                                 <option value="nome-desc">Nome: Z–A</option>
-                            </Form.Select>
-                            <Form.Text id="ordenacao-empreendimentos-ajuda" className="visually-hidden">
+                            </FormSelect>
+                            <FormText id="ordenacao-empreendimentos-ajuda" className="visually-hidden">
                                 Escolha como ordenar a lista de empreendimentos.
-                            </Form.Text>
+                            </FormText>
                         </div>
                     </Col>
                     <Col xs={12} lg={2} className="d-grid">
                         <Button
-                            href="#novo-empreendimento"
+                    href="#novo-empreendimento"
                             variant="primary"
                             aria-controls="novo-empreendimento"
                             onClick={() => {
+                                document.getElementById("novo-empreendimento")?.scrollIntoView({ behavior: "smooth" });
                                 window.setTimeout(() => document.getElementById("nome")?.focus(), 0);
                             }}
                         >
@@ -147,7 +143,7 @@ export default function ListaEmpreendimentos() {
                 />
             ) : (
                 <div className="lista-empreendimentos__tabela-container">
-                    <Table responsive hover className="table table-responsive-sm " aria-label="Lista de empreendimentos">
+                    <Table responsive hover className="lista-empreendimentos__tabela" aria-label="Lista de empreendimentos">
                         <thead className = "thead-dark">
                             <tr>
                                 <th scope="col">Empreendimento</th>

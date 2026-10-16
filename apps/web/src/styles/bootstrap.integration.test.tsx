@@ -1,7 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import type { AnchorHTMLAttributes } from "react";
-import Button from "react-bootstrap/Button";
-import Nav from "react-bootstrap/Nav";
 import { Link, MemoryRouter, NavLink } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
@@ -15,29 +13,22 @@ function RouterNavLink({ href = "/", ...props }: RouterAnchorProps) {
     return <NavLink to={href} {...props} />;
 }
 
-describe("integração Bootstrap e React Router", () => {
-    it("preserva destinos e estado ativo em componentes React-Bootstrap", () => {
+describe("integração Tailwind e React Router", () => {
+    it("preserva destinos e estado ativo na navegação", () => {
         render(
             <MemoryRouter initialEntries={["/admin/empreendimentos/42"]}>
-                <Button
-                    as={RouterLink as unknown as "a"}
-                    href="/admin/empreendimentos/42"
-                    variant="primary"
-                >
+                <RouterLink href="/admin/empreendimentos/42" className="btn btn-primary">
                     Abrir empreendimento
-                </Button>
-                <Nav>
-                    <Nav.Link
-                        as={RouterNavLink as unknown as "a"}
-                        href="/admin/empreendimentos/42"
-                    >
+                </RouterLink>
+                <nav>
+                    <RouterNavLink href="/admin/empreendimentos/42" className="nav-link">
                         Visão geral
-                    </Nav.Link>
-                </Nav>
+                    </RouterNavLink>
+                </nav>
             </MemoryRouter>,
         );
 
-        expect(screen.getByRole("button", { name: "Abrir empreendimento" })).toHaveAttribute(
+        expect(screen.getByRole("link", { name: "Abrir empreendimento" })).toHaveAttribute(
             "href",
             "/admin/empreendimentos/42",
         );

@@ -1,6 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-constructo-fundo-painel: #f5f7f6;
+  --color-constructo-superficie: #ffffff;
+  --color-constructo-superficie-sutil: #f8faf9;
+  --color-constructo-texto: #263b37;
+  --color-constructo-texto-forte: #153b36;
+  --color-constructo-texto-suave: #62706d;
+  --color-constructo-borda: #dfe5e3;
+  --color-constructo-borda-forte: #b9cdc7;
+  --color-constructo-primaria: #236557;
+  --color-constructo-primaria-hover: #194f45;
+  --color-constructo-destaque: #b97200;
+  --color-constructo-sucesso: #147a55;
+  --color-constructo-sucesso-fundo: #e8f7f0;
+  --color-constructo-alerta: #9a5b0a;
+  --color-constructo-alerta-fundo: #fef3c7;
+  --color-constructo-erro: #a0443b;
+  --color-constructo-erro-fundo: #fcecea;
+  --radius-campo: 10px;
+  --radius-card: 16px;
+  --shadow-card: 0 8px 24px rgb(15 42 39 / 6%);
+}
+
+@source "../index.html";
+@source "./";
+
 * {
   margin: 0;
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-sans);
   padding: 0;
   box-sizing: border-box;
 }

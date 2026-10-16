@@ -27,7 +27,7 @@ export default function ListaUsuarios() {
             : undefined;
 
     return (
-        <div className="lista-usuarios">
+        <div className="lista-usuarios min-w-0">
             {erroAcao && (
                 <div className="lista-usuarios__erro" role="alert">
                     {erroAcao}

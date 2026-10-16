@@ -1,4 +1,3 @@
-import { Breadcrumb, Nav } from "react-bootstrap";
 import { Link, NavLink, Outlet, useRouteLoaderData } from "react-router-dom";
 
 import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
@@ -35,12 +34,12 @@ export default function LayoutEmpreendimentos() {
 
     return (
         <section className="layout-empreendimentos" aria-labelledby="empreendimento-titulo">
-            <Breadcrumb className="layout-empreendimentos__breadcrumb">
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/obras" }}>
-                    Empreendimentos
-                </Breadcrumb.Item>
-                <Breadcrumb.Item active>{empreendimento.nome}</Breadcrumb.Item>
-            </Breadcrumb>
+            <nav className="layout-empreendimentos__breadcrumb" aria-label="breadcrumb">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item"><Link to="/admin/obras">Empreendimentos</Link></li>
+                    <li className="breadcrumb-item active" aria-current="page">{empreendimento.nome}</li>
+                </ol>
+            </nav>
 
             <header className="layout-empreendimentos__cabecalho">
                 <div>
@@ -58,18 +57,18 @@ export default function LayoutEmpreendimentos() {
                 </div>
             </header>
 
-            <Nav className="layout-empreendimentos__abas" aria-label="Áreas do empreendimento">
+            <nav className="layout-empreendimentos__abas nav" aria-label="Áreas do empreendimento">
                 {abas.map((aba) => (
-                    <Nav.Link
-                        as={NavLink}
+                    <NavLink
+                        className="nav-link"
                         end={aba.fimExato ?? false}
                         key={aba.rotulo}
                         to={aba.destino ? `${rotaBase}/${aba.destino}` : rotaBase}
                     >
                         {aba.rotulo}
-                    </Nav.Link>
+                    </NavLink>
                 ))}
-            </Nav>
+            </nav>
 
             <div className="layout-empreendimentos__conteudo">
                 <Outlet />

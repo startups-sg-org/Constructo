@@ -1,9 +1,9 @@
 import type { EstruturaLocal } from "@constructo/shared";
 import { useMemo, useState } from "react";
-import { Card, Form as BootstrapForm } from "react-bootstrap";
 import { useLoaderData, useLocation, useSearchParams } from "react-router-dom";
 
 import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
+import { Card, CardBody, CardTitle, FormControl, FormGroup, FormLabel, FormText } from "../../../componentes/ui/Ui";
 import StructureTree from "../../../componentes/StructureTree/StructureTree";
 import { carregarEstruturaFisica } from "../../../features/empreendimentos/empreendimentos.loader";
 import { encontrarLocalSelecionado, LOCAL_SELECIONADO_PARAM, obterLocalSelecionadoId } from "../../../features/empreendimentos/localSelecionado";
@@ -52,8 +52,8 @@ export default function StructureManagementPage() {
             <CabecalhoSecao titulo="Estrutura" tituloId="estrutura-gerenciamento-titulo" />
             <div className="estrutura-gerenciamento__cards">
                 <Card className="estrutura-gerenciamento__card estrutura-gerenciamento__card--arvore">
-                    <Card.Body>
-                        <Card.Title as="h3">Locais do empreendimento</Card.Title>
+                    <CardBody>
+                        <CardTitle>Locais do empreendimento</CardTitle>
                         <StructureTree
                             items={estrutura}
                             selectedId={selecao?.local.id ?? null}
@@ -61,28 +61,28 @@ export default function StructureManagementPage() {
                             expandedIds={expandedIds}
                             onToggle={alternarRamo}
                         />
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 <Card className="estrutura-gerenciamento__card estrutura-gerenciamento__card--lista">
-                    <Card.Body>
-                        <Card.Title as="h3">{localAtual?.nome ?? empreendimento.nome}</Card.Title>
+                    <CardBody>
+                        <CardTitle>{localAtual?.nome ?? empreendimento.nome}</CardTitle>
                         <StructureBreadcrumb selecao={selecao} onSelect={selecionarPorId} />
                         {parametroInvalido && <p className="alert alert-warning">O local informado não pertence a esta estrutura.</p>}
-                        <BootstrapForm.Group className="mb-3" controlId="buscar-filhos">
-                            <BootstrapForm.Label>Buscar neste nível</BootstrapForm.Label>
-                            <BootstrapForm.Control value={busca} placeholder="Nome do local" onChange={(event) => setBusca(event.target.value)} />
-                            <BootstrapForm.Text>A busca considera apenas os filhos diretos.</BootstrapForm.Text>
-                        </BootstrapForm.Group>
+                        <FormGroup className="mb-3">
+                            <FormLabel htmlFor="buscar-filhos">Buscar neste nível</FormLabel>
+                            <FormControl id="buscar-filhos" value={busca} placeholder="Nome do local" onChange={(event) => setBusca(event.target.value)} />
+                            <FormText>A busca considera apenas os filhos diretos.</FormText>
+                        </FormGroup>
                         <StructureList items={filhos} busca={busca} contexto={localAtual?.nome ?? "A estrutura"} onSelect={(local) => selecionarPorId(local.id)} />
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 <Card className="estrutura-gerenciamento__card estrutura-gerenciamento__card--detalhes">
-                    <Card.Body>
-                        <Card.Title as="h3">Detalhes do local</Card.Title>
+                    <CardBody>
+                        <CardTitle>Detalhes do local</CardTitle>
                         <LocationDetails selecao={selecao} empreendimentoNome={empreendimento.nome} />
-                    </Card.Body>
+                    </CardBody>
                 </Card>
             </div>
         </section>

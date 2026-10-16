@@ -1,9 +1,9 @@
-import { Card } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { useRouteLoaderData } from "react-router-dom";
 import type { EstruturaLocal } from "@constructo/shared";
 
 import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
+import { Card, CardBody, CardTitle } from "../../../componentes/ui/Ui";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import {
     obterEstruturaFisica,
@@ -107,8 +107,8 @@ export default function DetalhesEmpreendimento() {
             />
             <div className="detalhes-empreendimento__cards">
                 <Card className="detalhes-empreendimento__card">
-                    <Card.Body>
-                        <Card.Title as="h3">Sobre o empreendimento</Card.Title>
+                    <CardBody>
+                        <CardTitle>Sobre o empreendimento</CardTitle>
                         <dl className="detalhes-empreendimento__dados">
                             <div className="detalhes-empreendimento__dado">
                                 <i className="bi bi-geo-alt" aria-hidden="true" />
@@ -139,12 +139,12 @@ export default function DetalhesEmpreendimento() {
                                 </div>
                             </div>
                         </dl>
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <Card.Body>
-                        <Card.Title as="h3">Resumo da taxonomia</Card.Title>
+                    <CardBody>
+                        <CardTitle>Resumo da taxonomia</CardTitle>
                         {estadoTaxonomia === "carregando" && (
                             <p className="detalhes-empreendimento__mensagem">Carregando taxonomia…</p>
                         )}
@@ -176,12 +176,12 @@ export default function DetalhesEmpreendimento() {
                                 </div>
                             </dl>
                         )}
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <Card.Body>
-                        <Card.Title as="h3">Resumo da estrutura da obra</Card.Title>
+                    <CardBody>
+                        <CardTitle>Resumo da estrutura da obra</CardTitle>
                         {estadoEstrutura === "carregando" && (
                             <p className="detalhes-empreendimento__mensagem">Carregando estrutura…</p>
                         )}
@@ -209,12 +209,12 @@ export default function DetalhesEmpreendimento() {
                                 </div>
                             </dl>
                         )}
-                    </Card.Body>
+                    </CardBody>
                 </Card>
 
                 <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <Card.Body>
-                        <Card.Title as="h3">Atividade recente</Card.Title>
+                    <CardBody>
+                        <CardTitle>Atividade recente</CardTitle>
                         {estadoAtividade === "carregando" && (
                             <p className="detalhes-empreendimento__mensagem">Carregando protocolos…</p>
                         )}
@@ -244,7 +244,7 @@ export default function DetalhesEmpreendimento() {
                                 ))}
                             </ul>
                         )}
-                    </Card.Body>
+                    </CardBody>
                 </Card>
             </div>
         </section>

@@ -7,7 +7,7 @@ import "./Home.css";
 
 export default function HomePage() {
     return (
-        <main className="pagina-inicial">
+        <main className="pagina-inicial min-w-0 bg-[#fafcfa] text-[#153b36]">
             <HeroSection />
             <FeaturesSection />
             <HowItWorksSection />
