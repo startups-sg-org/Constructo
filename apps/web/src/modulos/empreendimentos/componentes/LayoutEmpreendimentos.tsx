@@ -31,29 +31,38 @@ export default function LayoutEmpreendimentos() {
     const rotaBase = `/admin/empreendimentos/${empreendimento.id}`;
 
     return (
-        <section className="layout-empreendimentos grid gap-5 text-foreground" aria-labelledby="empreendimento-titulo">
-            <nav className="layout-empreendimentos__breadcrumb text-body-sm font-body-sm" aria-label="breadcrumb">
-                <ol className="breadcrumb flex flex-wrap items-center gap-2 text-foreground-muted">
-                    <li><Link className="ds-accent-link ds-focus-ring-offset" to="/admin/obras">Empreendimentos</Link></li>
-                    <li aria-hidden="true">/</li>
-                    <li aria-current="page">{empreendimento.nome}</li>
+        <section className="layout-empreendimentos grid gap-4 text-foreground" aria-labelledby="empreendimento-titulo">
+            <nav className="layout-empreendimentos__breadcrumb font-code-sm text-code-sm" aria-label="breadcrumb">
+                <ol className="breadcrumb flex flex-wrap items-center gap-2">
+                    <li className="text-foreground-muted">constructo /</li>
+                    <li><Link className="ds-accent-link ds-focus-ring-offset" to="/admin/obras">empreendimentos</Link></li>
+                    <li className="text-foreground-muted" aria-hidden="true">/</li>
+                    <li className="text-foreground" aria-current="page">{empreendimento.nome}</li>
+                    <li className="rounded-sm border border-border-control bg-surface-muted px-1.5 text-foreground-muted">live-sync</li>
                 </ol>
             </nav>
 
-            <header className="layout-empreendimentos__cabecalho ds-panel p-[clamp(1.25rem,4vw,2rem)]">
-                <div>
-                    <div className="layout-empreendimentos__titulo flex flex-wrap items-center gap-3">
-                        <h1 className="text-headline-xl font-headline-xl text-foreground-strong" id="empreendimento-titulo">{empreendimento.nome}</h1>
-                        <span className={obterClassesStatus(empreendimento.status)}>
-                            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-                            {obterRotuloStatus(empreendimento.status)}
-                        </span>
+            <header className="layout-empreendimentos__cabecalho ds-panel p-4">
+                <div className="flex w-full items-start gap-3">
+                    <span className="grid h-10 w-10 flex-none place-items-center rounded-md border border-border-control bg-surface-muted text-xl text-foreground" aria-hidden="true">
+                        <i className="bi bi-building" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <div className="layout-empreendimentos__titulo flex flex-wrap items-center gap-2">
+                            <h1 className="font-headline-md text-headline-md font-semibold text-foreground-strong" id="empreendimento-titulo">{empreendimento.nome}</h1>
+                            <span className="rounded-sm border border-border-control bg-surface-muted px-1 font-code-sm text-code-sm text-foreground">ATIVO</span>
+                        </div>
+                        <p className="layout-empreendimentos__metadados mt-1 flex flex-wrap items-center gap-2 text-body-sm font-body-sm text-foreground-muted">
+                            <i className="bi bi-geo-alt" aria-hidden="true" />
+                            <span className="text-foreground">{empreendimento.endereco || "Localização não informada"}</span>
+                            <span className="h-1 w-1 rounded-full bg-foreground-muted" aria-hidden="true" />
+                            <span>Atualizado em {formatarDataEmpreendimento(empreendimento.atualizado_em)}</span>
+                        </p>
                     </div>
-                    <p className="layout-empreendimentos__metadados mt-2 flex flex-wrap gap-2 text-body-md font-body-md text-foreground-muted">
-                        <span>{empreendimento.endereco || "Localização não informada"}</span>
-                        <span aria-hidden="true">•</span>
-                        <span>Atualizado em {formatarDataEmpreendimento(empreendimento.atualizado_em)}</span>
-                    </p>
+                    <span className={obterClassesStatus(empreendimento.status)}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+                        {obterRotuloStatus(empreendimento.status)}
+                    </span>
                 </div>
             </header>
 

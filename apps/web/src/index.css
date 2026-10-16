@@ -97,6 +97,10 @@
     @apply rounded-lg border border-border-card bg-surface;
   }
 
+  .ds-surface-card {
+    @apply min-h-14 w-full rounded-md border border-border-control bg-surface-muted;
+  }
+
   .ds-dark-field {
     @apply min-h-8! rounded-md! border-border-control! px-3! py-1.5! text-foreground! shadow-none! focus:border-accent! focus:shadow-none! focus:outline-none!;
   }
@@ -130,11 +134,11 @@
   }
 }
 
-* {
-  margin: 0;
-  font-family: var(--font-sans);
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    font-family: var(--font-sans);
+    box-sizing: border-box;
+  }
 }
 
 :root {
@@ -339,6 +343,18 @@ textarea:disabled {
 .pagina-painel {
   width: 100%;
   max-width: 1180px;
+}
+
+.pagina-painel--larga {
+  width: calc(100% - 48px);
+  max-width: none;
+  margin-inline: auto;
+}
+
+@media (max-width: 760px) {
+  .pagina-painel--larga {
+    width: 100%;
+  }
 }
 
 @media (max-width: 760px) {

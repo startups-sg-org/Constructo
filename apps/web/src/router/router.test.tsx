@@ -269,7 +269,7 @@ describe("novo sistema de rotas", () => {
       criado_em: "2026-09-25T12:00:00Z",
       atualizado_em: "2026-09-25T12:00:00Z",
     });
-    montarRota("/admin/obras");
+    montarRota("/admin/empreendimentos/novo");
 
     await user.type(await screen.findByLabelText(/^Nome/), "Residencial Aurora");
     await user.selectOptions(screen.getByLabelText(/^Status/), "EM_ANDAMENTO");
@@ -314,7 +314,7 @@ describe("novo sistema de rotas", () => {
     );
     expect(screen.getByRole("button", { name: /Criar empreendimento/ })).toHaveAttribute(
       "href",
-      "#novo-empreendimento",
+      "/admin/empreendimentos/novo",
     );
   });
 
@@ -360,6 +360,34 @@ describe("novo sistema de rotas", () => {
       "href",
       "/admin/empreendimentos/12",
     );
+  });
+
+  it("atualiza a pré-visualização ao clicar no card de um empreendimento", async () => {
+    const segundoEmpreendimento = {
+      ...empreendimento,
+      id: 13,
+      nome: "Parque das Águas",
+      descricao: "Conjunto habitacional",
+      endereco: "Rua das Águas, 20",
+      status: "CONCLUIDO" as const,
+      atualizado_em: "2026-08-20T12:00:00Z",
+    };
+    listarEmpreendimentosMock.mockResolvedValue([empreendimento, segundoEmpreendimento]);
+    const user = userEvent.setup();
+    montarRota("/admin/obras");
+
+    const previa = await screen.findByRole("complementary", {
+      name: "Pré-visualização do Empreendimento",
+    });
+    expect(within(previa).getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("article", {
+      name: "Selecionar Parque das Águas para pré-visualização",
+    }));
+
+    expect(within(previa).getByRole("heading", { name: "Parque das Águas" })).toBeInTheDocument();
+    expect(within(previa).getByText("Conjunto habitacional")).toBeInTheDocument();
+    expect(within(previa).getByText("Rua das Águas, 20")).toBeInTheDocument();
   });
 
   it("filtra e ordena a listagem localmente", async () => {

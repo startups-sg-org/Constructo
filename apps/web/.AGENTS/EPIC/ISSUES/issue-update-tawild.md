@@ -43,6 +43,13 @@ Estilos globais: padrões repetidos de foco, controles de ícone, itens de menu,
 - [x] Refatorar `LayoutEmpreendimentos` e `ListaEmpreendimentos` para o layout de referência sem alterar loaders, filtros, ordenação ou links.
 
 Feito: a lista e o layout de detalhes passaram a usar as superfícies, bordas, tipografia, estados, controles compactos e navegação por abas do tema escuro em Tailwind. Loaders, busca, filtro, ordenação, CTA e destinos dos links foram preservados; TypeScript e build passaram, e os 30 testes de rota não relacionados à estrutura física continuam aprovados.
+
+Refeito com fidelidade à referência: a listagem agora reproduz o contexto operacional, indicadores por status, cabeçalho e ações, controles compactos, resumo de filtros, painel de registros com seleção, paginação e pré-visualização lateral com ações rápidas e módulos vinculados. O cabeçalho do detalhe foi alinhado à mesma composição; loaders, filtros, ordenação e links permaneceram inalterados.
+
+Refinamento após validação visual: a página de empreendimentos passou a ocupar e centralizar toda a largura útil do desktop; tipografia, controles, registros, badges, painéis e espaçamentos internos foram ampliados para corrigir a baixa legibilidade e o excesso de área vazia lateral observado na captura de referência.
+
+Cadastro: o CTA agora navega para `/admin/empreendimentos/novo`; o `FormularioEmpreendimento` foi removido da listagem e redesenhado no tema escuro, preservando validações, action e integração com o backend.
+
 - [ ] Ajustar componentes compartilhados e estilos locais somente onde necessário para eliminar conflitos entre CSS legado e Tailwind.
 - [ ] Verificar estados vazio, carregamento, erro, foco visível, acessibilidade e responsividade desktop/mobile.
 - [ ] Executar `pnpm --filter web lint`, `pnpm --filter web build` e os testes relevantes antes de concluir.
