@@ -1,7 +1,7 @@
 import type { UserResponse } from "@constructo/shared";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Form } from "react-bootstrap";
 
+import { Button, FormControl, FormGroup, FormLabel, FormText } from "../../../componentes/ui/Ui";
 import {
     listarCompradoresDaUnidade,
     vincularCompradorAUnidade,
@@ -132,16 +132,17 @@ export default function UnitBuyerLink({
             <h4 id="vincular-comprador-titulo" className="h5">Vincular comprador</h4>
             <p className="text-body-secondary">Busque pelo nome ou e-mail, ou informe diretamente o ID do comprador.</p>
 
-            <Form noValidate onSubmit={enviarVinculo}>
-                <Form.Group className="mb-3" controlId={`buscar-comprador-${unidadeId}`}>
-                    <Form.Label>Buscar comprador por nome ou e-mail</Form.Label>
-                    <Form.Control
+            <form noValidate onSubmit={enviarVinculo}>
+                <FormGroup className="mb-3">
+                    <FormLabel htmlFor={`buscar-comprador-${unidadeId}`}>Buscar comprador por nome ou e-mail</FormLabel>
+                    <FormControl
+                        id={`buscar-comprador-${unidadeId}`}
                         type="search"
                         value={busca}
                         disabled={carregandoCompradores}
                         onChange={(evento) => setBusca(evento.target.value)}
                     />
-                    {carregandoCompradores && <Form.Text>Carregando compradores disponíveis.</Form.Text>}
+                    {carregandoCompradores && <FormText>Carregando compradores disponíveis.</FormText>}
                     {erroCarregamento && <p className="alert alert-warning mt-2 mb-0" role="alert">{erroCarregamento}</p>}
                     {compradoresFiltrados.length > 0 && (
                         <div className="list-group mt-2" aria-label="Resultados da busca de compradores">
@@ -157,11 +158,12 @@ export default function UnitBuyerLink({
                             ))}
                         </div>
                     )}
-                </Form.Group>
+                </FormGroup>
 
-                <Form.Group className="mb-3" controlId={`comprador-id-${unidadeId}`}>
-                    <Form.Label>ID do comprador</Form.Label>
-                    <Form.Control
+                <FormGroup className="mb-3">
+                    <FormLabel htmlFor={`comprador-id-${unidadeId}`}>ID do comprador</FormLabel>
+                    <FormControl
+                        id={`comprador-id-${unidadeId}`}
                         type="number"
                         min="1"
                         step="1"
@@ -170,8 +172,8 @@ export default function UnitBuyerLink({
                         onChange={(evento) => setUsuarioId(evento.target.value)}
                         aria-describedby={`comprador-id-ajuda-${unidadeId}`}
                     />
-                    <Form.Text id={`comprador-id-ajuda-${unidadeId}`}>Informe um número inteiro positivo.</Form.Text>
-                </Form.Group>
+                    <FormText id={`comprador-id-ajuda-${unidadeId}`}>Informe um número inteiro positivo.</FormText>
+                </FormGroup>
 
                 {erroVinculo && <p className="alert alert-danger" role="alert">{erroVinculo}</p>}
                 {sucesso && <p className="alert alert-success" role="status">{sucesso}</p>}
@@ -179,7 +181,7 @@ export default function UnitBuyerLink({
                 <Button type="submit" disabled={vinculando}>
                     {vinculando ? "Vinculando..." : "Vincular comprador"}
                 </Button>
-            </Form>
+            </form>
 
         </section>
     );

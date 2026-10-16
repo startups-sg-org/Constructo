@@ -142,7 +142,7 @@ export default function EvidenceGallery({ empreendimentoId }: EvidenceGalleryPro
     }
 
     return (
-        <section className="evidence-gallery" aria-busy={carregando}>
+        <section className="evidence-gallery min-w-0" aria-busy={carregando}>
             <form className="evidence-gallery__filtros superficie-painel" onSubmit={aplicarFiltros}>
                 <div className="evidence-gallery__filtro">
                     <label htmlFor="evidencia-local">ID do local</label>
