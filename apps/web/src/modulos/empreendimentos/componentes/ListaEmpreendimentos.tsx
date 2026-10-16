@@ -3,11 +3,8 @@ import { useLoaderData, Link } from "react-router-dom";
 import type { Empreendimento } from "@constructo/shared";
 
 import EstadoVazio from "../../../componentes/EstadoVazio/EstadoVazio";
-import BadgeStatus from "../../../componentes/BadgeStatus/BadgeStatus";
-import { Button, Col, Container, FormControl, FormLabel, FormSelect, FormText, Row, Table } from "../../../componentes/ui/Ui";
 import { carregarEmpreendimentos } from "../../../features/empreendimentos/empreendimentos.loader";
-import { formatarDataEmpreendimento, obterRotuloStatus, obterTomStatus } from "./empreendimentoFormatters";
-import "./ListaEmpreendimentos.css";
+import { formatarDataEmpreendimento, obterClassesStatus, obterRotuloStatus } from "./empreendimentoFormatters";
 
 type Ordenacao = "atualizado-desc" | "atualizado-asc" | "nome-asc" | "nome-desc";
 
@@ -38,32 +35,33 @@ export default function ListaEmpreendimentos() {
     };
 
     return (
-        <section className="lista-empreendimentos" aria-labelledby="lista-empreendimentos-titulo">
-            <h2 id="lista-empreendimentos-titulo" className="visually-hidden">
+        <section className="lista-empreendimentos mt-6 text-foreground" aria-labelledby="lista-empreendimentos-titulo">
+            <h2 id="lista-empreendimentos-titulo" className="sr-only">
                 Lista de empreendimentos
             </h2>
 
-            <Container fluid className="px-0">
-              <div className="lista-empreendimentos__ferramentas">
-                <Row className="g-3 align-items-end">
-                    <Col xs={12} lg={5}>
-                        <FormLabel htmlFor="busca-empreendimento" className="visually-hidden">
+            <div className="w-full">
+              <div className="lista-empreendimentos__ferramentas ds-panel p-4">
+                <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-[minmax(16rem,1fr)_minmax(10rem,0.45fr)_minmax(13rem,0.55fr)_auto]">
+                    <div>
+                        <label htmlFor="busca-empreendimento" className="sr-only">
                             Buscar empreendimento
-                        </FormLabel>
-                        <FormControl
+                        </label>
+                        <input
+                            className="ds-dark-field bg-canvas! text-body-md! placeholder:text-foreground-muted"
                             id="busca-empreendimento"
                             type="search"
                             value={busca}
                             placeholder="Buscar empreendimento..."
                             onChange={(evento) => setBusca(evento.target.value)}
                         />
-                    </Col>
-                    <Col xs={12} sm={6} lg={2}>
-                        <div className="form-field">
-                            <FormLabel htmlFor="filtro-status" className="visually-hidden">
+                    </div>
+                    <div>
+                            <label htmlFor="filtro-status" className="sr-only">
                                 Filtrar por status
-                            </FormLabel>
-                            <FormSelect
+                            </label>
+                            <select
+                                className="ds-dark-field bg-surface-hover! text-label-sm!"
                                 id="filtro-status"
                                 value={status}
                                 aria-describedby="filtro-status-ajuda"
@@ -74,18 +72,17 @@ export default function ListaEmpreendimentos() {
                                 <option value="EM_ANDAMENTO">Em andamento</option>
                                 <option value="CONCLUIDO">Concluído</option>
                                 <option value="INATIVO">Inativo</option>
-                            </FormSelect>
-                            <FormText id="filtro-status-ajuda" className="visually-hidden">
+                            </select>
+                            <small id="filtro-status-ajuda" className="sr-only">
                                 Filtre os empreendimentos pelo status atual.
-                            </FormText>
-                        </div>
-                    </Col>
-                    <Col xs={12} sm={6} lg={3}>
-                        <div className="form-field">
-                            <FormLabel htmlFor="ordenacao-empreendimentos" className="visually-hidden">
+                            </small>
+                    </div>
+                    <div>
+                            <label htmlFor="ordenacao-empreendimentos" className="sr-only">
                                 Ordenar empreendimentos
-                            </FormLabel>
-                            <FormSelect
+                            </label>
+                            <select
+                                className="ds-dark-field bg-surface-hover! text-label-sm!"
                                 id="ordenacao-empreendimentos"
                                 value={ordenacao}
                                 aria-describedby="ordenacao-empreendimentos-ajuda"
@@ -95,16 +92,16 @@ export default function ListaEmpreendimentos() {
                                 <option value="atualizado-asc">Atualizado há mais tempo</option>
                                 <option value="nome-asc">Nome: A–Z</option>
                                 <option value="nome-desc">Nome: Z–A</option>
-                            </FormSelect>
-                            <FormText id="ordenacao-empreendimentos-ajuda" className="visually-hidden">
+                            </select>
+                            <small id="ordenacao-empreendimentos-ajuda" className="sr-only">
                                 Escolha como ordenar a lista de empreendimentos.
-                            </FormText>
-                        </div>
-                    </Col>
-                    <Col xs={12} lg={2} className="d-grid">
-                        <Button
-                    href="#novo-empreendimento"
-                            variant="primary"
+                            </small>
+                    </div>
+                    <div>
+                        <a
+                            className="ds-focus-ring-offset inline-flex min-h-8 w-full items-center justify-center gap-2 rounded-md bg-[#1f6feb] px-3 py-1.5 text-label-sm font-label-sm text-white no-underline transition-colors hover:bg-[#388bfd] md:w-auto"
+                            href="#novo-empreendimento"
+                            role="button"
                             aria-controls="novo-empreendimento"
                             onClick={() => {
                                 document.getElementById("novo-empreendimento")?.scrollIntoView({ behavior: "smooth" });
@@ -113,19 +110,19 @@ export default function ListaEmpreendimentos() {
                         >
                             <i className="bi bi-plus-lg" aria-hidden="true" />
                             Criar empreendimento
-                        </Button>
-                    </Col>
-                </Row>
+                        </a>
+                    </div>
+                </div>
               </div>
 
-              <div className="lista-empreendimentos__resumo" aria-live="polite">
+              <div className="lista-empreendimentos__resumo my-3 flex flex-wrap items-center justify-between gap-3 text-body-sm font-body-sm text-foreground-muted" aria-live="polite">
                 <span>
                     {empreendimentosVisiveis.length} {empreendimentosVisiveis.length === 1 ? "empreendimento" : "empreendimentos"}
                 </span>
                 {filtrosAtivos && (
-                    <Button variant="link" className="p-0" onClick={limparFiltros}>
+                    <button className="ds-focus-ring-offset rounded-sm p-0 text-label-sm font-label-sm text-accent hover:underline" type="button" onClick={limparFiltros}>
                         Limpar filtros
-                    </Button>
+                    </button>
                 )}
               </div>
 
@@ -142,43 +139,44 @@ export default function ListaEmpreendimentos() {
                     descricao="Ajuste a busca ou os filtros para encontrar um empreendimento."
                 />
             ) : (
-                <div className="lista-empreendimentos__tabela-container">
-                    <Table responsive hover className="lista-empreendimentos__tabela" aria-label="Lista de empreendimentos">
-                        <thead className = "thead-dark">
+                <div className="lista-empreendimentos__tabela-container ds-panel overflow-x-auto">
+                    <table className="lista-empreendimentos__tabela w-full min-w-[900px] border-collapse text-left" aria-label="Lista de empreendimentos">
+                        <thead className="border-b border-border-muted bg-surface-muted">
                             <tr>
-                                <th scope="col">Empreendimento</th>
-                                <th scope="col">Descrição</th>
-                                <th scope="col">Localização</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Atualizado em</th>
-                                <th scope="col"><span className="visually-hidden">Ações</span></th>
+                                <th className="ds-table-heading" scope="col">Empreendimento</th>
+                                <th className="ds-table-heading" scope="col">Descrição</th>
+                                <th className="ds-table-heading" scope="col">Localização</th>
+                                <th className="ds-table-heading" scope="col">Status</th>
+                                <th className="ds-table-heading" scope="col">Atualizado em</th>
+                                <th className="px-3 py-2.5" scope="col"><span className="sr-only">Ações</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             {empreendimentosVisiveis.map((empreendimento) => (
-                                <tr key={empreendimento.id}>
-                                    <th scope="row" data-label="Empreendimento">
+                                <tr className="border-b border-border-muted transition-colors last:border-b-0 hover:bg-surface-hover" key={empreendimento.id}>
+                                    <th className="px-3 py-3" scope="row" data-label="Empreendimento">
                                         <Link
-                                            className="lista-empreendimentos__nome"
+                                            className="lista-empreendimentos__nome ds-focus-ring-offset inline-flex items-center gap-3 text-title-project font-title-project text-foreground-strong no-underline hover:text-accent hover:underline"
                                             to={`/admin/empreendimentos/${empreendimento.id}`}
                                         >
-                                            <span className="lista-empreendimentos__icone" aria-hidden="true">
+                                            <span className="lista-empreendimentos__icone grid h-7 w-7 flex-none place-items-center rounded-md border border-border-control bg-surface-muted text-foreground-muted" aria-hidden="true">
                                                 <i className="bi bi-building" />
                                             </span>
                                             <span>{empreendimento.nome}</span>
                                         </Link>
                                     </th>
-                                    <td data-label="Descrição">{empreendimento.descricao || "Descrição não informada"}</td>
-                                    <td data-label="Localização">{empreendimento.endereco || "Localização não informada"}</td>
-                                    <td data-label="Status">
-                                        <BadgeStatus tom={obterTomStatus(empreendimento.status)}>
+                                    <td className="max-w-xs px-3 py-3 text-body-sm font-body-sm text-foreground-muted" data-label="Descrição">{empreendimento.descricao || "Descrição não informada"}</td>
+                                    <td className="px-3 py-3 text-body-sm font-body-sm text-foreground-muted" data-label="Localização">{empreendimento.endereco || "Localização não informada"}</td>
+                                    <td className="px-3 py-3" data-label="Status">
+                                        <span className={obterClassesStatus(empreendimento.status)}>
+                                            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
                                             {obterRotuloStatus(empreendimento.status)}
-                                        </BadgeStatus>
+                                        </span>
                                     </td>
-                                    <td data-label="Atualizado em">{formatarDataEmpreendimento(empreendimento.atualizado_em)}</td>
-                                    <td data-label="Ação">
+                                    <td className="whitespace-nowrap px-3 py-3 text-code-sm font-code-sm text-foreground-muted" data-label="Atualizado em">{formatarDataEmpreendimento(empreendimento.atualizado_em)}</td>
+                                    <td className="px-3 py-3 text-right" data-label="Ação">
                                         <Link
-                                            className="lista-empreendimentos__abrir"
+                                            className="lista-empreendimentos__abrir ds-accent-link ds-focus-ring-offset text-label-sm font-label-sm"
                                             to={`/admin/empreendimentos/${empreendimento.id}`}
                                         >
                                             Abrir
@@ -187,10 +185,10 @@ export default function ListaEmpreendimentos() {
                                 </tr>
                             ))}
                         </tbody>
-                    </Table>
+                    </table>
                 </div>
               )}
-            </Container>
+            </div>
         </section>
     );
 }

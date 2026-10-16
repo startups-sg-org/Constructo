@@ -9,23 +9,21 @@ import type {
     TableHTMLAttributes,
 } from "react";
 
-type ClassNameProps = { className?: string };
+import { cn } from "../../utils/classes";
 
-function juntarClasses(...classes: Array<string | undefined | false>) {
-    return classes.filter(Boolean).join(" ");
-}
+type ClassNameProps = { className?: string };
 
 type ContainerProps = HTMLAttributes<HTMLDivElement> & { fluid?: boolean };
 
 export function Container({ className, children, fluid, ...props }: ContainerProps) {
     void fluid;
-    return <div className={juntarClasses("ui-container", className)} {...props}>{children}</div>;
+    return <div className={cn("ui-container", className)} {...props}>{children}</div>;
 }
 
 type RowProps = HTMLAttributes<HTMLDivElement>;
 
 export function Row({ className, children, ...props }: RowProps) {
-    return <div className={juntarClasses("ui-row grid grid-cols-12 gap-3 items-end", className)} {...props}>{children}</div>;
+    return <div className={cn("ui-row grid grid-cols-12 gap-3 items-end", className)} {...props}>{children}</div>;
 }
 
 type ColProps = HTMLAttributes<HTMLDivElement> & {
@@ -50,7 +48,7 @@ export function Col({ xs = 12, sm, lg, className, children, ...props }: ColProps
         className,
     ];
 
-    return <div className={juntarClasses(...classes)} {...props}>{children}</div>;
+    return <div className={cn(...classes)} {...props}>{children}</div>;
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & ClassNameProps & {
@@ -60,7 +58,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & ClassNameProps & {
 };
 
 export function Button({ href, variant = "primary", size, className, children, ...props }: ButtonProps) {
-    const classes = juntarClasses(
+    const classes = cn(
         "btn inline-flex items-center justify-center gap-2",
         `btn-${variant}`,
         size && `btn-${size}`,
@@ -75,35 +73,35 @@ export function Button({ href, variant = "primary", size, className, children, .
 }
 
 export function FormGroup({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={juntarClasses("form-group", className)} {...props}>{children}</div>;
+    return <div className={cn("form-group", className)} {...props}>{children}</div>;
 }
 
 export function FormLabel({ className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-    return <label className={juntarClasses("form-label", className)} {...props}>{children}</label>;
+    return <label className={cn("form-label", className)} {...props}>{children}</label>;
 }
 
 export function FormControl({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-    return <input className={juntarClasses("form-control", className)} {...props} />;
+    return <input className={cn("form-control", className)} {...props} />;
 }
 
 export function FormSelect({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-    return <select className={juntarClasses("form-select", className)} {...props}>{children}</select>;
+    return <select className={cn("form-select", className)} {...props}>{children}</select>;
 }
 
 export function FormText({ className, children, ...props }: HTMLAttributes<HTMLElement>) {
-    return <small className={juntarClasses("form-text", className)} {...props}>{children}</small>;
+    return <small className={cn("form-text", className)} {...props}>{children}</small>;
 }
 
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <section className={juntarClasses("card", className)} {...props}>{children}</section>;
+    return <section className={cn("card", className)} {...props}>{children}</section>;
 }
 
 export function CardBody({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={juntarClasses("card-body", className)} {...props}>{children}</div>;
+    return <div className={cn("card-body", className)} {...props}>{children}</div>;
 }
 
 export function CardTitle({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={juntarClasses("card-title", className)} {...props}>{children}</div>;
+    return <div className={cn("card-title", className)} {...props}>{children}</div>;
 }
 
 type TableProps = TableHTMLAttributes<HTMLTableElement> & {
@@ -112,12 +110,12 @@ type TableProps = TableHTMLAttributes<HTMLTableElement> & {
 };
 
 export function Table({ responsive = false, hover = false, className, children, ...props }: TableProps) {
-    const table = <table className={juntarClasses("table", hover && "table-hover", className)} {...props}>{children}</table>;
+    const table = <table className={cn("table", hover && "table-hover", className)} {...props}>{children}</table>;
     return responsive ? <div className="table-responsive">{table}</div> : table;
 }
 
 export function VisuallyHidden({ className, children, ...props }: HTMLAttributes<HTMLSpanElement>) {
-    return <span className={juntarClasses("visually-hidden", className)} {...props}>{children}</span>;
+    return <span className={cn("visually-hidden", className)} {...props}>{children}</span>;
 }
 
 export type { ReactNode };

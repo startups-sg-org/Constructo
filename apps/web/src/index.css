@@ -2,6 +2,55 @@
 
 @theme {
   --font-sans: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Tokens do design system em docs/designs-system.md. */
+  --font-headline-xl: "Hanken Grotesk", system-ui, sans-serif;
+  --font-headline-lg: "Hanken Grotesk", system-ui, sans-serif;
+  --font-headline-md: "Hanken Grotesk", system-ui, sans-serif;
+  --font-headline-sm: "Hanken Grotesk", system-ui, sans-serif;
+  --font-title-project: "Hanken Grotesk", system-ui, sans-serif;
+  --font-body-md: "Hanken Grotesk", system-ui, sans-serif;
+  --font-body-sm: "Hanken Grotesk", system-ui, sans-serif;
+  --font-label-md: "Hanken Grotesk", system-ui, sans-serif;
+  --font-label-sm: "Hanken Grotesk", system-ui, sans-serif;
+  --font-code-sm: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-canvas: #010409;
+  --color-surface: #0d1117;
+  --color-surface-muted: #161b22;
+  --color-surface-hover: #21262d;
+  --color-surface-selected: #12243a;
+  --color-border-card: rgb(255 255 255 / 12%);
+  --color-border-muted: #30363d;
+  --color-border-control: #3d444d;
+  --color-foreground-strong: #ffffff;
+  --color-foreground: #e6edf3;
+  --color-foreground-muted: #9198a1;
+  --color-default-font: #e6edf3;
+  --color-accent: #58a6ff;
+  --color-warning-50: #fff8e1;
+  --color-warning-700: #d29922;
+  --color-success-700: #3fb950;
+  --color-error: #ffb4ab;
+  --text-headline-xl: 32px;
+  --text-headline-xl--line-height: 40px;
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-sm: 16px;
+  --text-headline-sm--line-height: 24px;
+  --text-title-project: 15px;
+  --text-title-project--line-height: 22px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 18px;
+  --text-label-md: 13px;
+  --text-label-md--line-height: 18px;
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-code-sm: 12px;
+  --text-code-sm--line-height: 18px;
   --color-constructo-fundo-painel: #f5f7f6;
   --color-constructo-superficie: #ffffff;
   --color-constructo-superficie-sutil: #f8faf9;
@@ -26,6 +75,60 @@
 
 @source "../index.html";
 @source "./";
+
+@layer components {
+  .ds-focus-ring {
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent;
+  }
+
+  .ds-focus-ring-offset {
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  }
+
+  .ds-icon-button {
+    @apply grid place-items-center rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  }
+
+  .ds-menu-item {
+    @apply flex w-full items-center rounded-md px-3 py-2.5 text-[18px] font-medium leading-6 transition-colors;
+  }
+
+  .ds-panel {
+    @apply rounded-lg border border-border-card bg-surface;
+  }
+
+  .ds-dark-field {
+    @apply min-h-8! rounded-md! border-border-control! px-3! py-1.5! text-foreground! shadow-none! focus:border-accent! focus:shadow-none! focus:outline-none!;
+  }
+
+  .ds-accent-link {
+    @apply text-accent no-underline hover:underline;
+  }
+
+  .ds-table-heading {
+    @apply px-3 py-2.5 text-[11px] font-medium uppercase tracking-wide text-foreground-muted;
+  }
+
+  .ds-status {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm border px-2 py-1 text-[11px] font-medium;
+  }
+
+  .ds-status--informativo {
+    @apply border-accent/40 bg-[rgb(31_111_235_/_12%)] text-accent;
+  }
+
+  .ds-status--alerta {
+    @apply border-warning-700/40 bg-[rgb(210_153_34_/_15%)] text-[#e3b341];
+  }
+
+  .ds-status--sucesso {
+    @apply border-success-700/40 bg-[rgb(35_134_54_/_18%)] text-success-700;
+  }
+
+  .ds-status--neutro {
+    @apply border-border-control bg-border-muted text-[#8b949e];
+  }
+}
 
 * {
   margin: 0;

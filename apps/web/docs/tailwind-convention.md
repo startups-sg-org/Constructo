@@ -11,6 +11,8 @@
 
 - Preferir utilitários Tailwind diretamente no JSX para layout, espaçamento, tipografia e estados simples.
 - Reutilizar as primitives de `src/componentes/ui/Ui.tsx` para botões, formulários, cards, tabelas e grids.
+- Reutilizar as classes globais `ds-*` de `src/index.css` para padrões visuais repetidos entre componentes, como foco, painéis, campos, itens de menu e status.
+- Criar uma nova classe `ds-*` somente quando a mesma combinação aparecer em mais de um componente; variantes e ajustes exclusivos permanecem no JSX.
 - Evitar construir nomes de classes dinamicamente; quando uma classe variar, mapear valores para strings completas.
 - Manter arquivos CSS locais somente para animações, pseudo-elementos, layouts muito específicos ou estilos ainda em migração.
 
