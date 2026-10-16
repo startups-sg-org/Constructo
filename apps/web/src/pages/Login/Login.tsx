@@ -40,7 +40,7 @@ export default function Login() {
         >
             <Form
                 method="post"
-                className="login-form"
+                className="login-form grid gap-[18px]"
                 noValidate
                 aria-busy={enviando}
                 onSubmit={handleSubmit((data) => {

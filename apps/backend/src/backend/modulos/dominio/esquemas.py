@@ -128,6 +128,17 @@ class LocalHierarquiaLer(LocalLer):
     filhos: list["LocalHierarquiaLer"] = Field(default_factory=list)
 
 
+class CompradorUnidadeCriar(BaseModel):
+    usuario_id: int = Field(gt=0)
+
+
+class CompradorUnidadeLer(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    usuario_id: int
+    local_obra_id: int
+
+
 class TaxonomiaCriar(BaseModel):
     empreendimento_id: int | None = None
     nome: str = Field(min_length=1, max_length=200)

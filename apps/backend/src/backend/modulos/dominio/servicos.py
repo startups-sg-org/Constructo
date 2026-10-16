@@ -566,10 +566,30 @@ async def vincular_comprador(
     local = await _exigir(session, LocalObra, local_id)
     if not usuario.ativo or usuario.papel != Papel.COMPRADOR or local.tipo != TipoLocal.UNIDADE:
         raise ValueError("Vínculo requer comprador ativo e local do tipo UNIDADE")
+    existente = await session.get(UsuarioUnidade, (usuario_id, local_id))
+    if existente is not None:
+        return existente
     vinculo = UsuarioUnidade(usuario_id=usuario_id, local_obra_id=local_id)
     session.add(vinculo)
     await session.flush()
     return vinculo
+
+
+async def listar_compradores_da_unidade(
+    session: AsyncSession, local_id: int
+) -> list[UsuarioUnidade]:
+    local = await _exigir(session, LocalObra, local_id)
+    if local.tipo != TipoLocal.UNIDADE:
+        raise ValueError("Vínculo requer local do tipo UNIDADE")
+    return list(
+        (
+            await session.scalars(
+                select(UsuarioUnidade)
+                .where(UsuarioUnidade.local_obra_id == local_id)
+                .order_by(UsuarioUnidade.usuario_id)
+            )
+        ).all()
+    )
 
 
 async def pode_gerir(session: AsyncSession, usuario_id: int, empreendimento_id: int) -> bool:

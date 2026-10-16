@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "./index.css";
 import "./componentes/PadroesPainel/PadroesPainel.css";
 

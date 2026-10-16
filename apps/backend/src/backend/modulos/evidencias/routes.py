@@ -44,6 +44,7 @@ from .servicos import (
     listar_evidencias,
     listar_itens_protocolo,
     listar_protocolos_evidencia,
+    listar_protocolos_recentes_do_empreendimento,
     registrar_arquivo_evidencia,
     registrar_evidencia_no_item,
     remover_associacao_do_protocolo,
@@ -252,6 +253,21 @@ async def upload_evidencia(
         tipo_mime=evidencia.tipo_mime,
         criado_em=registro.criado_em,
     )
+
+
+@router.get(
+    "/{empreendimento_id}/protocolos-evidencia/recentes",
+    response_model=list[ProtocoloEvidencia_FromDB_Schema],
+)
+async def consultar_protocolos_recentes(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+    limite: Annotated[int, Query(ge=1, le=10)] = 5,
+):
+    """Lista os protocolos criados mais recentemente na obra informada."""
+    await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    return await listar_protocolos_recentes_do_empreendimento(session, empreendimento_id, limite)
 
 
 @router.post(

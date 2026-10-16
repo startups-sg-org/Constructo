@@ -1,33 +1,65 @@
-.estrutura-fisica__cabecalho-lista {
-    align-items: flex-end;
-    margin-top: 28px;
+.estrutura-gerenciamento {
+    display: grid;
+    width: min(100%, 1420px);
+    gap: 20px;
+    margin-inline: auto;
 }
 
-.estrutura-fisica__vazia {
-    margin-top: 18px;
+.estrutura-gerenciamento__cards {
+    display: grid;
+    grid-template-columns: minmax(100%, 1200px);
+    align-items: start;
+    justify-content: center;
+    gap: 30px;
 }
 
-.estrutura-fisica__form-filho {
-    grid-template-columns: minmax(180px, 1fr) minmax(100px, 160px) auto;
-    align-items: end;
-    margin-top: 18px;
-    padding: 16px;
-    border: 1px solid #dce6e2;
-    border-radius: var(--raio-campo);
-    background: var(--cor-superficie-sutil);
+.estrutura-gerenciamento__card {
+    width: 100%;
+    align-self: start;
+    border-color: var(--cor-borda);
+    background: transparent;
+    box-shadow: none;
 }
 
-.estrutura-fisica__form-filho > p {
-    grid-column: 1 / -1;
+.estrutura-gerenciamento__card .card-body {
+    padding: clamp(20px, 3vw, 28px);
+}
+
+.estrutura-gerenciamento__card .card-title {
+    margin-bottom: 20px;
+    color: var(--cor-texto-forte);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.estrutura-gerenciamento__card .structure-tree {
+    margin-top: 0;
+}
+
+.estrutura-gerenciamento__card .breadcrumb {
+    margin-bottom: 16px;
+}
+
+.estrutura-gerenciamento__card .estrutura-fisica__lista {
+    margin-bottom: 0;
+}
+
+.estrutura-gerenciamento__card .estrutura-fisica__detalhes-local,
+.estrutura-gerenciamento__card .estrutura-fisica__detalhes-vazios {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+@media (min-width: 700px) {
+    .estrutura-gerenciamento__cards {
+        grid-template-columns: minmax(420px, 0.8fr) minmax(520px, 1.4fr) minmax(420px, 0.8fr);
+    }
 }
 
 @media (max-width: 700px) {
-    .estrutura-fisica__cabecalho-lista {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .estrutura-fisica__form-filho {
-        grid-template-columns: 1fr;
+    .estrutura-gerenciamento__card .card-body {
+        padding: 22px;
     }
 }

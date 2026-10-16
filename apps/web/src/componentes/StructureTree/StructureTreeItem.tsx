@@ -1,5 +1,5 @@
 import type { EstruturaLocal } from "@constructo/shared";
-import { useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const rotulos = {
     TORRE: "Torre",
@@ -13,45 +13,23 @@ type StructureTreeItemProps = {
     level: number;
     selectedId: number | null;
     onSelect: (item: EstruturaLocal) => void;
+    expandedIds: ReadonlySet<number>;
+    onToggle: (item: EstruturaLocal) => void;
     renderActions?: (item: EstruturaLocal) => ReactNode;
 };
 
 export default function StructureTreeItem({
     item,
     level,
-    selectedId,
-    onSelect,
+    selectedId, onSelect, expandedIds, onToggle,
     renderActions,
 }: StructureTreeItemProps) {
-    const [expanded, setExpanded] = useState(true);
     const hasChildren = item.filhos.length > 0;
-
-    function selecionar(event: KeyboardEvent<HTMLLIElement>) {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        event.stopPropagation();
-        onSelect(item);
-    }
-
-    function alternar(event: MouseEvent<HTMLButtonElement>) {
-        event.stopPropagation();
-        setExpanded((value) => !value);
-    }
+    const expanded = expandedIds.has(item.id);
 
     return (
         <li
             className={`structure-tree__item structure-tree__item--${item.tipo.toLowerCase()}`}
-            role="treeitem"
-            aria-label={`${item.nome}, ${rotulos[item.tipo]}`}
-            aria-level={level}
-            aria-selected={selectedId === item.id}
-            aria-expanded={hasChildren ? expanded : undefined}
-            tabIndex={0}
-            onClick={(event) => {
-                event.stopPropagation();
-                onSelect(item);
-            }}
-            onKeyDown={selecionar}
         >
             <div className="structure-tree__row">
                 {hasChildren ? (
@@ -59,7 +37,8 @@ export default function StructureTreeItem({
                         className="structure-tree__toggle"
                         type="button"
                         aria-label={`${expanded ? "Recolher" : "Expandir"} ${item.nome}`}
-                        onClick={alternar}
+                        aria-expanded={expanded}
+                        onClick={() => onToggle(item)}
                     >
                         <span aria-hidden="true">{expanded ? "⌄" : "›"}</span>
                     </button>
@@ -67,17 +46,18 @@ export default function StructureTreeItem({
                     <span className="structure-tree__leaf" aria-hidden="true" />
                 )}
                 <span className="structure-tree__icon" aria-hidden="true" />
-                <span className="structure-tree__name">{item.nome}</span>
+                <button
+                    className="structure-tree__select"
+                    type="button"
+                    aria-current={selectedId === item.id ? "true" : undefined}
+                    onClick={() => onSelect(item)}
+                >{item.nome}</button>
                 <span className="structure-tree__type">{rotulos[item.tipo]}</span>
-                {renderActions && (
-                    <span className="structure-tree__actions" onClick={(event) => event.stopPropagation()}>
-                        {renderActions(item)}
-                    </span>
-                )}
+                {renderActions && <span className="structure-tree__actions">{renderActions(item)}</span>}
             </div>
 
             {hasChildren && expanded && (
-                <ul className="structure-tree__group" role="group">
+                <ul className="structure-tree__group">
                     {item.filhos.map((filho) => (
                         <StructureTreeItem
                             key={filho.id}
@@ -85,6 +65,8 @@ export default function StructureTreeItem({
                             level={level + 1}
                             selectedId={selectedId}
                             onSelect={onSelect}
+                            expandedIds={expandedIds}
+                            onToggle={onToggle}
                             renderActions={renderActions}
                         />
                     ))}

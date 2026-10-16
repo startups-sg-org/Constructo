@@ -10,6 +10,8 @@ from backend.modulos.usuarios.rotas import (
 )
 
 from .esquemas import (
+    CompradorUnidadeCriar,
+    CompradorUnidadeLer,
     EmpreendimentoAtualizar,
     EmpreendimentoCriar,
     EmpreendimentoLer,
@@ -42,6 +44,7 @@ from .servicos import (
     atualizar_etapa,
     atualizar_local,
     atualizar_marco,
+    buscar_local,
     buscar_empreendimento,
     buscar_taxonomia_do_empreendimento,
     calcular_progresso_etapa,
@@ -56,6 +59,7 @@ from .servicos import (
     iniciar_progresso,
     listar_empreendimentos,
     listar_empreendimentos_do_gestor,
+    listar_compradores_da_unidade,
     listar_estrutura_fisica,
     listar_etapas,
     listar_historico_progresso,
@@ -66,6 +70,7 @@ from .servicos import (
     pode_gerir,
     reabrir_progresso,
     vincular_gestor,
+    vincular_comprador,
 )
 
 router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
@@ -551,3 +556,47 @@ async def cadastrar_unidade(
         )
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.post(
+    "/{empreendimento_id}/locais/{unidade_id}/compradores",
+    response_model=CompradorUnidadeLer,
+    status_code=201,
+)
+async def vincular_comprador_a_unidade(
+    empreendimento_id: int,
+    unidade_id: int,
+    dados: CompradorUnidadeCriar,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        unidade = await buscar_local(session, unidade_id)
+        if unidade.empreendimento_id != empreendimento_id:
+            raise ValueError("Unidade não pertence ao empreendimento")
+        return await vincular_comprador(session, dados.usuario_id, unidade_id)
+    except ValueError as erro:
+        status = 404 if "inexistente" in str(erro) or "não pertence" in str(erro) else 400
+        raise HTTPException(status_code=status, detail=str(erro)) from erro
+
+
+@router.get(
+    "/{empreendimento_id}/locais/{unidade_id}/compradores",
+    response_model=list[CompradorUnidadeLer],
+)
+async def consultar_compradores_da_unidade(
+    empreendimento_id: int,
+    unidade_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        unidade = await buscar_local(session, unidade_id)
+        if unidade.empreendimento_id != empreendimento_id:
+            raise ValueError("Unidade não pertence ao empreendimento")
+        return await listar_compradores_da_unidade(session, unidade_id)
+    except ValueError as erro:
+        status = 404 if "inexistente" in str(erro) or "não pertence" in str(erro) else 400
+        raise HTTPException(status_code=status, detail=str(erro)) from erro

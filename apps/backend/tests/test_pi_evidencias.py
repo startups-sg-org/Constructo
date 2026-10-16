@@ -142,6 +142,24 @@ def test_cria_e_consulta_protocolos_de_evidencia(cliente, monkeypatch):
     assert [item["nome"] for item in consulta.json()[0]["itens"]] == ["Visão geral", "Piso"]
 
 
+def test_consulta_protocolos_recentes_do_empreendimento(cliente, monkeypatch):
+    test_client, session = cliente
+
+    async def listar_recentes(session_recebida, empreendimento_id, limite):
+        assert session_recebida is session
+        assert empreendimento_id == 42
+        assert limite == 3
+        return [_protocolo(marco_id=7, nome="Concretagem")]
+
+    monkeypatch.setattr(routes, "listar_protocolos_recentes_do_empreendimento", listar_recentes)
+
+    resposta = test_client.get("/empreendimentos/42/protocolos-evidencia/recentes?limite=3")
+
+    assert resposta.status_code == 200
+    assert resposta.json()[0]["nome"] == "Concretagem"
+    assert resposta.json()[0]["marco_id"] == 7
+
+
 def test_gerencia_itens_de_protocolo(cliente, monkeypatch):
     test_client, session = cliente
     removidos = []
