@@ -16,7 +16,7 @@
 .estrutura-gerenciamento__card {
     width: 100%;
     align-self: start;
-    border-color: var(--cor-borda);
+    border-color: var(--color-constructo-borda);
     background: transparent;
     box-shadow: none;
 }
@@ -27,7 +27,7 @@
 
 .estrutura-gerenciamento__card .card-title {
     margin-bottom: 20px;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 1rem;
     font-weight: 700;
 }

@@ -10,10 +10,10 @@
 
 .layout-empreendimentos__cabecalho {
     padding: clamp(20px, 4vw, 32px);
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-card);
-    background: var(--cor-superficie);
-    box-shadow: var(--sombra-card);
+    border: 1px solid var(--color-constructo-borda);
+    border-radius: var(--radius-card);
+    background: var(--color-constructo-superficie);
+    box-shadow: var(--shadow-card);
 }
 
 .layout-empreendimentos__titulo {
@@ -25,7 +25,7 @@
 
 .layout-empreendimentos__titulo h1 {
     margin: 0;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
@@ -34,7 +34,7 @@
     flex-wrap: wrap;
     gap: 8px;
     margin: 10px 0 0;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
 }
 
 .layout-empreendimentos__abas {
@@ -42,24 +42,24 @@
     gap: 4px;
     overflow-x: auto;
     padding: 0 0 2px;
-    border-bottom: 1px solid var(--cor-borda);
+    border-bottom: 1px solid var(--color-constructo-borda);
 }
 
 .layout-empreendimentos__abas .nav-link {
     flex: 0 0 auto;
     padding: 10px 14px;
     border-bottom: 3px solid transparent;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-weight: 700;
 }
 
 .layout-empreendimentos__abas .nav-link:hover {
-    color: var(--cor-primaria-hover);
+    color: var(--color-constructo-primaria-hover);
 }
 
 .layout-empreendimentos__abas .nav-link.active {
-    border-bottom-color: var(--cor-primaria);
-    color: var(--cor-primaria);
+    border-bottom-color: var(--color-constructo-primaria);
+    color: var(--color-constructo-primaria);
 }
 
 .layout-empreendimentos__conteudo {

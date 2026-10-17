@@ -118,13 +118,25 @@ export const rotas: RouteObject[] = [
           {
             path: "obras",
             loader: carregarEmpreendimentos,
+            element: (
+              <PaginaPainel
+                titulo=""
+                subtitulo=""
+                className="pagina-painel--larga"
+              >
+                <ListaEmpreendimentos />
+              </PaginaPainel>
+            ),
+          },
+          {
+            path: "empreendimentos/novo",
             action: cadastrarEmpreendimento,
             element: (
               <PaginaPainel
-                titulo="Empreendimentos"
-                subtitulo="Gerencie suas obras em um só lugar."
+                titulo=""
+                subtitulo=""
+                className="pagina-painel--larga"
               >
-                <ListaEmpreendimentos />
                 <FormularioEmpreendimento />
               </PaginaPainel>
             ),

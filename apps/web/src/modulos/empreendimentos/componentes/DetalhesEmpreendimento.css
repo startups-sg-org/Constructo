@@ -14,7 +14,7 @@
 
 .detalhes-empreendimento__card {
     width: 100%;
-    border-color: var(--cor-borda);
+    border-color: var(--color-constructo-borda);
     background: transparent;
     box-shadow: none;
 }
@@ -25,7 +25,7 @@
 
 .detalhes-empreendimento__card .card-title {
     margin-bottom: 24px;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 1rem;
     font-weight: 700;
 }
@@ -45,13 +45,13 @@
 
 .detalhes-empreendimento__dado > .bi {
     margin-top: 2px;
-    color: var(--cor-primaria);
+    color: var(--color-constructo-primaria);
     font-size: 1.125rem;
 }
 
 .detalhes-empreendimento__dados dt {
     margin-bottom: 6px;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -60,7 +60,7 @@
 
 .detalhes-empreendimento__dados dd {
     margin: 0;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 0.9rem;
     line-height: 1.5;
     overflow-wrap: anywhere;
@@ -68,7 +68,7 @@
 
 .detalhes-empreendimento__mensagem {
     margin: 0;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     line-height: 1.5;
 }
 
@@ -87,24 +87,24 @@
 }
 
 .detalhes-empreendimento__resumo-estrutura > div + div {
-    border-left: 1px solid var(--cor-borda);
+    border-left: 1px solid var(--color-constructo-borda);
 }
 
 .detalhes-empreendimento__resumo-estrutura .bi {
-    color: var(--cor-primaria);
+    color: var(--color-constructo-primaria);
     font-size: 1.25rem;
 }
 
 .detalhes-empreendimento__resumo-estrutura dd {
     margin: 0;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1;
 }
 
 .detalhes-empreendimento__resumo-estrutura dt {
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.78rem;
     font-weight: 600;
 }
@@ -123,7 +123,7 @@
     align-items: start;
     gap: 10px;
     padding-bottom: 14px;
-    border-bottom: 1px solid var(--cor-borda);
+    border-bottom: 1px solid var(--color-constructo-borda);
 }
 
 .detalhes-empreendimento__atividades li:last-child {
@@ -132,7 +132,7 @@
 }
 
 .detalhes-empreendimento__atividades .bi {
-    color: var(--cor-primaria);
+    color: var(--color-constructo-primaria);
     font-size: 1.125rem;
 }
 
@@ -143,13 +143,13 @@
 }
 
 .detalhes-empreendimento__atividades strong {
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 0.9rem;
 }
 
 .detalhes-empreendimento__atividades span,
 .detalhes-empreendimento__atividades time {
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.78rem;
     line-height: 1.45;
 }

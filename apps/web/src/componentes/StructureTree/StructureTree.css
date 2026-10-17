@@ -27,7 +27,7 @@
 
 .structure-tree__item {
     position: relative;
-    border-radius: var(--raio-campo);
+    border-radius: var(--radius-campo);
     outline: none;
 }
 
@@ -75,8 +75,8 @@
     place-items: center;
     border: 0;
     border-radius: 6px;
-    color: var(--cor-sucesso);
-    background: var(--cor-sucesso-fundo);
+    color: var(--color-constructo-sucesso);
+    background: var(--color-constructo-sucesso-fundo);
     font-size: 1.15rem;
     line-height: 1;
     cursor: pointer;
@@ -123,7 +123,7 @@
 .structure-tree__item--unidade > .structure-tree__row .structure-tree__icon::before { content: "○"; }
 
 .structure-tree__name {
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-weight: 700;
 }
 
@@ -131,7 +131,7 @@
     min-width: 0;
     padding: 0;
     border: 0;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     background: transparent;
     font: inherit;
     font-weight: 700;

@@ -1,12 +1,12 @@
 .superficie-painel {
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-card);
-    background: var(--cor-superficie);
-    box-shadow: var(--sombra-card);
+    border: 1px solid var(--color-constructo-borda);
+    border-radius: var(--radius-card);
+    background: var(--color-constructo-superficie);
+    box-shadow: var(--shadow-card);
 }
 
 .superficie-painel--interna {
-    background: var(--cor-superficie-sutil);
+    background: var(--color-constructo-superficie-sutil);
     box-shadow: none;
 }
 
@@ -29,7 +29,7 @@
 
 .cabecalho-secao__titulo {
     margin-top: 5px;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 1.25rem;
     line-height: 1.3;
     overflow-wrap: anywhere;
@@ -37,7 +37,7 @@
 
 .cabecalho-secao__apoio {
     max-width: 420px;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.6;
@@ -53,7 +53,7 @@
 .feedback-painel {
     padding: 12px 14px;
     border: 1px solid transparent;
-    border-radius: var(--raio-campo);
+    border-radius: var(--radius-campo);
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.5;
@@ -61,14 +61,14 @@
 
 .feedback-painel--sucesso {
     border-color: #bfe2d4;
-    color: var(--cor-sucesso);
-    background: var(--cor-sucesso-fundo);
+    color: var(--color-constructo-sucesso);
+    background: var(--color-constructo-sucesso-fundo);
 }
 
 .feedback-painel--erro {
     border-color: #efc4c0;
-    color: var(--cor-erro);
-    background: var(--cor-erro-fundo);
+    color: var(--color-constructo-erro);
+    background: var(--color-constructo-erro-fundo);
 }
 
 .badge-status {
@@ -89,13 +89,13 @@
 }
 
 .badge-status--alerta {
-    color: var(--cor-alerta);
-    background: var(--cor-alerta-fundo);
+    color: var(--color-constructo-alerta);
+    background: var(--color-constructo-alerta-fundo);
 }
 
 .badge-status--sucesso {
-    color: var(--cor-sucesso);
-    background: var(--cor-sucesso-fundo);
+    color: var(--color-constructo-sucesso);
+    background: var(--color-constructo-sucesso-fundo);
 }
 
 .badge-status--neutro {
@@ -104,8 +104,8 @@
 }
 
 .badge-status--erro {
-    color: var(--cor-erro);
-    background: var(--cor-erro-fundo);
+    color: var(--color-constructo-erro);
+    background: var(--color-constructo-erro-fundo);
 }
 
 .estado-vazio {
@@ -117,8 +117,8 @@
     padding: 28px;
     border: 1px dashed #cdd7d4;
     border-radius: 12px;
-    color: var(--cor-texto-suave);
-    background: var(--cor-superficie-sutil);
+    color: var(--color-constructo-texto-suave);
+    background: var(--color-constructo-superficie-sutil);
 }
 
 .estado-vazio__icone {
@@ -128,7 +128,7 @@
     flex: 0 0 42px;
     place-items: center;
     border-radius: 12px;
-    color: var(--cor-primaria);
+    color: var(--color-constructo-primaria);
     background: #e8f2ef;
 }
 

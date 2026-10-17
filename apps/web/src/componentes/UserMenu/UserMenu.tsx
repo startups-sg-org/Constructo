@@ -2,9 +2,27 @@ import { useEffect, useRef, useState, type SVGProps } from "react";
 import { Link, useFetcher, useRouteLoaderData } from "react-router-dom";
 import { exigirAcessoAoPainel } from "../../features/auth/auth.loader";
 import type { AdminActionData } from "../../features/auth/logout.action";
-import "./UserMenu.css";
+import { cn } from "../../utils/classes";
 
 type IconeProps = SVGProps<SVGSVGElement>;
+
+const estilos = {
+    raiz: "user-menu relative flex-none",
+    botao: "user-menu__botao ds-focus-ring-offset flex items-center gap-3 rounded-md border-0 bg-transparent p-0 text-left text-foreground transition-colors hover:text-foreground-strong",
+    avatar: "user-menu__avatar grid h-11 w-11 flex-none place-items-center rounded-full bg-[#1f6feb] text-[17px] font-medium leading-none text-white",
+    identificacao: "user-menu__identificacao grid min-w-0 text-left max-[640px]:hidden",
+    nome: "user-menu__nome max-w-64 truncate text-[18px] font-medium leading-6 text-foreground",
+    funcao: "user-menu__funcao text-[17px] font-normal leading-6 text-foreground-muted",
+    chevron: "user-menu__chevron h-5 w-5 text-foreground-muted transition-transform",
+    opcoes: "user-menu__opcoes absolute right-0 top-[calc(100%+0.75rem)] z-30 w-[min(340px,calc(100vw-2rem))] rounded-lg border border-border-muted bg-surface-muted p-2 shadow-[0_8px_24px_rgb(1_4_9_/_75%)]",
+    cabecalho: "user-menu__cabecalho mb-2 grid gap-0.5 border-b border-border-muted px-2 pb-3 pt-1",
+    nomeCabecalho: "truncate text-[18px] font-medium leading-6 text-foreground-strong",
+    email: "truncate text-[17px] leading-6 text-foreground-muted",
+    item: "user-menu__item ds-menu-item ds-focus-ring gap-3 text-foreground no-underline hover:bg-surface-hover hover:text-foreground-strong",
+    sair: "user-menu__item user-menu__item--sair ds-menu-item ds-focus-ring gap-3 border-0 bg-transparent text-left text-error hover:bg-[#93000a]/20 disabled:cursor-wait disabled:opacity-60",
+    iconeItem: "h-[22px] w-[22px]",
+    erro: "user-menu__erro px-2 py-1 text-body-sm text-error",
+} as const;
 
 export default function UserMenu() {
     const usuario = useRouteLoaderData<typeof exigirAcessoAoPainel>("admin-autenticado");
@@ -44,56 +62,56 @@ export default function UserMenu() {
         : "";
 
     return (
-        <div className="user-menu" ref={menuRef}>
+        <div className={estilos.raiz} ref={menuRef}>
             <button
-                className="user-menu__botao"
+                className={estilos.botao}
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={menuAberto}
                 aria-controls={menuAberto ? "user-menu-opcoes" : undefined}
                 onClick={() => setMenuAberto((aberto) => !aberto)}
             >
-                <span className="user-menu__avatar" aria-hidden="true">
+                <span className={estilos.avatar} aria-hidden="true">
                     {iniciais || <IconeUsuario />}
                 </span>
-                <span className="user-menu__identificacao">
-                    <span className="user-menu__nome">{nomeCompleto}</span>
-                    <span className="user-menu__funcao">{usuario ? "Minha conta" : "Conta"}</span>
+                <span className={estilos.identificacao}>
+                    <span className={estilos.nome}>{nomeCompleto}</span>
+                    <span className={estilos.funcao}>{usuario ? "Minha conta" : "Conta"}</span>
                 </span>
-                <IconeChevron className="user-menu__chevron" aria-hidden="true" />
+                <IconeChevron className={cn(estilos.chevron, menuAberto && "rotate-180")} aria-hidden="true" />
             </button>
 
             {menuAberto && (
-                <div className="user-menu__opcoes" id="user-menu-opcoes" role="menu">
+                <div className={estilos.opcoes} id="user-menu-opcoes" role="menu">
                     {usuario && (
-                        <div className="user-menu__cabecalho">
-                            <strong>{nomeCompleto}</strong>
-                            <span>{usuario.email}</span>
+                        <div className={estilos.cabecalho}>
+                            <strong className={estilos.nomeCabecalho}>{nomeCompleto}</strong>
+                            <span className={estilos.email}>{usuario.email}</span>
                         </div>
                     )}
                     <Link
-                        className="user-menu__item"
+                        className={estilos.item}
                         to="/admin/perfil"
                         role="menuitem"
                         onClick={() => setMenuAberto(false)}
                     >
-                        <IconeUsuario aria-hidden="true" />
+                        <IconeUsuario className={estilos.iconeItem} aria-hidden="true" />
                         Perfil
                     </Link>
                     <fetcher.Form method="post" action="/admin">
                         <input name="intent" type="hidden" value="logout" />
                         <button
-                            className="user-menu__item user-menu__item--sair"
+                            className={estilos.sair}
                             type="submit"
                             role="menuitem"
                             disabled={saindo}
                         >
-                            <IconeSair aria-hidden="true" />
+                            <IconeSair className={estilos.iconeItem} aria-hidden="true" />
                             {saindo ? "Saindo..." : "Sair"}
                         </button>
                     </fetcher.Form>
                     {fetcher.data?.erro && (
-                        <p className="user-menu__erro" role="alert">{fetcher.data.erro}</p>
+                        <p className={estilos.erro} role="alert">{fetcher.data.erro}</p>
                     )}
                 </div>
             )}
