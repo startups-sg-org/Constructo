@@ -5,6 +5,7 @@
 
   /* Tokens do design system em docs/designs-system.md. */
   --font-headline-xl: "Hanken Grotesk", system-ui, sans-serif;
+  --font-headline-xl-mobile: "Hanken Grotesk", system-ui, sans-serif;
   --font-headline-lg: "Hanken Grotesk", system-ui, sans-serif;
   --font-headline-md: "Hanken Grotesk", system-ui, sans-serif;
   --font-headline-sm: "Hanken Grotesk", system-ui, sans-serif;
@@ -13,6 +14,8 @@
   --font-body-sm: "Hanken Grotesk", system-ui, sans-serif;
   --font-label-md: "Hanken Grotesk", system-ui, sans-serif;
   --font-label-sm: "Hanken Grotesk", system-ui, sans-serif;
+  --font-badge-compact: "Hanken Grotesk", system-ui, sans-serif;
+  --font-overline: "Hanken Grotesk", system-ui, sans-serif;
   --font-code-sm: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-canvas: #010409;
   --color-surface: #0d1117;
@@ -27,12 +30,24 @@
   --color-foreground-muted: #9198a1;
   --color-default-font: #e6edf3;
   --color-accent: #58a6ff;
+  --color-action-primary: #1f6feb;
+  --color-action-primary-hover: #388bfd;
   --color-warning-50: #fff8e1;
   --color-warning-700: #d29922;
   --color-success-700: #3fb950;
   --color-error: #ffb4ab;
+  --color-status-progress-bg: rgb(31 111 235 / 12%);
+  --color-status-progress-fg: #58a6ff;
+  --color-status-complete-bg: rgb(35 134 54 / 18%);
+  --color-status-complete-fg: #3fb950;
+  --color-status-pending-bg: #30363d;
+  --color-status-pending-fg: #8b949e;
   --text-headline-xl: 32px;
   --text-headline-xl--line-height: 40px;
+  --text-headline-xl-mobile: 26px;
+  --text-headline-xl-mobile--line-height: 32px;
+  --text-headline-xl-mobile--font-weight: 600;
+  --text-headline-xl-mobile--letter-spacing: -0.015em;
   --text-headline-lg: 24px;
   --text-headline-lg--line-height: 32px;
   --text-headline-md: 20px;
@@ -49,6 +64,14 @@
   --text-label-md--line-height: 18px;
   --text-label-sm: 12px;
   --text-label-sm--line-height: 16px;
+  --text-badge-compact: 11px;
+  --text-badge-compact--line-height: 14px;
+  --text-badge-compact--font-weight: 500;
+  --text-badge-compact--letter-spacing: 0.03em;
+  --text-overline: 10px;
+  --text-overline--line-height: 14px;
+  --text-overline--font-weight: 500;
+  --text-overline--letter-spacing: 0.08em;
   --text-code-sm: 12px;
   --text-code-sm--line-height: 18px;
   --color-constructo-fundo-painel: #f5f7f6;

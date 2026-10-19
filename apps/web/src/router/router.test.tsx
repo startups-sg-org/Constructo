@@ -448,6 +448,131 @@ describe("novo sistema de rotas", () => {
     expect(obterEmpreendimentoMock).toHaveBeenCalledWith(12, expect.anything());
   });
 
+  it("exibe a visão geral com estrutura, macroetapas e atividade reais", async () => {
+    const baseLocal = {
+      empreendimento_id: empreendimento.id,
+      ordem: 1,
+      criado_em: "2026-10-10T12:00:00Z",
+      atualizado_em: "2026-10-11T12:00:00Z",
+    };
+    obterEstruturaFisicaMock.mockResolvedValue([{
+      ...baseLocal,
+      id: 31,
+      parent_id: null,
+      nome: "Torre A",
+      tipo: "TORRE" as const,
+      filhos: [{
+        ...baseLocal,
+        id: 41,
+        parent_id: 31,
+        nome: "1º Pavimento",
+        tipo: "PAVIMENTO" as const,
+        filhos: [{
+          ...baseLocal,
+          id: 51,
+          parent_id: 41,
+          nome: "Unidade 101",
+          tipo: "UNIDADE" as const,
+          filhos: [],
+        }],
+      }],
+    }]);
+    obterTaxonomiaMock.mockResolvedValue({
+      id: 3,
+      empreendimento_id: empreendimento.id,
+      origem_taxonomia_id: 1,
+      nome: "Residencial",
+      descricao: "Taxonomia do empreendimento",
+      is_padrao: false,
+      etapas: [{
+        id: 10,
+        taxonomia_id: 3,
+        parent_id: null,
+        nome: "Fundações",
+        ordem: 1,
+        marcos: [{ id: 20, etapa_id: 10, nome: "Estacas", ordem: 1 }],
+        subetapas: [],
+      }],
+    });
+    listarProtocolosRecentesMock.mockResolvedValue([{
+      id: 50,
+      marco_id: 20,
+      nome: "Conferência das estacas",
+      descricao: "Registro fotográfico das fundações.",
+      quantidade_minima: 2,
+      criado_em: "2026-10-11T14:32:00Z",
+      atualizado_em: "2026-10-11T14:32:00Z",
+    }]);
+
+    montarRota("/admin/empreendimentos/12");
+
+    expect(await screen.findByRole("heading", { name: "Visão geral" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Informações gerais" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Resumo da obra" })).toBeInTheDocument();
+    expect(screen.getByText("Torres").previousElementSibling).toHaveTextContent("1");
+    expect(screen.getByText("Pavimentos").previousElementSibling).toHaveTextContent("1");
+    expect(screen.getByText("Unidades").previousElementSibling).toHaveTextContent("1");
+    expect(screen.getByRole("heading", { name: "Avanço físico global" })).toBeInTheDocument();
+    expect(screen.getByText("Indisponível")).toBeInTheDocument();
+    expect(await screen.findByText("Fundações")).toBeInTheDocument();
+    expect(screen.getByText("1 marco configurado")).toBeInTheDocument();
+    expect(await screen.findByText("Protocolo Conferência das estacas criado")).toBeInTheDocument();
+    expect(screen.getByText("Registro fotográfico das fundações.")).toBeInTheDocument();
+  });
+
+  it("isola falhas parciais dos módulos da visão geral", async () => {
+    obterTaxonomiaMock.mockRejectedValue(new ApiError("não encontrada", 404, "Not Found"));
+    obterEstruturaFisicaMock.mockRejectedValue(new Error("estrutura indisponível"));
+    listarProtocolosRecentesMock.mockRejectedValue(new Error("atividade indisponível"));
+
+    montarRota("/admin/empreendimentos/12");
+
+    expect(await screen.findByText("Nenhuma taxonomia configurada para este empreendimento.")).toBeInTheDocument();
+    expect(await screen.findByText("Não foi possível carregar o resumo da estrutura.")).toBeInTheDocument();
+    expect(await screen.findByText("Não foi possível carregar os protocolos recentes.")).toBeInTheDocument();
+    expect(screen.getAllByText("Avenida Central, 100")).toHaveLength(2);
+  });
+
+  it("exibe os estados vazios sem inventar conteúdo", async () => {
+    montarRota("/admin/empreendimentos/12");
+
+    expect(await screen.findByText("Nenhuma macroetapa configurada na taxonomia.")).toBeInTheDocument();
+    expect(await screen.findByText("Nenhum protocolo criado recentemente.")).toBeInTheDocument();
+    const resumoObra = screen.getByRole("region", { name: "Resumo da obra" });
+    expect(within(resumoObra).getByText("Torres").previousElementSibling).toHaveTextContent("0");
+    expect(within(resumoObra).getByText("Pavimentos").previousElementSibling).toHaveTextContent("0");
+    expect(within(resumoObra).getByText("Unidades").previousElementSibling).toHaveTextContent("0");
+    expect(screen.queryByText(/responsável/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/auditoria/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^ART$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/habite-se/i)).not.toBeInTheDocument();
+  });
+
+  it("não simula ações ou contadores sem integração no shell do empreendimento", async () => {
+    montarRota("/admin/empreendimentos/12");
+
+    await screen.findByRole("heading", { name: "Residencial Aurora" });
+    const areas = screen.getByRole("navigation", { name: "Áreas do empreendimento" });
+    const destinos = {
+      Visualizar: "/admin/empreendimentos/12",
+      Editar: "/admin/empreendimentos/12/editar",
+      Estrutura: "/admin/empreendimentos/12/estrutura",
+      Taxonomia: "/admin/empreendimentos/12/taxonomia",
+      Contratos: "/admin/empreendimentos/12/contratos",
+      Medições: "/admin/empreendimentos/12/medicoes",
+      Documentos: "/admin/empreendimentos/12/documentos",
+    } as const;
+
+    for (const [rotulo, destino] of Object.entries(destinos)) {
+      const link = within(areas).getByRole("link", { name: rotulo });
+      expect(link).toHaveAttribute("href", destino);
+      expect(link).toHaveTextContent(new RegExp(`^${rotulo}$`));
+    }
+
+    expect(screen.queryByText("Exportar")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nova medição")).not.toBeInTheDocument();
+  });
+
   it("acessa a gestão da estrutura física pelo detalhe", async () => {
     const user = userEvent.setup();
     montarRota("/admin/empreendimentos/12");
@@ -455,7 +580,7 @@ describe("novo sistema de rotas", () => {
     await user.click(await screen.findByRole("link", { name: "Estrutura" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Estrutura física" }),
+      await screen.findByRole("heading", { name: "Estrutura" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
   });

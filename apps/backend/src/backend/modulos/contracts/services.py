@@ -1,34 +1,31 @@
 import uuid
+
 from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from .repository import EmpresaRepo, ContratosRepo, ItensContratuaisRepo
 from .models import Empresa
-
-from .schema.empresas_schema import (
-    TipoEmpresaEnum,
-    Empresa_FromRequest_Schema,
-    Empresa_UpdateRequest_Schema,
-    Empresa_StatusRequest_Schema,
-    Empresa_FromDB_Schema,
-    EmpresaResumo_FromDB_Schema,
-)
-
+from .repository import ContratosRepo, EmpresaRepo, ItensContratuaisRepo
 from .schema.contratos_schema import (
-    StatusContratoEnum,
-    Contrato_FromRequest_Schema,
-    Contrato_UpdateRequest_Schema,
-    Contrato_StatusRequest_Schema,
     Contrato_FromDB_Schema,
+    Contrato_FromRequest_Schema,
+    Contrato_StatusRequest_Schema,
+    Contrato_UpdateRequest_Schema,
     ContratoResumo_FromDB_Schema,
+    StatusContratoEnum,
 )
-
+from .schema.empresas_schema import (
+    Empresa_FromDB_Schema,
+    Empresa_FromRequest_Schema,
+    Empresa_StatusRequest_Schema,
+    Empresa_UpdateRequest_Schema,
+    EmpresaResumo_FromDB_Schema,
+    TipoEmpresaEnum,
+)
 from .schema.itensContratuais_schemas import (
+    ItemContratual_FromDB_Schema,
     ItemContratual_FromRequest_Schema,
     ItemContratual_UpdateRequest_Schema,
-    ItemContratual_StatusRequest_Schema,
-    ItemContratual_FromDB_Schema,
 )
 
 
@@ -148,6 +145,11 @@ class ContratoService:
         if not contrato:
             raise HTTPException(status_code=404, detail="Contrato não encontrado.")
         return contrato
+
+    async def listar_por_empreendimento(
+        self, db: AsyncSession, empreendimento_id: int
+    ) -> list[ContratoResumo_FromDB_Schema]:
+        return await self.contrato_repo.listar_por_empreendimento(db, empreendimento_id)
 
     async def update_contrato(
         self, db: AsyncSession, contrato_id: uuid.UUID, payload: Contrato_UpdateRequest_Schema

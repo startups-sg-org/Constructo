@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useRouteLoaderData } from "react-router-dom";
 import type { EstruturaLocal } from "@constructo/shared";
 
-import CabecalhoSecao from "../../../componentes/CabecalhoSecao/CabecalhoSecao";
-import { Card, CardBody, CardTitle } from "../../../componentes/ui/Ui";
 import { carregarEmpreendimento } from "../../../features/empreendimentos/empreendimentos.loader";
 import {
     obterEstruturaFisica,
@@ -15,27 +13,20 @@ import {
     type ProtocoloEvidenciaResumo,
 } from "../../../features/evidencias/evidencias.service";
 import { ApiError } from "../../../services/api";
-import { formatarDataEmpreendimento } from "./empreendimentoFormatters";
-import "./DetalhesEmpreendimento.css";
-
-type EstadoTaxonomia = "carregando" | "disponivel" | "ausente" | "erro";
-type EstadoEstrutura = "carregando" | "disponivel" | "erro";
-type EstadoAtividade = "carregando" | "disponivel" | "erro";
-
-type ResumoEstrutura = {
-    torres: number;
-    pavimentos: number;
-    unidades: number;
-};
+import AtividadeRecenteEmpreendimento from "./AtividadeRecenteEmpreendimento";
+import MacroetapasEmpreendimento from "./MacroetapasEmpreendimento";
+import ResumoAvancoFisico from "./ResumoAvancoFisico";
+import ResumoGeralEmpreendimento from "./ResumoGeralEmpreendimento";
+import type { EstadoRecurso, ResumoEstrutura } from "./visaoGeral.types";
 
 export default function DetalhesEmpreendimento() {
     const empreendimento = useRouteLoaderData<typeof carregarEmpreendimento>("empreendimento");
     const [taxonomia, setTaxonomia] = useState<Taxonomia | null>(null);
-    const [estadoTaxonomia, setEstadoTaxonomia] = useState<EstadoTaxonomia>("carregando");
+    const [estadoTaxonomia, setEstadoTaxonomia] = useState<EstadoRecurso>("carregando");
     const [resumoEstrutura, setResumoEstrutura] = useState<ResumoEstrutura | null>(null);
-    const [estadoEstrutura, setEstadoEstrutura] = useState<EstadoEstrutura>("carregando");
+    const [estadoEstrutura, setEstadoEstrutura] = useState<EstadoRecurso>("carregando");
     const [protocolosRecentes, setProtocolosRecentes] = useState<ProtocoloEvidenciaResumo[]>([]);
-    const [estadoAtividade, setEstadoAtividade] = useState<EstadoAtividade>("carregando");
+    const [estadoAtividade, setEstadoAtividade] = useState<EstadoRecurso>("carregando");
 
     useEffect(() => {
         if (!empreendimento) return;
@@ -50,7 +41,6 @@ export default function DetalhesEmpreendimento() {
             })
             .catch((erro) => {
                 if (!ativo) return;
-                setTaxonomia(null);
                 setEstadoTaxonomia(erro instanceof ApiError && erro.status === 404 ? "ausente" : "erro");
             });
 
@@ -70,7 +60,6 @@ export default function DetalhesEmpreendimento() {
             })
             .catch(() => {
                 if (!ativo) return;
-                setProtocolosRecentes([]);
                 setEstadoAtividade("erro");
             });
 
@@ -90,7 +79,6 @@ export default function DetalhesEmpreendimento() {
             })
             .catch(() => {
                 if (!ativo) return;
-                setResumoEstrutura(null);
                 setEstadoEstrutura("erro");
             });
 
@@ -100,152 +88,28 @@ export default function DetalhesEmpreendimento() {
     if (!empreendimento) return null;
 
     return (
-        <section className="detalhes-empreendimento" aria-labelledby="visao-geral-titulo">
-            <CabecalhoSecao
-                titulo="Visão geral"
-                tituloId="visao-geral-titulo"
-            />
-            <div className="detalhes-empreendimento__cards">
-                <Card className="detalhes-empreendimento__card">
-                    <CardBody>
-                        <CardTitle>Sobre o empreendimento</CardTitle>
-                        <dl className="detalhes-empreendimento__dados">
-                            <div className="detalhes-empreendimento__dado">
-                                <i className="bi bi-geo-alt" aria-hidden="true" />
-                                <div>
-                                <dt>Endereço</dt>
-                                <dd>{empreendimento.endereco || "Endereço não informado"}</dd>
-                                </div>
-                            </div>
-                            <div className="detalhes-empreendimento__dado">
-                                <i className="bi bi-card-text" aria-hidden="true" />
-                                <div>
-                                <dt>Descrição</dt>
-                                <dd>{empreendimento.descricao || "Descrição não informada"}</dd>
-                                </div>
-                            </div>
-                            <div className="detalhes-empreendimento__dado">
-                                <i className="bi bi-calendar-plus" aria-hidden="true" />
-                                <div>
-                                <dt>Data de criação</dt>
-                                <dd>{formatarDataEmpreendimento(empreendimento.criado_em)}</dd>
-                                </div>
-                            </div>
-                            <div className="detalhes-empreendimento__dado">
-                                <i className="bi bi-clock-history" aria-hidden="true" />
-                                <div>
-                                <dt>Atualizado em</dt>
-                                <dd>{formatarDataEmpreendimento(empreendimento.atualizado_em)}</dd>
-                                </div>
-                            </div>
-                        </dl>
-                    </CardBody>
-                </Card>
+        <section className="grid min-w-0 gap-4" aria-labelledby="visao-geral-titulo">
+            <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border-muted pb-3">
+                <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-status-progress-fg" aria-hidden="true" />
+                    <h2 className="font-headline-xl-mobile text-headline-xl-mobile font-semibold text-foreground-strong md:font-headline-xl md:text-headline-xl" id="visao-geral-titulo">
+                        Visão geral
+                    </h2>
+                </div>
+                <p className="text-[12px] leading-5 text-foreground-muted max-sm:hidden">
+                    Dados atualizados a partir dos módulos disponíveis
+                </p>
+            </header>
 
-                <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <CardBody>
-                        <CardTitle>Resumo da taxonomia</CardTitle>
-                        {estadoTaxonomia === "carregando" && (
-                            <p className="detalhes-empreendimento__mensagem">Carregando taxonomia…</p>
-                        )}
-                        {estadoTaxonomia === "ausente" && (
-                            <p className="detalhes-empreendimento__mensagem">
-                                Nenhuma taxonomia configurada para este empreendimento.
-                            </p>
-                        )}
-                        {estadoTaxonomia === "erro" && (
-                            <p className="detalhes-empreendimento__mensagem">
-                                Não foi possível carregar o resumo da taxonomia.
-                            </p>
-                        )}
-                        {estadoTaxonomia === "disponivel" && taxonomia && (
-                            <dl className="detalhes-empreendimento__dados">
-                                <div className="detalhes-empreendimento__dado">
-                                    <i className="bi bi-diagram-3" aria-hidden="true" />
-                                    <div>
-                                        <dt>Taxonomia</dt>
-                                        <dd>{taxonomia.nome}</dd>
-                                    </div>
-                                </div>
-                                <div className="detalhes-empreendimento__dado">
-                                    <i className="bi bi-card-text" aria-hidden="true" />
-                                    <div>
-                                        <dt>Descrição</dt>
-                                        <dd>{taxonomia.descricao || "Descrição não informada"}</dd>
-                                    </div>
-                                </div>
-                            </dl>
-                        )}
-                    </CardBody>
-                </Card>
-
-                <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <CardBody>
-                        <CardTitle>Resumo da estrutura da obra</CardTitle>
-                        {estadoEstrutura === "carregando" && (
-                            <p className="detalhes-empreendimento__mensagem">Carregando estrutura…</p>
-                        )}
-                        {estadoEstrutura === "erro" && (
-                            <p className="detalhes-empreendimento__mensagem">
-                                Não foi possível carregar o resumo da estrutura.
-                            </p>
-                        )}
-                        {estadoEstrutura === "disponivel" && resumoEstrutura && (
-                            <dl className="detalhes-empreendimento__resumo-estrutura">
-                                <div>
-                                    <i className="bi bi-buildings" aria-hidden="true" />
-                                    <dd>{resumoEstrutura.torres}</dd>
-                                    <dt>Torres</dt>
-                                </div>
-                                <div>
-                                    <i className="bi bi-layers" aria-hidden="true" />
-                                    <dd>{resumoEstrutura.pavimentos}</dd>
-                                    <dt>Pavimentos</dt>
-                                </div>
-                                <div>
-                                    <i className="bi bi-door-open" aria-hidden="true" />
-                                    <dd>{resumoEstrutura.unidades}</dd>
-                                    <dt>Unidades</dt>
-                                </div>
-                            </dl>
-                        )}
-                    </CardBody>
-                </Card>
-
-                <Card className="detalhes-empreendimento__card" aria-live="polite">
-                    <CardBody>
-                        <CardTitle>Atividade recente</CardTitle>
-                        {estadoAtividade === "carregando" && (
-                            <p className="detalhes-empreendimento__mensagem">Carregando protocolos…</p>
-                        )}
-                        {estadoAtividade === "erro" && (
-                            <p className="detalhes-empreendimento__mensagem">
-                                Não foi possível carregar os protocolos recentes.
-                            </p>
-                        )}
-                        {estadoAtividade === "disponivel" && protocolosRecentes.length === 0 && (
-                            <p className="detalhes-empreendimento__mensagem">
-                                Nenhum protocolo de medição criado recentemente.
-                            </p>
-                        )}
-                        {estadoAtividade === "disponivel" && protocolosRecentes.length > 0 && (
-                            <ul className="detalhes-empreendimento__atividades">
-                                {protocolosRecentes.map((protocolo) => (
-                                    <li key={protocolo.id}>
-                                        <i className="bi bi-clipboard-check" aria-hidden="true" />
-                                        <div>
-                                            <strong>Protocolo {protocolo.nome} criado</strong>
-                                            {protocolo.descricao && <span>{protocolo.descricao}</span>}
-                                        </div>
-                                        <time dateTime={protocolo.criado_em}>
-                                            {formatarDataEmpreendimento(protocolo.criado_em)}
-                                        </time>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </CardBody>
-                </Card>
+            <div className="grid min-w-0 items-start gap-4 min-[1100px]:grid-cols-[minmax(300px,0.38fr)_minmax(0,0.62fr)]">
+                <div className="grid min-w-0 gap-4">
+                    <ResumoGeralEmpreendimento empreendimento={empreendimento} />
+                    <ResumoAvancoFisico estadoEstrutura={estadoEstrutura} resumoEstrutura={resumoEstrutura} />
+                </div>
+                <div className="grid min-w-0 gap-4">
+                    <MacroetapasEmpreendimento estado={estadoTaxonomia} taxonomia={taxonomia} />
+                    <AtividadeRecenteEmpreendimento estado={estadoAtividade} protocolos={protocolosRecentes} />
+                </div>
             </div>
         </section>
     );

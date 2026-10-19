@@ -1,34 +1,30 @@
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .schema.empresas_schema import (
-    TipoEmpresaEnum,
-    Empresa_FromRequest_Schema,
-    Empresa_UpdateRequest_Schema,
-    Empresa_StatusRequest_Schema,
-    Empresa_FromDB_Schema,
-    EmpresaResumo_FromDB_Schema,
-    EmpresaLite_FromDB_Schema,
-)
-
+from .models import Contrato, Empresa, itens_contratuais
 from .schema.contratos_schema import (
-    Contrato_FromRequest_Schema,
-    Contrato_UpdateRequest_Schema,
-    Contrato_StatusRequest_Schema,
     Contrato_FromDB_Schema,
+    Contrato_FromRequest_Schema,
+    Contrato_StatusRequest_Schema,
+    Contrato_UpdateRequest_Schema,
     ContratoResumo_FromDB_Schema,
 )
-
+from .schema.empresas_schema import (
+    Empresa_FromDB_Schema,
+    Empresa_FromRequest_Schema,
+    Empresa_StatusRequest_Schema,
+    Empresa_UpdateRequest_Schema,
+    EmpresaResumo_FromDB_Schema,
+    TipoEmpresaEnum,
+)
 from .schema.itensContratuais_schemas import (
+    ItemContratual_FromDB_Schema,
     ItemContratual_FromRequest_Schema,
     ItemContratual_UpdateRequest_Schema,
-    ItemContratual_StatusRequest_Schema,
-    ItemContratual_FromDB_Schema,
 )
-
-from .models import Empresa, Contrato, itens_contratuais
 
 
 class EmpresaRepo:
@@ -88,13 +84,30 @@ class EmpresaRepo:
 class ContratosRepo:
 
     async def create_contrato(self, db: AsyncSession, payload: Contrato_FromRequest_Schema) -> Contrato_FromDB_Schema:
-        obj = Contrato(id=uuid.uuid4(), **payload.model_dump())
+        dados = payload.model_dump(exclude={"data_inicio", "data_fim"})
+        obj = Contrato(
+            id=uuid.uuid4(),
+            **dados,
+            **({"iniciado_em": payload.data_inicio} if payload.data_inicio else {}),
+            finalizado_em=payload.data_fim,
+        )
         db.add(obj)
         await db.flush()
         # refresh normal só recarrega colunas — contratante/contratado são
         # relationships, precisam ser pedidos explicitamente aqui
         await db.refresh(obj, attribute_names=["contratante", "contratado"])
         return Contrato_FromDB_Schema.model_validate(obj)
+
+    async def listar_por_empreendimento(
+        self, db: AsyncSession, empreendimento_id: int
+    ) -> list[ContratoResumo_FromDB_Schema]:
+        resultado = await db.scalars(
+            select(Contrato)
+            .options(selectinload(Contrato.contratante), selectinload(Contrato.contratado))
+            .where(Contrato.empreendimento_id == empreendimento_id)
+            .order_by(Contrato.iniciado_em.desc(), Contrato.id.desc())
+        )
+        return [ContratoResumo_FromDB_Schema.model_validate(item) for item in resultado.all()]
 
     async def get_contrato(self, db: AsyncSession, contrato_id: uuid.UUID) -> Contrato_FromDB_Schema | None:
         result = await db.execute(
@@ -151,7 +164,13 @@ class ItensContratuaisRepo:
     async def create_item_contratual(
         self, db: AsyncSession, contrato_id: uuid.UUID, payload: ItemContratual_FromRequest_Schema
     ) -> ItemContratual_FromDB_Schema:
-        obj = itens_contratuais(id=uuid.uuid4(), contrato_id=contrato_id, **payload.model_dump())
+        dados = payload.model_dump()
+        obj = itens_contratuais(
+            id=uuid.uuid4(),
+            contrato_id=contrato_id,
+            **dados,
+            valor_total=dados["quantidade"] * dados["valor_unitario"],
+        )
         db.add(obj)
         await db.flush()
         await db.refresh(obj)
@@ -176,6 +195,8 @@ class ItensContratuaisRepo:
 
         for key, value in payload.model_dump(exclude_unset=True).items():
             setattr(item, key, value)
+
+        item.valor_total = item.quantidade * item.valor_unitario
 
         await db.flush()
         await db.refresh(item)

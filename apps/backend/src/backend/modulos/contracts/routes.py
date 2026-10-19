@@ -5,30 +5,31 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.banco_de_dados.connections.database_postgres import get_db
-
-from .services import EmpresaService, ContratoService, ItemContratualService
-
-from .schema.empresas_schema import (
-    TipoEmpresaEnum,
-    Empresa_FromRequest_Schema,
-    Empresa_UpdateRequest_Schema,
-    Empresa_StatusRequest_Schema,
-    Empresa_FromDB_Schema,
-    EmpresaResumo_FromDB_Schema,
-)
+from backend.modulos.dominio.rotas import exigir_acesso_ao_empreendimento
+from backend.modulos.usuarios.modelos import Usuario
+from backend.modulos.usuarios.rotas import get_admin_ou_gestor
 
 from .schema.contratos_schema import (
-    Contrato_FromRequest_Schema,
-    Contrato_UpdateRequest_Schema,
-    Contrato_StatusRequest_Schema,
     Contrato_FromDB_Schema,
+    Contrato_FromRequest_Schema,
+    Contrato_StatusRequest_Schema,
+    Contrato_UpdateRequest_Schema,
+    ContratoResumo_FromDB_Schema,
 )
-
+from .schema.empresas_schema import (
+    Empresa_FromDB_Schema,
+    Empresa_FromRequest_Schema,
+    Empresa_StatusRequest_Schema,
+    Empresa_UpdateRequest_Schema,
+    EmpresaResumo_FromDB_Schema,
+    TipoEmpresaEnum,
+)
 from .schema.itensContratuais_schemas import (
+    ItemContratual_FromDB_Schema,
     ItemContratual_FromRequest_Schema,
     ItemContratual_UpdateRequest_Schema,
-    ItemContratual_FromDB_Schema,
 )
+from .services import ContratoService, EmpresaService, ItemContratualService
 
 #endpoints:
 #--------Itens contratuais ------------
@@ -97,19 +98,54 @@ async def desativar_empresa(id: uuid.UUID, payload: Empresa_StatusRequest_Schema
 contratos_router = APIRouter(prefix="/contratos", tags=["Contratos"])
 
 @contratos_router.post("/", response_model=Contrato_FromDB_Schema, status_code=status.HTTP_201_CREATED)
-async def create_contrato(payload: Contrato_FromRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
+async def create_contrato(
+    payload: Contrato_FromRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await exigir_acesso_ao_empreendimento(db, usuario, payload.empreendimento_id)
     return await contrato_service.create_contrato(db, payload)
 
+
+@contratos_router.get("/", response_model=list[ContratoResumo_FromDB_Schema])
+async def listar_contratos(
+    empreendimento_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await exigir_acesso_ao_empreendimento(db, usuario, empreendimento_id)
+    return await contrato_service.listar_por_empreendimento(db, empreendimento_id)
+
 @contratos_router.get("/{id}", response_model=Contrato_FromDB_Schema)
-async def get_contrato(id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]):
-    return await contrato_service.get_contrato(db, id)
+async def get_contrato(
+    id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    contrato = await contrato_service.get_contrato(db, id)
+    await exigir_acesso_ao_empreendimento(db, usuario, contrato.empreendimento_id)
+    return contrato
 
 @contratos_router.patch("/{id}/status", response_model=Contrato_FromDB_Schema)
-async def atualizar_status_contrato(id: uuid.UUID, payload: Contrato_StatusRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
+async def atualizar_status_contrato(
+    id: uuid.UUID,
+    payload: Contrato_StatusRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    contrato = await contrato_service.get_contrato(db, id)
+    await exigir_acesso_ao_empreendimento(db, usuario, contrato.empreendimento_id)
     return await contrato_service.atualizar_status_contrato(db, id, payload)
 
 @contratos_router.put("/{id}", response_model=Contrato_FromDB_Schema)
-async def update_contrato(id: uuid.UUID, payload: Contrato_UpdateRequest_Schema, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_contrato(
+    id: uuid.UUID,
+    payload: Contrato_UpdateRequest_Schema,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    contrato = await contrato_service.get_contrato(db, id)
+    await exigir_acesso_ao_empreendimento(db, usuario, contrato.empreendimento_id)
     return await contrato_service.update_contrato(db, id, payload)
 
 

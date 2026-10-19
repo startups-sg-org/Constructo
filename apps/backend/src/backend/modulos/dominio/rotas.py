@@ -30,6 +30,7 @@ from .esquemas import (
     MarcoEtapaCriar,
     MarcoLer,
     PavimentoCriar,
+    ProgressoEmpreendimentoLer,
     ProgressoEtapaLer,
     ProgressoMarcoLer,
     TaxonomiaConfigurar,
@@ -44,8 +45,8 @@ from .servicos import (
     atualizar_etapa,
     atualizar_local,
     atualizar_marco,
-    buscar_local,
     buscar_empreendimento,
+    buscar_local,
     buscar_taxonomia_do_empreendimento,
     calcular_progresso_etapa,
     concluir_progresso,
@@ -57,9 +58,9 @@ from .servicos import (
     exigir_etapa_do_empreendimento,
     exigir_marco_do_empreendimento,
     iniciar_progresso,
+    listar_compradores_da_unidade,
     listar_empreendimentos,
     listar_empreendimentos_do_gestor,
-    listar_compradores_da_unidade,
     listar_estrutura_fisica,
     listar_etapas,
     listar_historico_progresso,
@@ -69,8 +70,9 @@ from .servicos import (
     personalizar_taxonomia,
     pode_gerir,
     reabrir_progresso,
-    vincular_gestor,
+    resumir_progresso_empreendimento,
     vincular_comprador,
+    vincular_gestor,
 )
 
 router = APIRouter(prefix="/empreendimentos", tags=["empreendimentos"])
@@ -401,6 +403,22 @@ async def consultar_historico_progresso(
         return historico
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro)) from erro
+
+
+@router.get(
+    "/{empreendimento_id}/progresso",
+    response_model=ProgressoEmpreendimentoLer,
+)
+async def consultar_progresso_empreendimento(
+    empreendimento_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
+):
+    await _exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)
+    try:
+        return await resumir_progresso_empreendimento(session, empreendimento_id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado") from erro
 
 
 @router.get(

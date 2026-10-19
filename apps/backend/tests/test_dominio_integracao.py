@@ -62,6 +62,7 @@ from backend.modulos.dominio.servicos import (
     publicacoes_da_unidade,
     publicar_rascunho,
     registrar_evidencia,
+    resumir_progresso_empreendimento,
     vincular_comprador,
     vincular_gestor,
 )
@@ -590,6 +591,123 @@ def test_progresso_publicacao_e_isolamento_de_empreendimento():
                 assert progresso.concluido_em is None
                 assert await calcular_progresso_unidade(session, unidade.id) == 0
                 await session.rollback()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(executar())
+
+
+def test_resumo_progresso_agrega_macroetapas_e_subetapas():
+    async def executar():
+        engine, factory = await cenario()
+        try:
+            async with factory() as session:
+                _, _, _, obra, _, taxonomia, _ = await base(session)
+                torre = await criar_local(
+                    session,
+                    LocalCriar(empreendimento_id=obra.id, nome="Torre A", tipo=TipoLocal.TORRE),
+                )
+                pavimento = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        parent_id=torre.id,
+                        nome="1º Pavimento",
+                        tipo=TipoLocal.PAVIMENTO,
+                    ),
+                )
+                unidade_a = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        parent_id=pavimento.id,
+                        nome="101",
+                        tipo=TipoLocal.UNIDADE,
+                    ),
+                )
+                unidade_b = await criar_local(
+                    session,
+                    LocalCriar(
+                        empreendimento_id=obra.id,
+                        parent_id=pavimento.id,
+                        nome="102",
+                        tipo=TipoLocal.UNIDADE,
+                    ),
+                )
+                fundacoes = await criar_etapa(
+                    session,
+                    EtapaCriar(taxonomia_id=taxonomia.id, nome="Fundações", ordem=1),
+                )
+                fundacoes_profundas = await criar_etapa(
+                    session,
+                    EtapaCriar(
+                        taxonomia_id=taxonomia.id,
+                        parent_id=fundacoes.id,
+                        nome="Fundações profundas",
+                        ordem=1,
+                    ),
+                )
+                acabamentos = await criar_etapa(
+                    session,
+                    EtapaCriar(taxonomia_id=taxonomia.id, nome="Acabamentos", ordem=2),
+                )
+                estacas = await criar_marco(
+                    session, MarcoCriar(etapa_id=fundacoes.id, nome="Estacas")
+                )
+                blocos = await criar_marco(
+                    session, MarcoCriar(etapa_id=fundacoes_profundas.id, nome="Blocos")
+                )
+                pintura = await criar_marco(
+                    session, MarcoCriar(etapa_id=acabamentos.id, nome="Pintura")
+                )
+                concluido = await criar_progresso(
+                    session,
+                    ProgressoMarcoCriar(local_obra_id=unidade_a.id, marco_id=estacas.id),
+                )
+                andamento = await criar_progresso(
+                    session,
+                    ProgressoMarcoCriar(local_obra_id=unidade_b.id, marco_id=blocos.id),
+                )
+                await alterar_estado(session, concluido.id, EstadoMarco.EM_ANDAMENTO)
+                await alterar_estado(session, concluido.id, EstadoMarco.CONCLUIDO)
+                await alterar_estado(session, andamento.id, EstadoMarco.EM_ANDAMENTO)
+
+                resumo = await resumir_progresso_empreendimento(session, obra.id)
+
+                assert resumo == {
+                    "empreendimento_id": obra.id,
+                    "total": 6,
+                    "concluidos": 1,
+                    "em_andamento": 1,
+                    "nao_iniciados": 4,
+                    "percentual": 17,
+                    "status": EstadoMarco.EM_ANDAMENTO,
+                    "macroetapas": [
+                        {
+                            "etapa_id": fundacoes.id,
+                            "nome": "Fundações",
+                            "ordem": 1,
+                            "total": 4,
+                            "concluidos": 1,
+                            "em_andamento": 1,
+                            "nao_iniciados": 2,
+                            "percentual": 25,
+                            "status": EstadoMarco.EM_ANDAMENTO,
+                        },
+                        {
+                            "etapa_id": acabamentos.id,
+                            "nome": "Acabamentos",
+                            "ordem": 2,
+                            "total": 2,
+                            "concluidos": 0,
+                            "em_andamento": 0,
+                            "nao_iniciados": 2,
+                            "percentual": 0,
+                            "status": EstadoMarco.NAO_INICIADO,
+                        },
+                    ],
+                }
+                assert pintura.id is not None
         finally:
             await engine.dispose()
 

@@ -1,7 +1,8 @@
 import uuid
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 from .empresas_schema import EmpresaLite_FromDB_Schema
@@ -20,13 +21,14 @@ class Contrato_FromRequest_Schema(BaseModel):
     # Usado em: POST /contratos
     # Quem usa: admin / gestor da construtora
 
+    empreendimento_id: int = Field(gt=0)
     contratante_id: uuid.UUID
     contratado_id: uuid.UUID
-    descricao: str = Field(min_length=2, max_length=2000)  # ⚠ talvez devesse se chamar "objeto"
+    descricao: str = Field(min_length=2, max_length=2000)
     valor_total: Decimal = Field(gt=0)
-    obeto: str = Field(min_length=2, max_length=2000)  
-    data_inicio: datetime
-    data_fim: datetime
+    objeto: str = Field(min_length=2, max_length=2000)
+    data_inicio: datetime | None = None
+    data_fim: datetime | None = None
 
 
 class Contrato_UpdateRequest_Schema(BaseModel):
@@ -55,12 +57,14 @@ class Contrato_FromDB_Schema(BaseModel):
     # model — hoje "contratado" aponta pra uma classe que não existe
 
     id: uuid.UUID
+    empreendimento_id: int
     contratante: EmpresaLite_FromDB_Schema
     contratado: EmpresaLite_FromDB_Schema
     descricao: str
+    objeto: str
     valor_total: Decimal
     status: StatusContratoEnum
-    ativo: bool
+    iniciado_em: datetime
     criado_em: datetime
     atualizado_em: datetime
     finalizado_em: datetime | None  
@@ -74,10 +78,15 @@ class ContratoResumo_FromDB_Schema(BaseModel):
     # Usado em: GET /contratos
 
     id: uuid.UUID
+    empreendimento_id: int
     contratante: EmpresaLite_FromDB_Schema
     contratado: EmpresaLite_FromDB_Schema
+    descricao: str
+    objeto: str
     valor_total: Decimal
     status: StatusContratoEnum
+    iniciado_em: datetime
+    finalizado_em: datetime | None
 
     class Config:
         from_attributes = True

@@ -129,9 +129,10 @@ export function listarEvidencias(
 export function listarProtocolosRecentes(
     empreendimentoId: number,
     options?: ServiceRequestOptions,
+    limite = 5,
 ): Promise<ProtocoloEvidenciaResumo[]> {
     return apiRequest<ProtocoloEvidenciaResumo[]>(
-        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes`,
+        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes?limite=${limite}`,
         { signal: options?.signal },
     );
 }
