@@ -10,7 +10,8 @@ type MarcoComEtapa = Marco & { etapa: string };
 
 export default function MedicoesEmpreendimento() {
     const { empreendimento, taxonomia, protocolos } = useLoaderData<typeof carregarMedicoesEmpreendimento>();
-    const marcos = useMemo(() => listarMarcos(taxonomia.etapas ?? []), [taxonomia.etapas]);
+    const etapas = taxonomia?.etapas;
+    const marcos = useMemo(() => listarMarcos(etapas ?? []), [etapas]);
     const [marcoSelecionado, setMarcoSelecionado] = useState(marcos[0]?.id ?? 0);
     const contextoPorMarco = new Map(marcos.map((marco) => [marco.id, marco]));
     const destinoNovo = marcoSelecionado

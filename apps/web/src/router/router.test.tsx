@@ -11,10 +11,12 @@ import {
   criarLocalRaiz,
   criarPavimento,
   criarUnidade,
+  listarCompradoresDaUnidade,
   listarEmpreendimentos,
   obterEstruturaFisica,
   obterEmpreendimento,
   obterTaxonomia,
+  vincularCompradorAUnidade,
 } from "../features/empreendimentos/empreendimentos.service";
 import { listarProtocolosRecentes } from "../features/evidencias/evidencias.service";
 import { ApiError } from "../services/api";
@@ -37,10 +39,12 @@ vi.mock("../features/empreendimentos/empreendimentos.service", () => ({
   criarLocalRaiz: vi.fn(),
   criarPavimento: vi.fn(),
   criarUnidade: vi.fn(),
+  listarCompradoresDaUnidade: vi.fn(),
   listarEmpreendimentos: vi.fn(),
   obterEstruturaFisica: vi.fn(),
   obterEmpreendimento: vi.fn(),
   obterTaxonomia: vi.fn(),
+  vincularCompradorAUnidade: vi.fn(),
 }));
 
 vi.mock("../features/evidencias/evidencias.service", () => ({
@@ -64,10 +68,12 @@ const criarEmpreendimentoMock = vi.mocked(criarEmpreendimento);
 const criarLocalRaizMock = vi.mocked(criarLocalRaiz);
 const criarPavimentoMock = vi.mocked(criarPavimento);
 const criarUnidadeMock = vi.mocked(criarUnidade);
+const listarCompradoresDaUnidadeMock = vi.mocked(listarCompradoresDaUnidade);
 const listarEmpreendimentosMock = vi.mocked(listarEmpreendimentos);
 const obterEstruturaFisicaMock = vi.mocked(obterEstruturaFisica);
 const obterEmpreendimentoMock = vi.mocked(obterEmpreendimento);
 const obterTaxonomiaMock = vi.mocked(obterTaxonomia);
+const vincularCompradorAUnidadeMock = vi.mocked(vincularCompradorAUnidade);
 const listarProtocolosRecentesMock = vi.mocked(listarProtocolosRecentes);
 const createUserMock = vi.mocked(createUser);
 const getUsersMock = vi.mocked(getUsers);
@@ -113,6 +119,7 @@ describe("novo sistema de rotas", () => {
     getUsersCountMock.mockResolvedValue(8);
     getUsersMock.mockResolvedValue([]);
     listarEmpreendimentosMock.mockResolvedValue([]);
+    listarCompradoresDaUnidadeMock.mockResolvedValue([]);
     obterEstruturaFisicaMock.mockResolvedValue([]);
     obterEmpreendimentoMock.mockResolvedValue(empreendimento);
     obterTaxonomiaMock.mockResolvedValue({
@@ -124,6 +131,10 @@ describe("novo sistema de rotas", () => {
       is_padrao: false,
     });
     listarProtocolosRecentesMock.mockResolvedValue([]);
+    vincularCompradorAUnidadeMock.mockResolvedValue({
+      usuario_id: 1,
+      local_obra_id: 1,
+    });
   });
 
   it("renderiza a rota pública principal", async () => {
@@ -580,7 +591,7 @@ describe("novo sistema de rotas", () => {
     await user.click(await screen.findByRole("link", { name: "Estrutura" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Estrutura" }),
+      await screen.findByRole("heading", { name: "Estrutura do empreendimento" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Residencial Aurora" })).toBeInTheDocument();
   });
@@ -632,9 +643,12 @@ describe("novo sistema de rotas", () => {
     expect(unidadeSelecionada).toHaveAttribute("aria-current", "true");
 
     const painel = screen.getByRole("complementary", { name: "Unidade 704" });
-    expect(within(painel).getByText("51")).toBeInTheDocument();
-    expect(within(painel).getByText("Unidade")).toBeInTheDocument();
-    expect(within(painel).getAllByText("Residencial Aurora")).toHaveLength(2);
+    expect(within(painel).queryByText("51")).not.toBeInTheDocument();
+    expect(within(painel).getAllByText("Unidade")).toHaveLength(2);
+    expect(within(painel).getByText("Local superior").parentElement).toHaveTextContent("7º Pavimento");
+    expect(within(painel).getByText("Ordem").parentElement).toHaveTextContent("3");
+    expect(within(painel).getByText("Locais filhos").parentElement).toHaveTextContent("0 locais");
+    expect(within(painel).getByText("Residencial Aurora")).toBeInTheDocument();
     expect(
       within(painel)
         .getAllByRole("listitem")
@@ -676,6 +690,74 @@ describe("novo sistema de rotas", () => {
       .toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("complementary", { name: "Bloco Norte" }))
       .toHaveTextContent("Bloco");
+    expect(screen.queryByRole("heading", { name: "Compradores vinculados" })).not.toBeInTheDocument();
+  });
+
+  it("lista, busca e vincula um comprador real somente no detalhe da unidade", async () => {
+    const user = userEvent.setup();
+    const torre = {
+      id: 31,
+      empreendimento_id: 12,
+      parent_id: null,
+      nome: "Torre A",
+      tipo: "TORRE" as const,
+      ordem: 1,
+      criado_em: "2026-09-26T12:00:00Z",
+      atualizado_em: "2026-09-26T12:00:00Z",
+    };
+    const pavimento = {
+      ...torre,
+      id: 41,
+      parent_id: torre.id,
+      nome: "7º Pavimento",
+      tipo: "PAVIMENTO" as const,
+      ordem: 2,
+    };
+    const unidade = {
+      ...pavimento,
+      id: 51,
+      parent_id: pavimento.id,
+      nome: "Unidade 704",
+      tipo: "UNIDADE" as const,
+      ordem: 3,
+    };
+    const comprador = {
+      ...usuario,
+      id: 22,
+      nome: "Bruno",
+      sobrenome: "Lima",
+      email: "bruno@constructo.dev",
+      papel: "COMPRADOR" as const,
+    };
+    obterEstruturaFisicaMock.mockResolvedValue([{
+      ...torre,
+      filhos: [{
+        ...pavimento,
+        filhos: [{ ...unidade, filhos: [] }],
+      }],
+    }]);
+    getUsersMock.mockResolvedValue([usuario, comprador]);
+    listarCompradoresDaUnidadeMock.mockResolvedValue([]);
+    vincularCompradorAUnidadeMock.mockResolvedValue({
+      usuario_id: comprador.id,
+      local_obra_id: unidade.id,
+    });
+
+    montarRota("/admin/empreendimentos/12/estrutura?localId=51");
+
+    await screen.findByRole("complementary", { name: "Unidade 704" });
+    expect(await screen.findByText("Nenhum comprador vinculado a esta unidade.")).toBeInTheDocument();
+    const compradoresUnidade = screen.getByRole("region", { name: "Compradores vinculados" });
+
+    await user.type(screen.getByLabelText("Comprador"), "bruno");
+    const resultados = screen.getByRole("list", { name: "Resultados da busca de compradores" });
+    await user.click(within(resultados).getByRole("button", { name: /Bruno Lima/ }));
+    expect(screen.getByLabelText("Comprador selecionado")).toHaveTextContent("bruno@constructo.dev");
+    await user.click(screen.getByRole("button", { name: "Vincular comprador" }));
+
+    expect(vincularCompradorAUnidadeMock).toHaveBeenCalledWith(12, unidade.id, comprador.id);
+    expect(await screen.findByText("Comprador vinculado à unidade.")).toBeInTheDocument();
+    expect(within(compradoresUnidade).getByText("Bruno Lima")).toBeInTheDocument();
   });
 
   it.each([
@@ -710,10 +792,11 @@ describe("novo sistema de rotas", () => {
       { nome, tipo, ordem: 2 },
       expect.anything(),
     );
-    const itemCriado = (await screen.findByText(nome)).closest("li");
+    const arvore = screen.getByRole("tree", { name: "Estrutura física" });
+    const itemCriado = (await within(arvore).findByRole("button", { name: nome })).closest("li");
     expect(itemCriado).not.toBeNull();
-    expect(within(itemCriado!).getByText(rotulo)).toBeInTheDocument();
-    expect(screen.getByText(`${rotulo} “${nome}” adicionada com sucesso.`)).toBeInTheDocument();
+    expect(within(itemCriado!).getByRole("img", { name: rotulo })).toBeInTheDocument();
+    expect(await screen.findByText(`${rotulo} “${nome}” adicionada com sucesso.`)).toBeInTheDocument();
   });
 
   it("cadastra um pavimento na torre selecionada e atualiza a árvore", async () => {
@@ -756,7 +839,7 @@ describe("novo sistema de rotas", () => {
       expect.anything(),
     );
     expect(await screen.findByText("1º pavimento")).toBeInTheDocument();
-    expect(screen.getByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
+    expect(await screen.findByText("Pavimento “1º pavimento” adicionado com sucesso.")).toBeInTheDocument();
   });
 
   it("cadastra uma unidade no pavimento selecionado e atualiza a árvore", async () => {
@@ -814,9 +897,9 @@ describe("novo sistema de rotas", () => {
     );
     const unidadeCriada = (await screen.findByText("101")).closest("li");
     expect(unidadeCriada).not.toBeNull();
-    expect(within(unidadeCriada!).getByText("Unidade")).toBeInTheDocument();
-    expect(within(unidadeCriada!).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("Unidade “101” adicionada com sucesso.")).toBeInTheDocument();
+    expect(within(unidadeCriada!).getByRole("img", { name: "Unidade" })).toBeInTheDocument();
+    expect(within(unidadeCriada!).getByRole("button", { name: "101" })).toBeInTheDocument();
+    expect(await screen.findByText("Unidade “101” adicionada com sucesso.")).toBeInTheDocument();
   });
 
   it("trata empreendimento inexistente", async () => {
@@ -969,12 +1052,28 @@ describe("novo sistema de rotas", () => {
     const localAtualizado = { ...local, nome: "Bloco Sul", ordem: 2 };
     obterEstruturaFisicaMock
       .mockResolvedValueOnce([{ ...local, filhos: [] }])
+      .mockResolvedValueOnce([{ ...local, filhos: [] }])
       .mockResolvedValue([{ ...localAtualizado, filhos: [] }]);
     atualizarLocalMock.mockResolvedValue(localAtualizado);
     montarRota("/admin/empreendimentos/12/estrutura?localId=32");
 
-    await user.click(await screen.findByRole("button", { name: "Editar local" }));
-    const formulario = screen.getByRole("form", { name: "Editar Bloco Norte" });
+    const painel = await screen.findByRole("complementary", { name: "Bloco Norte" });
+    expect(within(painel).getByText("Local superior").parentElement).toHaveTextContent("Residencial Aurora");
+    expect(within(painel).getByText("Ordem").parentElement).toHaveTextContent("1");
+    expect(within(painel).getByText("Locais filhos").parentElement).toHaveTextContent("0 locais");
+
+    await user.click(within(painel).getByRole("button", { name: "Editar local" }));
+    let formulario = screen.getByRole("form", { name: "Editar Bloco Norte" });
+    await user.clear(within(formulario).getByLabelText(/^Nome/));
+    await user.click(within(formulario).getByRole("button", { name: "Salvar alterações" }));
+    expect(await within(formulario).findByRole("alert")).toHaveTextContent("Nome é obrigatório");
+    expect(atualizarLocalMock).not.toHaveBeenCalled();
+
+    await user.click(within(formulario).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("form", { name: "Editar Bloco Norte" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Editar local" }));
+    formulario = screen.getByRole("form", { name: "Editar Bloco Norte" });
     const nome = within(formulario).getByLabelText(/^Nome/);
     await user.clear(nome);
     await user.type(nome, "Bloco Sul");
