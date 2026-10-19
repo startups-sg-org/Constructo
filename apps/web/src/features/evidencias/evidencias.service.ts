@@ -29,6 +29,13 @@ export type EvidenciaUpload = {
     criado_em: string;
 };
 
+/**
+ * Item que descreve uma evidência esperada dentro de um protocolo.
+ *
+ * `obrigatorio` participa da apuração do protocolo: quando verdadeiro, o item
+ * precisa possuir evidência no progresso consultado. Itens opcionais continuam
+ * compondo o checklist, mas não impedem seu atendimento.
+ */
 export type ItemProtocolo = {
     id: number;
     protocolo_id: number;
@@ -40,6 +47,14 @@ export type ItemProtocolo = {
     atualizado_em: string;
 };
 
+/**
+ * Contrato de um protocolo de medição retornado pela API.
+ *
+ * O protocolo sempre pertence ao marco identificado por `marco_id`; essa
+ * associação é definida pela URL da API e não é editável pelo formulário.
+ * `quantidade_minima` é a quantidade mínima de evidências registradas exigida
+ * pelo protocolo, e não uma quantidade de itens marcados como concluídos.
+ */
 export type ProtocoloEvidencia = {
     id: number;
     marco_id: number;
@@ -51,6 +66,11 @@ export type ProtocoloEvidencia = {
     atualizado_em: string;
 };
 
+/**
+ * Resultado calculado para um protocolo em um progresso específico do marco.
+ * O atendimento exige simultaneamente a quantidade mínima de evidências e a
+ * existência de evidência para todos os itens obrigatórios.
+ */
 export type ProtocoloEvidenciaStatus = {
     protocolo_id: number;
     quantidade_minima: number;
@@ -60,6 +80,7 @@ export type ProtocoloEvidenciaStatus = {
     itens_obrigatorios_atendidos: boolean;
 };
 
+/** Campos editáveis; o vínculo com o marco é fornecido pela rota. */
 export type ProtocoloEvidenciaDados = Pick<
     ProtocoloEvidencia,
     "nome" | "descricao" | "quantidade_minima"
@@ -67,6 +88,7 @@ export type ProtocoloEvidenciaDados = Pick<
 
 export type ProtocoloEvidenciaResumo = Omit<ProtocoloEvidencia, "itens">;
 
+/** Campos editáveis de um item, incluindo sua ordem e obrigatoriedade. */
 export type ItemProtocoloDados = Pick<
     ItemProtocolo,
     "nome" | "descricao" | "obrigatorio" | "ordem"
@@ -98,6 +120,18 @@ export function enviarEvidencia(
         signal: options?.signal,
     });
 }
+/**
+ * Lista as evidências persistidas do empreendimento.
+ *
+ * A API aceita somente local, marco e intervalo da data de captura como
+ * filtros. A resposta não é paginada e cada item contém uma única
+ * `arquivo_url`, além dos resumos de local, marco e responsável. Busca
+ * textual e paginação são responsabilidades da galeria no cliente.
+ *
+ * Não há no contrato status de validação, contrato vinculado, informações de
+ * compartilhamento ou múltiplas imagens por evidência. O serviço não deve
+ * inferir nem acrescentar esses dados ausentes.
+ */
 export function listarEvidencias(
     empreendimentoId: number,
     filtros: FiltrosEvidencia = {},
@@ -129,9 +163,10 @@ export function listarEvidencias(
 export function listarProtocolosRecentes(
     empreendimentoId: number,
     options?: ServiceRequestOptions,
+    limite = 5,
 ): Promise<ProtocoloEvidenciaResumo[]> {
     return apiRequest<ProtocoloEvidenciaResumo[]>(
-        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes`,
+        `/empreendimentos/${empreendimentoId}/protocolos-evidencia/recentes?limite=${limite}`,
         { signal: options?.signal },
     );
 }

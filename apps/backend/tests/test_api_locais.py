@@ -88,6 +88,42 @@ def test_rejeita_tipo_que_nao_pode_ser_raiz(cliente, monkeypatch):
     assert not chamado
 
 
+def test_consulta_progresso_consolidado_do_empreendimento(cliente, monkeypatch):
+    test_client, session = cliente
+    resumo = {
+        "empreendimento_id": 42,
+        "total": 8,
+        "concluidos": 3,
+        "em_andamento": 2,
+        "nao_iniciados": 3,
+        "percentual": 38,
+        "status": "EM_ANDAMENTO",
+        "macroetapas": [{
+            "etapa_id": 5,
+            "nome": "Fundações",
+            "ordem": 1,
+            "total": 8,
+            "concluidos": 3,
+            "em_andamento": 2,
+            "nao_iniciados": 3,
+            "percentual": 38,
+            "status": "EM_ANDAMENTO",
+        }],
+    }
+
+    async def resumir(_session, empreendimento_id):
+        assert _session is session
+        assert empreendimento_id == 42
+        return resumo
+
+    monkeypatch.setattr(rotas, "resumir_progresso_empreendimento", resumir)
+
+    resposta = test_client.get("/empreendimentos/42/progresso")
+
+    assert resposta.status_code == 200
+    assert resposta.json() == resumo
+
+
 def test_cadastra_pavimento_na_torre_ou_bloco_informado(cliente, monkeypatch):
     test_client, session = cliente
     recebidos = []

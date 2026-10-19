@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import SidebarItem, { type IconeSidebar } from "./SidebarItem";
 import { exigirAcessoAoPainel } from "../../features/auth/auth.loader";
-import "./Sidebar.css";
+import { cn } from "../../utils/classes";
 
 type IconeProps = SVGProps<SVGSVGElement>;
 
@@ -27,8 +27,34 @@ const itensNavegacao: ItemNavegacao[] = [
     { rotulo: "Usuários", rota: "/admin/usuarios", icone: IconeUsuarios },
     { rotulo: "Empreendimentos", rota: "/admin/obras", icone: IconeObras },
     { rotulo: "Contratos", rota: "/admin/contratos", icone: IconeContratos },
-    { rotulo: "Medições", rota: "/admin/medicoes", icone: IconeMedicoes }
 ];
+
+const estilos = {
+    raiz: "sidebar sticky top-0 z-20 flex h-dvh flex-none flex-col items-start self-stretch border-r border-border-muted bg-surface text-foreground transition-[width] duration-300 max-[760px]:hidden",
+    aberta: "w-60",
+    fechada: "w-20",
+    cabecalho: "sidebar__cabecalho flex w-full items-center gap-3 border-b border-border-muted px-4 py-4",
+    cabecalhoFechado: "justify-center px-2",
+    marca: "sidebar__marca flex min-w-0 items-center gap-3 overflow-hidden text-foreground-strong no-underline",
+    monograma: "grid h-10 w-10 flex-none place-items-center rounded-md border border-warning-700 bg-warning-50 text-[22px] font-semibold leading-none text-warning-700",
+    nome: "sidebar__nome overflow-hidden whitespace-nowrap text-[21px] font-semibold leading-7 text-foreground-strong transition-[max-width,opacity] duration-300",
+    nomeVisivel: "max-w-36 opacity-100",
+    nomeOculto: "max-w-0 opacity-0",
+    alternar: "sidebar__alternar ds-icon-button ml-auto h-10 w-10 flex-none border border-border-control bg-surface-muted text-foreground-muted hover:bg-surface-hover hover:text-foreground-strong",
+    alternarFechado: "absolute left-[64px] top-4 z-10",
+    seta: "h-[22px] w-[22px] transition-transform duration-300",
+    navegacao: "sidebar__navegacao flex w-full grow flex-col items-start gap-1 px-2 py-4",
+    secao: "sidebar__secao w-full overflow-hidden whitespace-nowrap px-3 pb-2 text-[15px] font-medium uppercase tracking-[0.08em] text-foreground-muted transition-opacity duration-200",
+    secaoOculta: "h-0 pb-0 opacity-0",
+    lista: "sidebar__lista m-0 grid w-full list-none gap-1 p-0",
+    rodape: "sidebar__rodape flex w-full items-center border-t border-border-muted px-4 py-3 text-foreground-muted",
+    rodapeAberto: "justify-between",
+    rodapeFechado: "justify-center px-2",
+    ambiente: "items-center gap-2 overflow-hidden whitespace-nowrap",
+    indicador: "h-[11px] w-[11px] flex-none rounded-full bg-success-700",
+    versao: "text-[17px] font-code-sm leading-6",
+    ajuda: "h-[22px] w-[22px] flex-none",
+} as const;
 
 export default function Sidebar({ className = "" }: SidebarProps) {
     const [aberta, setAberta] = useState(true);
@@ -41,17 +67,17 @@ export default function Sidebar({ className = "" }: SidebarProps) {
 
     return (
         <aside
-            className={`sidebar${aberta ? "" : " sidebar--fechada"} ${className}`.trim()}
+            className={cn(estilos.raiz, aberta ? estilos.aberta : estilos.fechada, className)}
             aria-label="Navegação principal"
         >
-            <div className="sidebar__cabecalho">
-                <NavLink className="sidebar__marca" to="/admin" aria-label="Constructo — início">
-                    <LogoConstructo />
-                    <span className="sidebar__nome">Constructo</span>
+            <div className={cn(estilos.cabecalho, !aberta && estilos.cabecalhoFechado)}>
+                <NavLink className={estilos.marca} to="/admin" aria-label="Constructo — início">
+                    <span className={estilos.monograma} aria-hidden="true">C</span>
+                    <span className={cn(estilos.nome, aberta ? estilos.nomeVisivel : estilos.nomeOculto)}>Constructo</span>
                 </NavLink>
 
                 <button
-                    className="sidebar__alternar"
+                    className={cn(estilos.alternar, !aberta && estilos.alternarFechado)}
                     type="button"
                     aria-controls="sidebar-navegacao"
                     aria-expanded={aberta}
@@ -59,14 +85,14 @@ export default function Sidebar({ className = "" }: SidebarProps) {
                     title={aberta ? "Fechar menu" : "Abrir menu"}
                     onClick={() => setAberta((valorAtual) => !valorAtual)}
                 >
-                    <IconeSeta aria-hidden="true" />
+                    <IconeSeta className={cn(estilos.seta, !aberta && "rotate-180")} aria-hidden="true" />
                 </button>
             </div>
 
-            <nav className="sidebar__navegacao" id="sidebar-navegacao">
-                <span className="sidebar__secao">Menu principal</span>
+            <nav className={estilos.navegacao} id="sidebar-navegacao">
+                <span className={cn(estilos.secao, aberta ? "opacity-100" : estilos.secaoOculta)}>Menu principal</span>
 
-                <ul className="sidebar__lista">
+                <ul className={estilos.lista}>
                     {itensVisiveis.map(({ rotulo, rota, icone: IconeItem, exato }) => (
                         <SidebarItem
                             key={rota}
@@ -80,12 +106,12 @@ export default function Sidebar({ className = "" }: SidebarProps) {
                 </ul>
             </nav>
 
-            <div className="sidebar__rodape" aria-hidden="true">
-                <span className="sidebar__rodape-marca">C</span>
-                <span className="sidebar__rodape-texto">
-                    <strong>Constructo</strong>
-                    <small>Gestão inteligente</small>
+            <div className={cn(estilos.rodape, aberta ? estilos.rodapeAberto : estilos.rodapeFechado)} aria-hidden="true">
+                <span className={cn(estilos.ambiente, aberta ? "flex" : "hidden")}>
+                    <span className={estilos.indicador} />
+                    <span className={estilos.versao}>v2.4.8-prod</span>
                 </span>
+                <IconeAjuda className={estilos.ajuda} />
             </div>
         </aside>
     );
@@ -99,14 +125,12 @@ function IconeSeta(props: IconeProps) {
     );
 }
 
-function LogoConstructo() {
+function IconeAjuda(props: IconeProps) {
     return (
-        <svg className="sidebar__logo" viewBox="0 0 44 44" aria-hidden="true">
-            <path d="M22 2 39.3 12v20L22 42 4.7 32V12L22 2Z" fill="currentColor" />
-            <path
-                d="M29.7 14.8a10 10 0 1 0 .2 14.2l-4-3.2a5 5 0 1 1-.1-7.7l3.9-3.3Z"
-                fill="white"
-            />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7" />
+            <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
         </svg>
     );
 }
@@ -145,15 +169,6 @@ function IconeContratos(props: IconeProps) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
             <path d="M14 2v6h6M8 13h8M8 17h5" />
-        </svg>
-    );
-}
-
-function IconeMedicoes(props: IconeProps) {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-            <path d="M4 19V9M10 19V5M16 19v-7M22 19V2" />
-            <path d="M2 19h20" />
         </svg>
     );
 }

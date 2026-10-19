@@ -4,10 +4,10 @@
 
 .lista-empreendimentos__ferramentas {
     padding: 20px;
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-card);
-    background: var(--cor-superficie);
-    box-shadow: var(--sombra-card);
+    border: 1px solid var(--color-constructo-borda);
+    border-radius: var(--radius-card);
+    background: var(--color-constructo-superficie);
+    box-shadow: var(--shadow-card);
 }
 
 .lista-empreendimentos__ferramentas .btn {
@@ -36,18 +36,18 @@
     justify-content: space-between;
     gap: 16px;
     margin: 18px 4px 10px;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.875rem;
     font-weight: 600;
 }
 
 .lista-empreendimentos__tabela-container {
     overflow: hidden;
-    border: 8px solid var(--cor-borda);
+    border: 8px solid var(--color-constructo-borda);
     min-width: 1000px;
-    border-radius: var(--raio-card);
-    background: var(--cor-superficie);
-    box-shadow: var(--sombra-card);
+    border-radius: var(--radius-card);
+    background: var(--color-constructo-superficie);
+    box-shadow: var(--shadow-card);
 }
 
 .lista-empreendimentos__tabela {
@@ -58,7 +58,7 @@
 
 .lista-empreendimentos__tabela thead th {
     padding: 14px 18px;
-    color: var(--cor-texto-suave);
+    color: var(--color-constructo-texto-suave);
     font-size: 0.72rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -68,7 +68,7 @@
 .lista-empreendimentos__tabela tbody th,
 .lista-empreendimentos__tabela tbody td {
     padding: 14px 18px;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 0.875rem;
     vertical-align: middle;
 }
@@ -77,7 +77,7 @@
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    color: var(--cor-texto-forte);
+    color: var(--color-constructo-texto-forte);
     font-size: 0.95rem;
     font-weight: 700;
     text-decoration: none;
@@ -85,7 +85,7 @@
 }
 
 .lista-empreendimentos__nome:hover {
-    color: var(--cor-primaria-hover);
+    color: var(--color-constructo-primaria-hover);
     text-decoration: underline;
 }
 
@@ -105,7 +105,7 @@
 }
 
 .lista-empreendimentos__abrir {
-    color: var(--cor-primaria);
+    color: var(--color-constructo-primaria);
     font-weight: 700;
     text-decoration: none;
 }
@@ -153,7 +153,7 @@
 
     .lista-empreendimentos__tabela tbody tr {
         padding: 14px 16px;
-        border-bottom: 1px solid var(--cor-borda);
+        border-bottom: 1px solid var(--color-constructo-borda);
     }
 
     .lista-empreendimentos__tabela tbody tr:last-child {
@@ -174,7 +174,7 @@
     .lista-empreendimentos__tabela tbody th::before,
     .lista-empreendimentos__tabela tbody td::before {
         flex: 0 0 auto;
-        color: var(--cor-texto-suave);
+        color: var(--color-constructo-texto-suave);
         content: attr(data-label);
         font-size: .72rem;
         font-weight: 700;
