@@ -16,7 +16,7 @@
 - [José Carlos da Silva Neto](https://github.com/jcarlos721)
 - [Eduardo Lopes de Oliveira Torres](https://github.com/EduLps1)
 - [Pedro Ryan Oliveira de Almeida](https://github.com/PdroRyan)
-- [Ricardo Lopes Tomaz](https://https://github.com/ricardolopestomaz)
+- [Ricardo Lopes Tomaz](https://github.com/ricardolopestomaz)
 - [Samuel Andrade Luz Carneiro](https://github.com/Samuel1-salc)
 - [Matheus Henrique de Freitas](https://github.com/MatheusHFreitas)
 
