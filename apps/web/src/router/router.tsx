@@ -12,8 +12,9 @@ import PublicLayout from "../layouts/PublicLayout/PublicLayout";
 import FormularioEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEmpreendimento";
 import FormularioEdicaoEmpreendimento from "../modulos/empreendimentos/componentes/FormularioEdicaoEmpreendimento";
 import DetalhesEmpreendimento from "../modulos/empreendimentos/componentes/DetalhesEmpreendimento";
-import AbaIndisponivel from "../modulos/empreendimentos/componentes/AbaIndisponivel";
 import LayoutEmpreendimentos from "../modulos/empreendimentos/componentes/LayoutEmpreendimentos";
+import ContratosEmpreendimento from "../modulos/empreendimentos/componentes/ContratosEmpreendimento";
+import MedicoesEmpreendimento from "../modulos/empreendimentos/componentes/MedicoesEmpreendimento";
 import StructureManagementPage from "../modulos/empreendimentos/componentes/StructureManagementPage";
 import TaxonomyEditor from "../modulos/empreendimentos/componentes/TaxonomyEditor";
 import ProtocolEditor from "../modulos/evidencias/componentes/ProtocolEditor/ProtocolEditor";
@@ -41,6 +42,8 @@ import { executarAcaoAdministrativa } from "../features/auth/logout.action";
 import { cadastrarUsuario } from "../features/usuarios/cadastro.action";
 import { autenticarUsuario } from "../features/auth/auth.action";
 import { alterarUsuario } from "../features/usuarios/usuarios.action";
+import { carregarContratosEmpreendimento } from "../features/contratos/contratos.loader";
+import { carregarMedicoesEmpreendimento } from "../features/evidencias/medicoes.loader";
 
 async function carregarUsuariosComoAdmin(args: LoaderFunctionArgs) {
   await exigirAcessoAoPainel(args);
@@ -153,7 +156,7 @@ export const rotas: RouteObject[] = [
                 element: (
                   <PaginaPainel
                     titulo=""
-                    subtitulo="Consulte os dados gerais da obra selecionada."
+                    subtitulo=""
                   >
                     <DetalhesEmpreendimento />
                   </PaginaPainel>
@@ -204,8 +207,8 @@ export const rotas: RouteObject[] = [
                 action: alterarEditorProtocoloAutenticado,
                 element: (
                   <PaginaPainel
-                    titulo="Protocolo de evidências"
-                    subtitulo="Configure os registros exigidos para o marco."
+                    titulo=""
+                    subtitulo=""
                   >
                     <ProtocolEditor />
                   </PaginaPainel>
@@ -214,38 +217,31 @@ export const rotas: RouteObject[] = [
               {
                 path: "taxonomia/marcos/:marcoId/protocolos",
                 loader: carregarEditorProtocoloAutenticado,
-                element: <PaginaPainel titulo="Protocolos de evidências" subtitulo="Escolha ou crie um protocolo para o marco."><ProtocolList /></PaginaPainel>,
+                element: <PaginaPainel titulo="" subtitulo=""><ProtocolList /></PaginaPainel>,
               },
               {
                 path: "contratos",
+                loader: carregarContratosEmpreendimento,
                 element: (
                   <PaginaPainel titulo="Contratos" subtitulo="Contratos vinculados a este empreendimento.">
-                    <AbaIndisponivel
-                      titulo="Contratos ainda não disponíveis"
-                      descricao="A integração de contratos por empreendimento será disponibilizada em breve."
-                    />
+                    <ContratosEmpreendimento />
                   </PaginaPainel>
                 ),
               },
               {
                 path: "medicoes",
+                loader: carregarMedicoesEmpreendimento,
                 element: (
-                  <PaginaPainel titulo="Medições" subtitulo="Medições vinculadas a este empreendimento.">
-                    <AbaIndisponivel
-                      titulo="Medições ainda não disponíveis"
-                      descricao="A integração de medições por empreendimento será disponibilizada em breve."
-                    />
+                  <PaginaPainel titulo="" subtitulo="">
+                    <MedicoesEmpreendimento />
                   </PaginaPainel>
                 ),
               },
               {
                 path: "documentos",
                 element: (
-                  <PaginaPainel titulo="Documentos" subtitulo="Documentos vinculados a este empreendimento.">
-                    <AbaIndisponivel
-                      titulo="Documentos ainda não disponíveis"
-                      descricao="O módulo de documentos será disponibilizado em breve."
-                    />
+                  <PaginaPainel titulo="" subtitulo="">
+                    <EvidenceGallery />
                   </PaginaPainel>
                 ),
               },
@@ -266,15 +262,6 @@ export const rotas: RouteObject[] = [
             path: "contratos",
             element: (
               <PaginaPainel titulo="Contratos" subtitulo="Consulte e administre os contratos." />
-            ),
-          },
-          {
-            path: "medicoes",
-            element: (
-              <PaginaPainel
-                titulo="Medições"
-                subtitulo="Registre e acompanhe as medições das obras."
-              />
             ),
           },
           {

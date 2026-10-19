@@ -263,7 +263,7 @@ async def consultar_protocolos_recentes(
     empreendimento_id: int,
     session: Annotated[AsyncSession, Depends(get_db)],
     usuario: Annotated[Usuario, Depends(get_admin_ou_gestor)],
-    limite: Annotated[int, Query(ge=1, le=10)] = 5,
+    limite: Annotated[int, Query(ge=1, le=100)] = 5,
 ):
     """Lista os protocolos criados mais recentemente na obra informada."""
     await exigir_acesso_ao_empreendimento(session, usuario, empreendimento_id)

@@ -27,7 +27,6 @@ const itensNavegacao: ItemNavegacao[] = [
     { rotulo: "Usuários", rota: "/admin/usuarios", icone: IconeUsuarios },
     { rotulo: "Empreendimentos", rota: "/admin/obras", icone: IconeObras },
     { rotulo: "Contratos", rota: "/admin/contratos", icone: IconeContratos },
-    { rotulo: "Medições", rota: "/admin/medicoes", icone: IconeMedicoes }
 ];
 
 const estilos = {
@@ -170,16 +169,6 @@ function IconeContratos(props: IconeProps) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
             <path d="M14 2v6h6M8 13h8M8 17h5" />
-        </svg>
-    );
-}
-
-function IconeMedicoes(props: IconeProps) {
-    return (
-        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-            <rect x="4" y="10" width="3" height="10" />
-            <rect x="10.5" y="4" width="3" height="16" />
-            <rect x="17" y="13" width="3" height="7" />
         </svg>
     );
 }

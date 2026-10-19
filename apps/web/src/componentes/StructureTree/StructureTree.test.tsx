@@ -60,9 +60,9 @@ describe("StructureTree", () => {
         render(<ArvoreTestavel />);
 
         expect(screen.getByLabelText("Estrutura física")).toBeInTheDocument();
-        expect(screen.getByText("Torre")).toBeInTheDocument();
-        expect(screen.getByText("Pavimento")).toBeInTheDocument();
-        expect(screen.getByText("Unidade")).toBeInTheDocument();
+        expect(screen.getByRole("img", { name: "Torre" })).toBeInTheDocument();
+        expect(screen.getByRole("img", { name: "Pavimento" })).toBeInTheDocument();
+        expect(screen.getByRole("img", { name: "Unidade" })).toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: "Recolher Torre A" }));
         expect(screen.queryByText("1º Pavimento")).not.toBeInTheDocument();
@@ -93,5 +93,26 @@ describe("StructureTree", () => {
         await user.keyboard("{Enter}");
         expect(pavimento).toHaveAttribute("aria-current", "true");
         expect(screen.getByRole("button", { name: "Unidade 101" })).not.toHaveAttribute("aria-current");
+    });
+
+    it("navega pelos itens visíveis e controla ramos com as setas", async () => {
+        const user = userEvent.setup();
+        render(<ArvoreTestavel />);
+
+        const torre = screen.getByRole("button", { name: "Torre A" });
+        torre.focus();
+        await user.keyboard("{ArrowDown}");
+        expect(screen.getByRole("button", { name: "1º Pavimento" })).toHaveFocus();
+
+        await user.keyboard("{ArrowLeft}");
+        expect(screen.queryByRole("button", { name: "Unidade 101" })).not.toBeInTheDocument();
+
+        await user.keyboard("{ArrowRight}");
+        expect(screen.getByRole("button", { name: "Unidade 101" })).toBeInTheDocument();
+
+        await user.keyboard("{End}");
+        expect(screen.getByRole("button", { name: "Unidade 101" })).toHaveFocus();
+        await user.keyboard("{Home}");
+        expect(torre).toHaveFocus();
     });
 });

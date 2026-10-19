@@ -1,7 +1,7 @@
 from importlib import import_module
 
-
 _MODULOS_COM_MODELOS = (
+    "backend.modulos.contracts.models",
     "backend.modulos.dominio.modelos",
     "backend.modulos.evidencias.modulos",
     "backend.modulos.usuarios.modelos",

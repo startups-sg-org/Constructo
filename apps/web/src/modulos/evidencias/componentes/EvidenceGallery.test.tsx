@@ -45,7 +45,6 @@ function criarEvidencia(id = 1): Evidencia {
             email: "marina@constructo.dev",
             papel: "GESTOR",
         },
-        status_validacao: "APROVADA",
     };
 }
 
@@ -112,7 +111,7 @@ describe("EvidenceGallery", () => {
         });
         expect(within(card).getByText("Tubulação hidráulica instalada")).toBeInTheDocument();
         expect(within(card).getByText("Marina Costa")).toBeInTheDocument();
-        expect(within(card).getByText("Aprovada")).toBeInTheDocument();
+        expect(within(card).queryByText("Aprovada")).not.toBeInTheDocument();
 
         await user.click(within(card).getByRole("button", { name: "Ler mais" }));
         expect(within(card).getByRole("button", { name: "Mostrar menos" }))
@@ -128,20 +127,58 @@ describe("EvidenceGallery", () => {
         const modal = screen.getByRole("dialog");
         expect(within(modal).getByText(/Tubulação de água fria concluída/)).toBeInTheDocument();
         expect(within(modal).getByText(/marina@constructo.dev/)).toBeInTheDocument();
+        expect(within(modal).getByRole("link", { name: "Baixar imagem" })).toHaveAttribute(
+            "download",
+            "evidencia-1",
+        );
+        fireEvent.error(within(modal).getByRole("img", {
+            name: "Evidência em tamanho ampliado de Unidade 704",
+        }));
+        expect(within(modal).getByRole("img", { name: "Imagem indisponível" }))
+            .toBeInTheDocument();
         await user.click(within(modal).getByRole("button", { name: "Fechar detalhes" }));
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
+    it("abre o painel de detalhes com Enter e fecha pelo botão", async () => {
+        const user = userEvent.setup();
+        listarEvidenciasMock.mockResolvedValue([criarEvidencia()]);
+        renderizarGaleria();
+
+        const card = await screen.findByRole("button", {
+            name: "Abrir evidência de Unidade 704",
+        });
+        fireEvent.keyDown(card, { key: "Enter" });
+        const painel = screen.getByRole("dialog");
+        expect(within(painel).getByRole("heading", { name: "Tubulação hidráulica instalada" }))
+            .toBeInTheDocument();
+
+        await user.click(within(painel).getByRole("button", { name: "Fechar detalhes" }));
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("filtra os cards pela busca textual sem alterar a consulta da API", async () => {
+        const user = userEvent.setup();
+        listarEvidenciasMock.mockResolvedValue([criarEvidencia(1), criarEvidencia(2)]);
+        renderizarGaleria();
+
+        await screen.findByRole("button", { name: "Abrir evidência de Unidade 704" });
+        await user.type(screen.getByLabelText("Buscar evidências"), "banheiro");
+
+        expect(screen.getAllByRole("button", { name: /Abrir evidência/ })).toHaveLength(1);
+        expect(screen.getByRole("button", { name: "Abrir evidência de Unidade 704" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Abrir evidência de Unidade 705" })).not.toBeInTheDocument();
+        expect(listarEvidenciasMock).toHaveBeenCalledTimes(1);
+    });
+
     it("envia local, marco e período como filtros da API", async () => {
         const user = userEvent.setup();
-        listarEvidenciasMock.mockResolvedValue([]);
+        listarEvidenciasMock.mockResolvedValue([criarEvidencia(4)]);
         renderizarGaleria();
-        await screen.findByRole("heading", {
-            name: "Nenhuma evidência encontrada para estes filtros",
-        });
+        await screen.findByRole("button", { name: "Abrir evidência de Unidade 707" });
 
-        await user.type(screen.getByLabelText("ID do local"), "704");
-        await user.type(screen.getByLabelText("ID do marco"), "18");
+        await user.selectOptions(screen.getByLabelText("Local"), "704");
+        await user.selectOptions(screen.getByLabelText("Marco"), "18");
         await user.type(screen.getByLabelText("Capturada a partir de"), "2026-10-01");
         await user.type(screen.getByLabelText("Capturada até"), "2026-10-31");
         await user.click(screen.getByRole("button", { name: "Aplicar filtros" }));
@@ -160,6 +197,16 @@ describe("EvidenceGallery", () => {
                 expect.objectContaining({ signal: expect.any(AbortSignal) }),
             );
         });
+
+        await user.click(screen.getByRole("button", { name: "Limpar" }));
+        await waitFor(() => {
+            expect(listarEvidenciasMock).toHaveBeenLastCalledWith(
+                12,
+                {},
+                expect.objectContaining({ signal: expect.any(AbortSignal) }),
+            );
+        });
+        expect(screen.getByLabelText("Buscar evidências")).toHaveValue("");
     });
 
     it("pagina os cards sem montar todas as imagens ao mesmo tempo", async () => {
@@ -177,5 +224,42 @@ describe("EvidenceGallery", () => {
         expect(screen.getAllByRole("button", { name: /Abrir evidência/ })).toHaveLength(1);
         expect(screen.getByRole("button", { name: "Abrir evidência de Unidade 716" }))
             .toBeInTheDocument();
+    });
+
+    it("permite selecionar uma evidência em outra página e fechar por Escape ou clique externo", async () => {
+        const user = userEvent.setup();
+        listarEvidenciasMock.mockResolvedValue(
+            Array.from({ length: 13 }, (_, indice) => criarEvidencia(indice + 1)),
+        );
+        renderizarGaleria();
+
+        await screen.findByText("Página 1 de 2");
+        await user.click(screen.getByRole("button", { name: "Próxima" }));
+        await user.click(screen.getByRole("button", { name: "Abrir evidência de Unidade 716" }));
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: "Abrir evidência de Unidade 716" }));
+        const backdrop = screen.getByRole("presentation");
+        fireEvent.mouseDown(backdrop, { target: backdrop });
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("fecha os detalhes quando a evidência selecionada deixa de vir na resposta", async () => {
+        const user = userEvent.setup();
+        listarEvidenciasMock
+            .mockResolvedValueOnce([criarEvidencia()])
+            .mockResolvedValueOnce([]);
+        renderizarGaleria();
+
+        await user.click(await screen.findByRole("button", { name: "Abrir evidência de Unidade 704" }));
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+
+        await waitFor(() => {
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        });
     });
 });

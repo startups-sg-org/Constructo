@@ -1,7 +1,17 @@
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, func
-from sqlalchemy import Enum as SAEnum
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,14 +21,14 @@ from backend.banco_de_dados.connections.database_postgres import Base
 class Empresa(Base):
     __tablename__ = "empresa"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     razao_social: Mapped[str] = mapped_column(String(200), nullable=False)
     nome_fantasia: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
     telefone: Mapped[str] = mapped_column(String(20), nullable=False)
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
-    type: Mapped[str] = mapped_column(SAEnum("contratante", "contratado", name="contratante_contratado_enum"), nullable=False)
-    cnpj: Mapped[str] = mapped_column(String(20), nullable=False)
+    type: Mapped[str] = mapped_column(String(20), nullable=False)
+    cnpj: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -28,24 +38,29 @@ class Empresa(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+    __table_args__ = (
+        CheckConstraint("type IN ('contratante', 'contratada')", name="ck_empresa_tipo"),
+    )
 
 
 class Contrato(Base):
     __tablename__ = "contrato"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    contratante_id: Mapped[UUID] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    empreendimento_id: Mapped[int] = mapped_column(
+        ForeignKey("empreendimentos.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    contratante_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("empresa.id"), nullable=False
     )
-    contratado_id: Mapped[UUID] = mapped_column(
+    contratado_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("empresa.id"), nullable=False
     )
     descricao: Mapped[str] = mapped_column(Text, nullable=False)
-    valor: Mapped[float] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
     objeto: Mapped[str] = mapped_column(Text, nullable=False)
     valor_total: Mapped[float] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
     status: Mapped[str] = mapped_column(
-        SAEnum("ativo", "inativo", "finalizado", name="status_enum"),
+        String(20),
         nullable=False,
         server_default="ativo",
     )
@@ -68,6 +83,10 @@ class Contrato(Base):
         nullable=True
     )
 
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
     
     contratante: Mapped["Empresa"] = relationship(
         "Empresa",
@@ -83,14 +102,19 @@ class Contrato(Base):
         "itens_contratuais",
         back_populates="contrato",
     )
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('ativo', 'inativo', 'finalizado')", name="ck_contrato_status"
+        ),
+    )
 
 
 class itens_contratuais(Base):
     __tablename__ = "itens_contratuais"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    contrato_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("contrato.id"), nullable=False
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    contrato_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("contrato.id"), nullable=False, index=True
     )
     descricao: Mapped[str] = mapped_column(Text, nullable=False)
     quantidade: Mapped[int] = mapped_column(Integer, nullable=False)

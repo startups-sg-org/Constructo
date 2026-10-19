@@ -38,5 +38,16 @@ export async function carregarProtocoloEditor({ params, request }: Pick<LoaderFu
         throw new Response("Protocolo não encontrado neste marco", { status: 404 });
     }
 
-    return { empreendimentoId, marcoId, protocolo, protocolos };
+    const baseProtocolos = `/admin/empreendimentos/${empreendimentoId}/taxonomia/marcos/${marcoId}/protocolos`;
+
+    return {
+        empreendimentoId,
+        marcoId,
+        protocolo,
+        protocolos,
+        modo: protocoloId ? "editar" as const : new URL(request.url).pathname.endsWith("/novo")
+            ? "criar" as const
+            : "listar" as const,
+        baseProtocolos,
+    };
 }

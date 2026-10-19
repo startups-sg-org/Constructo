@@ -401,6 +401,29 @@ class ProgressoEtapaLer(BaseModel):
     percentual: int
 
 
+class ProgressoMacroetapaLer(BaseModel):
+    etapa_id: int
+    nome: str
+    ordem: int
+    total: int
+    concluidos: int
+    em_andamento: int
+    nao_iniciados: int
+    percentual: int
+    status: ProgressStatus
+
+
+class ProgressoEmpreendimentoLer(BaseModel):
+    empreendimento_id: int
+    total: int
+    concluidos: int
+    em_andamento: int
+    nao_iniciados: int
+    percentual: int
+    status: ProgressStatus
+    macroetapas: list[ProgressoMacroetapaLer]
+
+
 class EvidenciaCriar(BaseModel):
     progresso_marco_id: int
     item_protocolo_id: int | None = None

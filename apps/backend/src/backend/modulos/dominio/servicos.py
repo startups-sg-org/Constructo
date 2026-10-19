@@ -858,32 +858,146 @@ async def calcular_progresso_unidade(
 
 
 async def calcular_progresso_empreendimento(session: AsyncSession, empreendimento_id: int) -> int:
+    resumo = await resumir_progresso_empreendimento(session, empreendimento_id)
+    return resumo["percentual"]
+
+
+async def resumir_progresso_empreendimento(
+    session: AsyncSession, empreendimento_id: int
+) -> dict:
+    """Consolida o avanço global e por macroetapa raiz usando unidades x marcos."""
     await _exigir(session, Empreendimento, empreendimento_id)
-    unidades = (
-        await session.scalars(
-            select(LocalObra.id).where(
-                LocalObra.empreendimento_id == empreendimento_id,
-                LocalObra.tipo == TipoLocal.UNIDADE,
+    taxonomia = await session.scalar(
+        select(Taxonomia).where(Taxonomia.empreendimento_id == empreendimento_id)
+    )
+    if taxonomia is None:
+        return _montar_resumo_progresso(empreendimento_id=empreendimento_id)
+
+    etapas = list(
+        (
+            await session.scalars(
+                select(Etapa)
+                .where(Etapa.taxonomia_id == taxonomia.id)
+                .order_by(Etapa.ordem, Etapa.id)
             )
-        )
-    ).all()
-    marcos = (
-        await session.scalars(
-            select(Marco.id)
-            .join(Etapa)
-            .join(Taxonomia)
-            .where(Taxonomia.empreendimento_id == empreendimento_id)
-        )
-    ).all()
-    if not unidades or not marcos:
-        return 0
-    concluidos = (
-        await session.scalars(
-            select(ProgressoMarco.id).where(
-                ProgressoMarco.local_obra_id.in_(unidades),
-                ProgressoMarco.marco_id.in_(marcos),
-                ProgressoMarco.status == EstadoMarco.CONCLUIDO,
+        ).all()
+    )
+    unidades = list(
+        (
+            await session.scalars(
+                select(LocalObra.id).where(
+                    LocalObra.empreendimento_id == empreendimento_id,
+                    LocalObra.tipo == TipoLocal.UNIDADE,
+                )
             )
-        )
-    ).all()
-    return round(100 * len(concluidos) / (len(unidades) * len(marcos)))
+        ).all()
+    )
+    marcos = list(
+        (
+            await session.execute(
+                select(Marco.id, Marco.etapa_id)
+                .join(Etapa)
+                .where(Etapa.taxonomia_id == taxonomia.id)
+            )
+        ).all()
+    )
+    ids_marcos = [marco_id for marco_id, _ in marcos]
+    progressos: dict[tuple[int, int], EstadoMarco] = {}
+    if unidades and ids_marcos:
+        linhas = (
+            await session.execute(
+                select(
+                    ProgressoMarco.local_obra_id,
+                    ProgressoMarco.marco_id,
+                    ProgressoMarco.status,
+                ).where(
+                    ProgressoMarco.local_obra_id.in_(unidades),
+                    ProgressoMarco.marco_id.in_(ids_marcos),
+                )
+            )
+        ).all()
+        progressos = {
+            (local_id, marco_id): EstadoMarco(status)
+            for local_id, marco_id, status in linhas
+        }
+
+    filhos_por_etapa: dict[int, list[int]] = {}
+    for etapa in etapas:
+        if etapa.parent_id is not None:
+            filhos_por_etapa.setdefault(etapa.parent_id, []).append(etapa.id)
+
+    marcos_por_etapa: dict[int, list[int]] = {}
+    for marco_id, etapa_id in marcos:
+        marcos_por_etapa.setdefault(etapa_id, []).append(marco_id)
+
+    macroetapas = []
+    for etapa in (item for item in etapas if item.parent_id is None):
+        etapas_incluidas = _listar_etapa_e_descendentes(etapa.id, filhos_por_etapa)
+        marcos_incluidos = [
+            marco_id
+            for etapa_id in etapas_incluidas
+            for marco_id in marcos_por_etapa.get(etapa_id, [])
+        ]
+        resumo = _resumir_combinacoes(unidades, marcos_incluidos, progressos)
+        macroetapas.append({
+            "etapa_id": etapa.id,
+            "nome": etapa.nome,
+            "ordem": etapa.ordem,
+            **resumo,
+        })
+
+    return {
+        "empreendimento_id": empreendimento_id,
+        **_resumir_combinacoes(unidades, ids_marcos, progressos),
+        "macroetapas": macroetapas,
+    }
+
+
+def _listar_etapa_e_descendentes(
+    etapa_id: int, filhos_por_etapa: dict[int, list[int]]
+) -> list[int]:
+    ids = [etapa_id]
+    for filho_id in filhos_por_etapa.get(etapa_id, []):
+        ids.extend(_listar_etapa_e_descendentes(filho_id, filhos_por_etapa))
+    return ids
+
+
+def _resumir_combinacoes(
+    unidades: list[int],
+    marcos: list[int],
+    progressos: dict[tuple[int, int], EstadoMarco],
+) -> dict:
+    total = len(unidades) * len(marcos)
+    estados = [
+        progressos.get((unidade_id, marco_id), EstadoMarco.NAO_INICIADO)
+        for unidade_id in unidades
+        for marco_id in marcos
+    ]
+    concluidos = estados.count(EstadoMarco.CONCLUIDO)
+    em_andamento = estados.count(EstadoMarco.EM_ANDAMENTO)
+    nao_iniciados = total - concluidos - em_andamento
+    percentual = round(100 * concluidos / total) if total else 0
+
+    if total and concluidos == total:
+        status = EstadoMarco.CONCLUIDO
+    elif concluidos or em_andamento:
+        status = EstadoMarco.EM_ANDAMENTO
+    else:
+        status = EstadoMarco.NAO_INICIADO
+
+    return {
+        "total": total,
+        "concluidos": concluidos,
+        "em_andamento": em_andamento,
+        "nao_iniciados": nao_iniciados,
+        "percentual": percentual,
+        "status": status,
+    }
+
+
+def _montar_resumo_progresso(*, empreendimento_id: int) -> dict:
+    return {
+        "empreendimento_id": empreendimento_id,
+        **_resumir_combinacoes([], [], {}),
+        "macroetapas": [],
+    }
