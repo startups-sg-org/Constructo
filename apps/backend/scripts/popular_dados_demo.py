@@ -1,13 +1,18 @@
-"""Adiciona uma massa de dados fictícios ao PostgreSQL local.
+"""Adiciona a massa de dados Parque das Águas ao PostgreSQL local.
 
-A carga é atômica, preserva os registros existentes e pode ser executada mais
-de uma vez: a presença do usuário marcador impede duplicações.
+As imagens de evidência devem estar em ``apps/web/docs`` (ou no diretório
+informado por ``--imagens-dir``). Durante a carga, elas são copiadas para o
+storage público do backend e as evidências recebem URLs locais ``/uploads/...``.
+
+Execute a partir de ``apps/backend``:
+    uv run python scripts/popular_dados_demo.py
 """
 
 import argparse
 import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from sqlalchemy import func, select
 
@@ -27,11 +32,17 @@ from backend.modulos.dominio.modelos import (
     UsuarioUnidade,
 )
 from backend.modulos.dominio.regras import TipoLocal
+from backend.modulos.evidencias.storage import obter_storage
 from backend.modulos.usuarios.modelos import Usuario
 from backend.modulos.usuarios.senhas import gerar_senha_hash
 
 EMAIL_MARCADOR = "demo.admin@example.com"
 SENHA_PADRAO = "Demo@123"
+EMPREENDIMENTO_DESTAQUE = "Parque das Águas"
+EMAILS_AUTORES = ("demo.gestor1@example.com", "demo.gestor2@example.com")
+EXTENSOES_IMAGEM = {".jpeg", ".jpg", ".png", ".webp"}
+RAIZ_REPOSITORIO = Path(__file__).resolve().parents[3]
+DIRETORIO_IMAGENS_PADRAO = RAIZ_REPOSITORIO / "apps" / "web" / "docs"
 
 
 @dataclass(frozen=True)
@@ -45,42 +56,13 @@ class ConfiguracaoEstrutura:
 
 EMPREENDIMENTOS = (
     {
-        "nome": "Residencial Jardim do Sol",
-        "descricao": "Condomínio residencial com duas torres e área de lazer integrada.",
-        "endereco": "Av. das Palmeiras, 1200 — Plano Diretor Sul, Palmas/TO",
-        "status": "EM_ANDAMENTO",
-        "estrutura": ConfiguracaoEstrutura(TipoLocal.TORRE, "Torre", 2, 2, 3),
-    },
-    {
-        "nome": "Parque das Águas",
+        "nome": EMPREENDIMENTO_DESTAQUE,
         "descricao": "Conjunto habitacional planejado com dois blocos residenciais.",
         "endereco": "Rua das Acácias, 450 — Araguaína/TO",
         "status": "PLANEJADO",
         "estrutura": ConfiguracaoEstrutura(TipoLocal.BLOCO, "Bloco", 2, 3, 2),
     },
-    {
-        "nome": "Horizonte Corporate",
-        "descricao": "Edifício corporativo com lajes comerciais flexíveis.",
-        "endereco": "Av. JK, 880 — Centro, Palmas/TO",
-        "status": "EM_ANDAMENTO",
-        "estrutura": ConfiguracaoEstrutura(TipoLocal.BLOCO, "Edifício", 1, 4, 4),
-    },
-    {
-        "nome": "Vila Cerrado",
-        "descricao": "Empreendimento residencial entregue e em fase de acompanhamento.",
-        "endereco": "Alameda dos Ipês, 75 — Gurupi/TO",
-        "status": "CONCLUIDO",
-        "estrutura": ConfiguracaoEstrutura(TipoLocal.BLOCO, "Bloco", 1, 2, 4),
-    },
-    {
-        "nome": "Estação Norte",
-        "descricao": "Projeto temporariamente inativo para revisão de viabilidade.",
-        "endereco": "Rodovia TO-222, km 12 — Araguaína/TO",
-        "status": "INATIVO",
-        "estrutura": ConfiguracaoEstrutura(TipoLocal.TORRE, "Torre", 1, 0, 0),
-    },
 )
-
 
 USUARIOS = (
     {
@@ -104,7 +86,7 @@ USUARIOS = (
         "telefone": "63992345678",
         "canal_preferido": "whatsapp",
         "receber_atualizacoes": True,
-        "empreendimento": "Residencial Jardim do Sol",
+        "empreendimento": EMPREENDIMENTO_DESTAQUE,
         "unidade": "Gestão",
         "ativo": True,
         "papel": "GESTOR",
@@ -117,23 +99,10 @@ USUARIOS = (
         "telefone": "63993456789",
         "canal_preferido": "email",
         "receber_atualizacoes": True,
-        "empreendimento": "Horizonte Corporate",
+        "empreendimento": EMPREENDIMENTO_DESTAQUE,
         "unidade": "Gestão",
         "ativo": True,
         "papel": "GESTOR",
-    },
-    {
-        "cpf": "12345678909",
-        "nome": "João",
-        "sobrenome": "Martins",
-        "email": "demo.comprador1@example.com",
-        "telefone": "63994567890",
-        "canal_preferido": "whatsapp",
-        "receber_atualizacoes": True,
-        "empreendimento": "Residencial Jardim do Sol",
-        "unidade": "101",
-        "ativo": True,
-        "papel": "COMPRADOR",
     },
     {
         "cpf": "98765432100",
@@ -143,51 +112,33 @@ USUARIOS = (
         "telefone": "63995678901",
         "canal_preferido": "email",
         "receber_atualizacoes": True,
-        "empreendimento": "Parque das Águas",
+        "empreendimento": EMPREENDIMENTO_DESTAQUE,
         "unidade": "202",
         "ativo": True,
         "papel": "COMPRADOR",
     },
-    {
-        "cpf": "39053344705",
-        "nome": "Lucas",
-        "sobrenome": "Mendes",
-        "email": "demo.comprador3@example.com",
-        "telefone": "63996789012",
-        "canal_preferido": "whatsapp",
-        "receber_atualizacoes": False,
-        "empreendimento": "Horizonte Corporate",
-        "unidade": "301",
-        "ativo": True,
-        "papel": "COMPRADOR",
-    },
-    {
-        "cpf": "86288366757",
-        "nome": "Ana",
-        "sobrenome": "Carvalho",
-        "email": "demo.comprador4@example.com",
-        "telefone": "63997890123",
-        "canal_preferido": "email",
-        "receber_atualizacoes": True,
-        "empreendimento": "Vila Cerrado",
-        "unidade": "102",
-        "ativo": True,
-        "papel": "COMPRADOR",
-    },
-    {
-        "cpf": "15350946056",
-        "nome": "Pedro",
-        "sobrenome": "Araújo",
-        "email": "demo.inativo@example.com",
-        "telefone": "63998901234",
-        "canal_preferido": "email",
-        "receber_atualizacoes": False,
-        "empreendimento": "Estação Norte",
-        "unidade": "—",
-        "ativo": False,
-        "papel": "COMPRADOR",
-    },
 )
+
+
+def listar_imagens(diretorio: Path) -> list[Path]:
+    diretorio = diretorio.expanduser().resolve()
+    if not diretorio.is_dir():
+        raise FileNotFoundError(f"Diretório de imagens não encontrado: {diretorio}")
+
+    imagens = sorted(
+        (
+            caminho
+            for caminho in diretorio.rglob("*")
+            if caminho.is_file() and caminho.suffix.lower() in EXTENSOES_IMAGEM
+        ),
+        key=lambda caminho: caminho.as_posix(),
+    )
+    if not imagens:
+        extensoes = ", ".join(sorted(EXTENSOES_IMAGEM))
+        raise FileNotFoundError(
+            f"Nenhuma imagem ({extensoes}) encontrada em {diretorio}"
+        )
+    return imagens
 
 
 async def criar_estrutura(
@@ -243,16 +194,8 @@ async def criar_taxonomia(session, empreendimento: Empreendimento) -> list[Marco
 
     definicoes = (
         ("Fundação", "Execução das fundações e infraestrutura.", "Preparação da base da obra."),
-        (
-            "Estrutura",
-            "Execução de pilares, vigas e lajes.",
-            "Construção da estrutura do edifício.",
-        ),
-        (
-            "Instalações",
-            "Redes elétricas, hidráulicas e de dados.",
-            "Instalação dos sistemas do imóvel.",
-        ),
+        ("Estrutura", "Execução de pilares, vigas e lajes.", "Construção da estrutura do edifício."),
+        ("Instalações", "Redes elétricas, hidráulicas e de dados.", "Instalação dos sistemas do imóvel."),
         ("Acabamentos", "Revestimentos, pintura e louças.", "Finalização dos ambientes."),
     )
     marcos: list[Marco] = []
@@ -280,12 +223,146 @@ async def criar_taxonomia(session, empreendimento: Empreendimento) -> list[Marco
     return marcos
 
 
-async def popular(senha: str) -> None:
+async def copiar_imagem_para_storage(
+    imagem: Path,
+    empreendimento_id: int,
+    indice: int,
+) -> str:
+    conteudo = await asyncio.to_thread(imagem.read_bytes)
+    caminho = (
+        f"empreendimentos/{empreendimento_id}/evidencias/"
+        f"parque-das-aguas-{indice:02d}{imagem.suffix.lower()}"
+    )
+    arquivo = await obter_storage().salvar(caminho, conteudo)
+    return arquivo.url
+
+
+async def criar_evidencias_e_publicacoes(
+    session,
+    progressos: list[ProgressoMarco],
+    usuarios: list[Usuario],
+    imagens: list[Path],
+    empreendimento_id: int,
+    agora: datetime,
+) -> tuple[int, int]:
+    """Completa evidências e publicações, sem URLs externas ou duplicações."""
+    evidencias_criadas = 0
+    publicacoes_criadas = 0
+
+    for indice, progresso in enumerate(progressos[:10], start=1):
+        evidencia = await session.scalar(
+            select(Evidencia).where(Evidencia.progresso_marco_id == progresso.id)
+        )
+        imagem = imagens[(indice - 1) % len(imagens)]
+        arquivo_url = await copiar_imagem_para_storage(
+            imagem,
+            empreendimento_id,
+            indice,
+        )
+
+        if evidencia is None:
+            evidencia = Evidencia(
+                progresso_marco_id=progresso.id,
+                local_obra_id=progresso.local_obra_id,
+                marco_id=progresso.marco_id,
+                arquivo_url=arquivo_url,
+                descricao_tecnica=(
+                    f"Registro fotográfico técnico {indice} do avanço da obra "
+                    "Parque das Águas."
+                ),
+                capturado_em=agora - timedelta(days=indice),
+                capturado_por=usuarios[(indice - 1) % len(usuarios)].id,
+            )
+            session.add(evidencia)
+            await session.flush()
+            evidencias_criadas += 1
+        elif evidencia.arquivo_url.startswith("https://images.example.com/"):
+            evidencia.arquivo_url = arquivo_url
+
+        if indice > 6:
+            continue
+
+        publicacao = await session.scalar(
+            select(Publicacao).where(Publicacao.progresso_marco_id == progresso.id)
+        )
+        if publicacao is None:
+            publicacao = Publicacao(
+                progresso_marco_id=progresso.id,
+                titulo=f"Atualização do Parque das Águas #{indice}",
+                texto_cliente="Os serviços avançaram conforme o cronograma demonstrativo.",
+                proximo_passo="Dar continuidade à próxima frente de serviço.",
+                publicado_em=agora - timedelta(days=indice),
+                publicado_por=usuarios[(indice - 1) % len(usuarios)].id,
+            )
+            session.add(publicacao)
+            await session.flush()
+            session.add(
+                PublicacaoEvidencia(publicacao_id=publicacao.id, evidencia_id=evidencia.id)
+            )
+            publicacoes_criadas += 1
+
+    return evidencias_criadas, publicacoes_criadas
+
+
+async def completar_empreendimento_destaque(
+    session,
+    imagens: list[Path],
+) -> tuple[int, int]:
+    empreendimento_id = await session.scalar(
+        select(Empreendimento.id).where(Empreendimento.nome == EMPREENDIMENTO_DESTAQUE)
+    )
+    if empreendimento_id is None:
+        return 0, 0
+
+    progressos = list(
+        (
+            await session.scalars(
+                select(ProgressoMarco)
+                .join(LocalObra, LocalObra.id == ProgressoMarco.local_obra_id)
+                .where(
+                    LocalObra.empreendimento_id == empreendimento_id,
+                    ProgressoMarco.status != "NAO_INICIADO",
+                )
+                .order_by(ProgressoMarco.id)
+                .limit(10)
+            )
+        ).all()
+    )
+    usuarios = list(
+        (
+            await session.scalars(
+                select(Usuario).where(Usuario.email.in_(EMAILS_AUTORES)).order_by(Usuario.id)
+            )
+        ).all()
+    )
+    if not progressos or not usuarios:
+        return 0, 0
+
+    return await criar_evidencias_e_publicacoes(
+        session,
+        progressos,
+        usuarios,
+        imagens,
+        empreendimento_id,
+        datetime.now(UTC),
+    )
+
+
+async def popular(senha: str, diretorio_imagens: Path) -> None:
+    imagens = listar_imagens(diretorio_imagens)
     registrar_modelos()
     async with postgres.get_session() as session:
         marcador = await session.scalar(select(Usuario.id).where(Usuario.email == EMAIL_MARCADOR))
         if marcador is not None:
-            print("A massa demo já está instalada; nenhum registro foi duplicado.")
+            evidencias, publicacoes = await completar_empreendimento_destaque(session, imagens)
+            await session.commit()
+            if evidencias or publicacoes:
+                print(
+                    f"Dados de {EMPREENDIMENTO_DESTAQUE} completados: "
+                    f"{evidencias} evidências e {publicacoes} publicações."
+                )
+            else:
+                print("A massa demo já está instalada; nenhum registro foi duplicado.")
             await exibir_resumo(session)
             return
 
@@ -314,7 +391,6 @@ async def popular(senha: str) -> None:
             marcos_por_empreendimento.append(await criar_taxonomia(session, empreendimento))
 
         agora = datetime.now(UTC)
-        evidencias: list[Evidencia] = []
         progressos_publicaveis: list[ProgressoMarco] = []
         for indice_obra, (unidades, marcos) in enumerate(
             zip(unidades_por_empreendimento, marcos_por_empreendimento, strict=True)
@@ -346,33 +422,14 @@ async def popular(senha: str) -> None:
                         progressos_publicaveis.append(progresso)
         await session.flush()
 
-        for indice, progresso in enumerate(progressos_publicaveis, start=1):
-            evidencia = Evidencia(
-                progresso_marco_id=progresso.id,
-                arquivo_url=f"https://images.example.com/constructo/demo-{indice:02d}.jpg",
-                descricao=f"Registro fotográfico fictício #{indice}.",
-                capturado_em=agora - timedelta(days=indice),
-                usuario_id=usuarios[1 + (indice % 2)].id,
-            )
-            session.add(evidencia)
-            evidencias.append(evidencia)
-        await session.flush()
-
-        for indice, (progresso, evidencia) in enumerate(
-            zip(progressos_publicaveis[:6], evidencias[:6], strict=True),
-            start=1,
-        ):
-            publicacao = Publicacao(
-                progresso_marco_id=progresso.id,
-                titulo=f"Atualização da obra #{indice}",
-                texto_cliente="Os serviços avançaram conforme o cronograma demonstrativo.",
-                proximo_passo="Dar continuidade à próxima frente de serviço.",
-                publicado_em=agora - timedelta(days=indice),
-                publicado_por=usuarios[1 + (indice % 2)].id,
-            )
-            session.add(publicacao)
-            await session.flush()
-            session.add(PublicacaoEvidencia(publicacao_id=publicacao.id, evidencia_id=evidencia.id))
+        await criar_evidencias_e_publicacoes(
+            session,
+            progressos_publicaveis,
+            [usuarios[1], usuarios[2]],
+            imagens,
+            empreendimentos[0].id,
+            agora,
+        )
 
         for usuario in usuarios[:3]:
             for empreendimento in empreendimentos:
@@ -382,21 +439,24 @@ async def popular(senha: str) -> None:
                         empreendimento_id=empreendimento.id,
                     )
                 )
-        for indice, usuario in enumerate(usuarios[3:7]):
-            empreendimento = empreendimentos[indice]
+        empreendimento = empreendimentos[0]
+        for usuario in usuarios[3:]:
             session.add(
                 UsuarioEmpreendimento(
                     usuario_id=usuario.id,
                     empreendimento_id=empreendimento.id,
                 )
             )
-            if unidades_por_empreendimento[indice]:
-                session.add(
-                    UsuarioUnidade(
-                        usuario_id=usuario.id,
-                        local_obra_id=unidades_por_empreendimento[indice][0].id,
-                    )
-                )
+            unidade = next(
+                (
+                    local
+                    for local in unidades_por_empreendimento[0]
+                    if local.nome == f"Unidade {usuario.unidade}"
+                ),
+                None,
+            )
+            if unidade is not None:
+                session.add(UsuarioUnidade(usuario_id=usuario.id, local_obra_id=unidade.id))
 
         await session.commit()
         print("Massa demo inserida com sucesso.")
@@ -425,14 +485,25 @@ async def exibir_resumo(session) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Insere dados fictícios no banco local.")
+    parser = argparse.ArgumentParser(
+        description="Insere os dados fictícios da obra Parque das Águas no banco local."
+    )
     parser.add_argument(
         "--senha",
         default=SENHA_PADRAO,
         help="Senha compartilhada pelos usuários demo (padrão: Demo@123).",
     )
+    parser.add_argument(
+        "--imagens-dir",
+        type=Path,
+        default=DIRETORIO_IMAGENS_PADRAO,
+        help=(
+            "Diretório com imagens JPEG, PNG ou WEBP "
+            f"(padrão: {DIRETORIO_IMAGENS_PADRAO})."
+        ),
+    )
     argumentos = parser.parse_args()
-    asyncio.run(popular(argumentos.senha))
+    asyncio.run(popular(argumentos.senha, argumentos.imagens_dir))
 
 
 if __name__ == "__main__":

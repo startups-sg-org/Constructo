@@ -20,8 +20,18 @@ export type UsuarioResumo = {
     papel: string;
 };
 
-export type StatusValidacaoEvidencia = "PENDENTE" | "APROVADA" | "REJEITADA";
-
+/**
+ * Contrato retornado por `GET /empreendimentos/{id}/evidencias`.
+ *
+ * Cada registro representa uma única evidência e uma única imagem, indicada
+ * por `arquivo_url`. Local, marco e responsável já são devolvidos expandidos
+ * pela API e devem ser a fonte dos rótulos apresentados na interface.
+ *
+ * O backend atual não fornece status de validação, contrato vinculado,
+ * compartilhamento nem agrupamento de várias imagens. Esses elementos da
+ * referência visual não pertencem a este tipo e não devem ser simulados no
+ * front-end.
+ */
 export type Evidencia = {
     id: number;
     arquivo_url: string;
@@ -36,10 +46,14 @@ export type Evidencia = {
     local_obra: LocalObraResumo;
     marco: MarcoResumo;
     responsavel: UsuarioResumo;
-    /** Campo futuro: renderizado apenas quando a API disponibilizá-lo. */
-    status_validacao?: StatusValidacaoEvidencia;
 };
 
+/**
+ * Filtros processados pelo backend na listagem de evidências.
+ *
+ * Busca textual, status de validação e paginação não são parâmetros da API;
+ * quando necessários, devem ser aplicados no cliente sobre a resposta.
+ */
 export type FiltrosEvidencia = {
     localObraId?: number;
     marcoId?: number;

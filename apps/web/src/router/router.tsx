@@ -207,8 +207,8 @@ export const rotas: RouteObject[] = [
                 action: alterarEditorProtocoloAutenticado,
                 element: (
                   <PaginaPainel
-                    titulo="Protocolo de evidências"
-                    subtitulo="Configure os registros exigidos para o marco."
+                    titulo=""
+                    subtitulo=""
                   >
                     <ProtocolEditor />
                   </PaginaPainel>
@@ -217,7 +217,7 @@ export const rotas: RouteObject[] = [
               {
                 path: "taxonomia/marcos/:marcoId/protocolos",
                 loader: carregarEditorProtocoloAutenticado,
-                element: <PaginaPainel titulo="Protocolos de evidências" subtitulo="Escolha ou crie um protocolo para o marco."><ProtocolList /></PaginaPainel>,
+                element: <PaginaPainel titulo="" subtitulo=""><ProtocolList /></PaginaPainel>,
               },
               {
                 path: "contratos",
@@ -240,7 +240,7 @@ export const rotas: RouteObject[] = [
               {
                 path: "documentos",
                 element: (
-                  <PaginaPainel titulo="Documentos" subtitulo="Arquivos e registros visuais vinculados a este empreendimento.">
+                  <PaginaPainel titulo="" subtitulo="">
                     <EvidenceGallery />
                   </PaginaPainel>
                 ),
@@ -262,15 +262,6 @@ export const rotas: RouteObject[] = [
             path: "contratos",
             element: (
               <PaginaPainel titulo="Contratos" subtitulo="Consulte e administre os contratos." />
-            ),
-          },
-          {
-            path: "medicoes",
-            element: (
-              <PaginaPainel
-                titulo="Medições"
-                subtitulo="Registre e acompanhe as medições das obras."
-              />
             ),
           },
           {

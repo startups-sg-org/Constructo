@@ -2,11 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
+
 import ProtocolList from "../../modulos/evidencias/componentes/ProtocolEditor/ProtocolList";
 import ProtocolEditor from "../../modulos/evidencias/componentes/ProtocolEditor/ProtocolEditor";
-import { carregarProtocoloEditor } from "./protocolos.loader";
 import { alterarProtocoloEditor } from "./protocolos.action";
 import * as api from "./evidencias.service";
+import { carregarProtocoloEditor } from "./protocolos.loader";
 
 vi.mock("./evidencias.service", () => ({
     listarProtocolosEvidencia: vi.fn(), criarProtocoloEvidencia: vi.fn(),
@@ -21,10 +22,12 @@ const routers: ReturnType<typeof createMemoryRouter>[] = [];
 function montar(destino = base) {
     const caminho = "/admin/empreendimentos/:empreendimentoId/taxonomia/marcos/:marcoId/protocolos";
     const router = createMemoryRouter([
-        { path: caminho, loader: carregarProtocoloEditor, element: <ProtocolList /> },
+        { path: caminho, loader: carregarProtocoloEditor, action: alterarProtocoloEditor, element: <ProtocolList /> },
         ...["novo", ":protocoloId"].map((parte) => ({
-            path: caminho + "/" + parte, loader: carregarProtocoloEditor,
-            action: alterarProtocoloEditor, element: <ProtocolEditor />,
+            path: caminho + "/" + parte,
+            loader: carregarProtocoloEditor,
+            action: alterarProtocoloEditor,
+            element: <ProtocolEditor />,
         })),
     ], { initialEntries: [destino] });
     routers.push(router);
@@ -41,10 +44,13 @@ beforeEach(() => {
     vi.mocked(api.listarProtocolosEvidencia).mockImplementation(async () => structuredClone(protocolos));
 });
 
-afterEach(() => { cleanup(); routers.splice(0).forEach((router) => router.dispose()); });
+afterEach(() => {
+    cleanup();
+    routers.splice(0).forEach((router) => router.dispose());
+});
 
-describe("Protocolos no Data Router", () => {
-    it("lista, cria e redireciona ao protocolo criado", async () => {
+describe("Workspace de protocolos no Data Router", () => {
+    it("mostra o estado vazio, cria e redireciona ao protocolo persistido", async () => {
         protocolos = [];
         vi.mocked(api.criarProtocoloEvidencia).mockImplementation(async (_e, _m, dados) => {
             const novo = { ...dados, id: 4, marco_id: 2, criado_em: "", atualizado_em: "", itens: [] };
@@ -53,15 +59,32 @@ describe("Protocolos no Data Router", () => {
         });
         const user = userEvent.setup();
         const router = montar();
+
         expect(await screen.findByText("Nenhum protocolo cadastrado neste marco.")).toBeInTheDocument();
         await user.click(screen.getByRole("link", { name: "Criar protocolo" }));
         await user.type(await screen.findByLabelText("Nome"), "Fotos da laje");
-        expect(within(screen.getByRole("complementary")).getByText("Fotos da laje")).toBeInTheDocument();
+        expect(within(screen.getByRole("complementary", { name: "Fotos da laje" })).getByText("Fotos da laje")).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Criar protocolo" }));
+
         await waitFor(() => expect(router.state.location.pathname).toBe(base + "/4"));
         expect(await screen.findByRole("button", { name: "Adicionar item" })).toBeEnabled();
-        await user.click(screen.getByRole("link", { name: "Voltar aos protocolos" }));
-        expect(await screen.findByRole("link", { name: "Editar Fotos da laje" })).toBeInTheDocument();
+    });
+
+    it("pesquisa, informa ausência de resultado e seleciona outro protocolo", async () => {
+        protocolos.push({ ...protocolos[0], id: 4, nome: "Concretagem", quantidade_minima: 2 });
+        const user = userEvent.setup();
+        const router = montar(base + "/3");
+        const busca = await screen.findByRole("searchbox", { name: "Buscar protocolo" });
+
+        await user.type(busca, "concr");
+        expect(screen.queryByRole("link", { name: /Impermeabilização/ })).not.toBeInTheDocument();
+        await user.click(screen.getByRole("link", { name: /Concretagem/ }));
+        await waitFor(() => expect(router.state.location.pathname).toBe(base + "/4"));
+        expect(await screen.findByLabelText("Nome")).toHaveValue("Concretagem");
+
+        const buscaAtualizada = screen.getByRole("searchbox", { name: "Buscar protocolo" });
+        await user.type(buscaAtualizada, "inexistente");
+        expect(screen.getByText(/Nenhum protocolo encontrado/)).toBeInTheDocument();
     });
 
     it("salva dados gerais e mantém a prévia sincronizada", async () => {
@@ -71,16 +94,31 @@ describe("Protocolos no Data Router", () => {
         });
         const user = userEvent.setup();
         montar(base + "/3");
+
         await user.type(await screen.findByLabelText("Descrição"), "Registrar piso");
         await user.clear(screen.getByLabelText("Quantidade mínima de evidências"));
         await user.type(screen.getByLabelText("Quantidade mínima de evidências"), "2");
-        expect(within(screen.getByRole("complementary")).getByText("Mínimo de 2 evidência(s).")).toBeInTheDocument();
+        const previa = screen.getByRole("complementary", { name: "Impermeabilização" });
+        expect(within(previa).getByText("Registrar piso")).toBeInTheDocument();
+        expect(within(previa).getByText("Mínimo de evidências").nextElementSibling).toHaveTextContent("2");
         await user.click(screen.getByRole("button", { name: "Salvar protocolo" }));
+
         await waitFor(() => expect(protocolos[0].quantidade_minima).toBe(2));
         expect(protocolos[0].descricao).toBe("Registrar piso");
     });
 
-    it("adiciona, altera obrigatoriedade/ordem e remove sem ressuscitar item", async () => {
+    it("valida os campos do protocolo e preserva o rascunho", async () => {
+        const user = userEvent.setup();
+        montar(base + "/novo");
+        await user.type(await screen.findByLabelText("Descrição"), "Meu rascunho");
+        await user.click(screen.getByRole("button", { name: "Criar protocolo" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("Informe o nome do protocolo.");
+        expect(screen.getByLabelText("Descrição")).toHaveValue("Meu rascunho");
+        expect(api.criarProtocoloEvidencia).not.toHaveBeenCalled();
+    });
+
+    it("adiciona, altera obrigatoriedade e ordem e remove o item", async () => {
         vi.mocked(api.criarItemProtocolo).mockImplementation(async (_e, _m, _p, dados) => {
             const item = { ...dados, id: 7, protocolo_id: 3, criado_em: "", atualizado_em: "" };
             protocolos[0].itens.push(item);
@@ -93,31 +131,37 @@ describe("Protocolos no Data Router", () => {
         vi.mocked(api.removerItemProtocolo).mockImplementation(async () => { protocolos[0].itens = []; });
         const user = userEvent.setup();
         montar(base + "/3");
-        await user.type(await screen.findByLabelText("Novo item"), "Foto geral");
-        await user.click(screen.getByRole("button", { name: "Adicionar item" }));
+
+        await user.click(await screen.findByRole("button", { name: "Adicionar item" }));
+        const novo = screen.getByText("Novo item").closest("form")!;
+        await user.type(within(novo).getByLabelText("Nome"), "Foto geral");
+        await user.click(within(novo).getByRole("button", { name: "Adicionar item" }));
+
         const input = await screen.findByLabelText("Item");
         const itemForm = input.closest("form")!;
         await user.click(within(itemForm).getByLabelText("Obrigatório"));
         await user.clear(within(itemForm).getByLabelText("Ordem"));
         await user.type(within(itemForm).getByLabelText("Ordem"), "5");
         await user.click(within(itemForm).getByRole("button", { name: "Salvar item" }));
-        await waitFor(() => expect(protocolos[0].itens[0].ordem).toBe(5));
-        expect(protocolos[0].itens[0].obrigatorio).toBe(false);
-        await waitFor(() => expect(screen.getByRole("button", { name: "Salvar item" })).toBeEnabled());
-        await user.click(screen.getByRole("button", { name: "Remover" }));
+        await waitFor(() => expect(protocolos[0].itens[0]).toMatchObject({ ordem: 5, obrigatorio: false }));
+
+        const formularioAtualizado = (await screen.findByLabelText("Item")).closest("form")!;
+        await user.click(within(formularioAtualizado).getByRole("button", { name: "Remover" }));
         await waitFor(() => expect(screen.queryByLabelText("Item")).not.toBeInTheDocument());
-        expect(screen.getByText("Nenhum item configurado.")).toBeInTheDocument();
+        expect(screen.getAllByText("Nenhum item configurado.").length).toBeGreaterThan(0);
     });
 
-    it("mostra loading e erro da API sem perder o rascunho", async () => {
+    it("mostra carregamento e erro da API sem perder o rascunho", async () => {
         let rejeitar!: (erro: Error) => void;
         vi.mocked(api.atualizarProtocoloEvidencia).mockImplementation(() => new Promise((_resolve, reject) => { rejeitar = reject; }));
         const user = userEvent.setup();
         montar(base + "/3");
+
         await user.type(await screen.findByLabelText("Descrição"), "Rascunho");
         await user.click(screen.getByRole("button", { name: "Salvar protocolo" }));
         expect(await screen.findByRole("button", { name: "Salvando…" })).toBeDisabled();
         rejeitar(new Error("Falha ao salvar"));
+
         expect(await screen.findByRole("alert")).toHaveTextContent("Falha ao salvar");
         expect(screen.getByLabelText("Descrição")).toHaveValue("Rascunho");
     });
