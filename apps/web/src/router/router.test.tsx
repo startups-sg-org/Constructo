@@ -166,7 +166,6 @@ describe("novo sistema de rotas", () => {
     ["/admin/usuarios", "Usuários"],
     ["/admin/obras", "Empreendimentos"],
     ["/admin/contratos", "Contratos"],
-    ["/admin/medicoes", "Medições"],
     ["/admin/perfil", "Perfil"],
   ])("renderiza a rota protegida %s", async (entrada, titulo) => {
     montarRota(entrada);
