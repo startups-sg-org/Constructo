@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -31,6 +32,7 @@ import { PostagemFeedSocial } from '../types/feed';
 import { obrasService } from '../services/obras.service';
 import { evidenciasService } from '../services/evidencias.service';
 import { projetarEvidenciasParaFeed } from '../features/feed/feed.adapter';
+import { snapshotStore } from '../services/demo-seed';
 import { FeedLista } from '../features/cliente/feed-lista';
 
 type AbaCliente = 'feed' | 'cronograma' | 'unidade';
@@ -101,7 +103,45 @@ export default function ClienteScreen() {
   };
 
   useEffect(() => {
-    carregarFeedCompleto();
+    let ativo = true;
+
+    async function inicializarFeed() {
+      // 1. Resposta imediata em 0ms a partir do snapshot local para não travar com skeletons
+      try {
+        const snap = await snapshotStore.obter();
+        if (!ativo) return;
+        if (snap.empreendimentos.length > 0) {
+          setObra(snap.empreendimentos[0]);
+        }
+        setEtapas(snap.etapas);
+        setMarcos(snap.marcos);
+        setProgresso(snap.progresso);
+
+        const feedInstantaneo = projetarEvidenciasParaFeed(
+          snap.evidencias,
+          snap.etapas,
+          snap.marcos,
+          snap.progresso
+        );
+        setPostsFeed(feedInstantaneo);
+        setCarregando(false);
+      } catch (err) {
+        console.warn('[ClienteScreen] Erro no carregamento instantâneo:', err);
+      }
+
+      // 2. Sincronização em background se conectado
+      try {
+        await carregarFeedCompleto();
+      } catch {
+        // Fallback offline já exibido
+      }
+    }
+
+    inicializarFeed();
+
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -115,13 +155,13 @@ export default function ClienteScreen() {
       {isGestorPreview ? (
         <View style={styles.previewBanner}>
           <View style={styles.previewBannerLeft}>
-            <Icon name="eye" size={14} color="#FFFFFF" />
-            <Typography variant="caption" color="inverted">
-              Modo Preview • Visão do Comprador
+            <Icon name="eye" size={13} color="#FFFFFF" />
+            <Typography variant="caption" color="inverted" numberOfLines={1} style={{ flexShrink: 1 }}>
+              Modo Preview
             </Typography>
           </View>
           <Button
-            label="Voltar para Engenharia"
+            label="Engenharia"
             iconName="switch-role"
             variant="secondary"
             size="sm"
@@ -132,27 +172,35 @@ export default function ClienteScreen() {
 
       {/* Barra Superior Corporativa */}
       <View style={styles.topBar}>
-        <ConstructoLogo
-          size="sm"
-          subtitle={`PORTAL DO PROPRIETÁRIO • ${usuario?.nome?.toUpperCase() || 'CLIENTE'}`}
-        />
+        <View style={styles.topLogoBox}>
+          <ConstructoLogo size="sm" showWordmark={false} />
+          <View style={styles.topTitleCol}>
+            <Typography variant="label" color="primary" numberOfLines={1}>
+              PROPRIETÁRIO
+            </Typography>
+            <Typography variant="titleSmall" color="strong" numberOfLines={1}>
+              {usuario?.nome || 'Cliente'}
+            </Typography>
+          </View>
+        </View>
 
         <View style={styles.topActions}>
           <Button
-            label={unidadeSelecionada.rotulo}
+            label={unidadeSelecionada.id ? `Unid. ${unidadeSelecionada.id}` : 'Unidade'}
             iconName="home"
             rightIconName="chevron-down"
             variant="secondary"
             size="sm"
             onPress={() => setModalUnidadeAberto(true)}
           />
-          <Button
-            label="Sair"
-            iconName="logout"
-            variant="ghost"
-            size="sm"
+          <Pressable
             onPress={handleLogout}
-          />
+            style={styles.logoutIconBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Encerrar sessão"
+          >
+            <Icon name="logout" size={16} color={ConstructoColors.textoSuave} />
+          </Pressable>
         </View>
       </View>
 
@@ -543,16 +591,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: ConstructoColors.borda,
     backgroundColor: ConstructoColors.superficie,
     gap: 8,
   },
+  topLogoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+    marginRight: 6,
+  },
+  topTitleCol: {
+    flex: 1,
+    minWidth: 0,
+  },
   topActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  logoutIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: ConstructoRadius.button,
+    borderWidth: 1,
+    borderColor: ConstructoColors.borda,
+    backgroundColor: ConstructoColors.superficieSutil,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabScrollContent: {
     padding: 16,

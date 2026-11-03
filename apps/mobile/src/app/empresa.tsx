@@ -45,6 +45,7 @@ import { UsuarioSessao } from '../types/auth';
 import { obrasService } from '../services/obras.service';
 import { evidenciasService } from '../services/evidencias.service';
 import { authService } from '../services/auth.service';
+import { achatarLocaisHierarquia, PROTOCOLOS_SEED, snapshotStore } from '../services/demo-seed';
 import { API_BASE_URL } from '../services/api';
 import { resolverUrlMidia } from '../features/feed/feed.adapter';
 import { CameraSelector } from '../features/empresa/camera-selector';
@@ -179,8 +180,29 @@ export default function EmpresaScreen() {
     let ativo = true;
 
     async function inicializar() {
+      // 1. Resposta imediata em 0ms a partir do snapshot local para evitar delays
       try {
-        setCarregando(true);
+        const snap = await snapshotStore.obter();
+        if (snap.empreendimentos.length > 0) {
+          const primeira = snap.empreendimentos[0];
+          setEmpreendimentos(snap.empreendimentos);
+          setObraSelecionada(primeira);
+          setProgresso(snap.progresso);
+          setEtapas(snap.etapas);
+          setMarcos(snap.marcos);
+          setLocais(achatarLocaisHierarquia(snap.estruturaFisica));
+          setEstruturaFisica(snap.estruturaFisica);
+          setEvidencias(snap.evidencias);
+          setProtocolos(PROTOCOLOS_SEED);
+          setContratos(snap.contratos);
+          setCarregando(false);
+        }
+      } catch (err) {
+        console.warn('[EmpresaScreen] Erro na hidratação instantânea:', err);
+      }
+
+      // 2. Revalidação em background se conectado
+      try {
         const lista = await obrasService.listarEmpreendimentos();
         if (!ativo) return;
         setEmpreendimentos(lista);
@@ -616,13 +638,10 @@ export default function EmpresaScreen() {
       <View style={styles.topHeader}>
         <View style={styles.topHeaderLeft}>
           <ConstructoLogo size="sm" showWordmark={false} />
-          <View>
-            <View style={styles.roleRow}>
-              <Typography variant="label" color="primary">
-                ENGENHARIA DE CAMPO
-              </Typography>
-              <Badge label={usuario?.papel || 'GESTOR'} variant="primariaSuave" size="sm" />
-            </View>
+          <View style={styles.topHeaderTitleCol}>
+            <Typography variant="label" color="primary" numberOfLines={1}>
+              ENGENHARIA DE CAMPO
+            </Typography>
             <Typography variant="titleSmall" color="strong" numberOfLines={1}>
               {usuario?.nome || 'Eng. Carlos Andrade'}
             </Typography>
@@ -1910,8 +1929,14 @@ const styles = StyleSheet.create({
   topHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     flex: 1,
+    minWidth: 0,
+    marginRight: 8,
+  },
+  topHeaderTitleCol: {
+    flex: 1,
+    minWidth: 0,
   },
   roleRow: {
     flexDirection: 'row',

@@ -144,12 +144,15 @@ export async function apiRequest<T>(
   }
 
   let response: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2500);
 
   try {
     response = await fetch(urlCompleta, {
       ...init,
       headers,
       credentials: 'include',
+      signal: init.signal || controller.signal,
     });
   } catch (erro) {
     throw new ApiError(
@@ -158,6 +161,8 @@ export async function apiRequest<T>(
       'Network Error',
       erro
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   // Se o servidor enviou um novo Set-Cookie, salva imediatamente
