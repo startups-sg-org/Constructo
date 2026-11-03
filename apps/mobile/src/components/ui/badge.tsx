@@ -12,6 +12,10 @@ export interface BadgeProps {
     | 'primariaSuave'
     | 'sucesso'
     | 'erro'
+    | 'azul'
+    | 'roxo'
+    | 'laranja'
+    | 'esmeralda'
     | 'neutro';
   size?: 'sm' | 'md';
   dot?: boolean;
@@ -85,6 +89,38 @@ export function Badge({
           borderColor: '#EAB8B3',
         };
         break;
+      case 'azul':
+        base = {
+          ...base,
+          backgroundColor: ConstructoColors.azulSuave,
+          borderWidth: 1,
+          borderColor: '#BAE6FD',
+        };
+        break;
+      case 'roxo':
+        base = {
+          ...base,
+          backgroundColor: ConstructoColors.roxoSuave,
+          borderWidth: 1,
+          borderColor: '#DDD6FE',
+        };
+        break;
+      case 'laranja':
+        base = {
+          ...base,
+          backgroundColor: ConstructoColors.laranjaSuave,
+          borderWidth: 1,
+          borderColor: '#FED7AA',
+        };
+        break;
+      case 'esmeralda':
+        base = {
+          ...base,
+          backgroundColor: ConstructoColors.esmeraldaSuave,
+          borderWidth: 1,
+          borderColor: '#A7F3D0',
+        };
+        break;
       case 'neutro':
       default:
         base = {
@@ -112,6 +148,14 @@ export function Badge({
         return ConstructoColors.sucesso;
       case 'erro':
         return ConstructoColors.erro;
+      case 'azul':
+        return ConstructoColors.azulTecnico;
+      case 'roxo':
+        return ConstructoColors.roxoContrato;
+      case 'laranja':
+        return ConstructoColors.laranjaObra;
+      case 'esmeralda':
+        return ConstructoColors.esmeralda;
       case 'neutro':
       default:
         return ConstructoColors.textoForte;

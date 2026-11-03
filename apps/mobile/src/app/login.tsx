@@ -155,7 +155,7 @@ export default function LoginScreen() {
                 size="md"
                 subtitle="PLATAFORMA INTEGRADA DE OBRAS & TRANSPARÊNCIA"
               />
-              <Badge label="Versão 1.0.0 Oficial" variant="primariaSuave" size="sm" dot />
+              <Badge label="Versão 1.0.0 Oficial" variant="esmeralda" size="sm" dot />
             </View>
 
             <Typography variant="body" color="muted">
@@ -321,7 +321,7 @@ export default function LoginScreen() {
                         <Typography variant="bodyStrong" color="strong">
                           Eng. Rafael Nogueira
                         </Typography>
-                        <Badge label="ENGENHARIA" variant="primariaSuave" size="sm" />
+                        <Badge label="ENGENHARIA" variant="esmeralda" size="sm" />
                       </View>
                       <Typography variant="caption" color="muted">
                         CREA-SP 5062491-D • Auditoria de campo, diário de obra e cronograma
@@ -338,17 +338,17 @@ export default function LoginScreen() {
                     <View
                       style={[
                         styles.personaIconBox,
-                        { backgroundColor: ConstructoColors.destaqueSuave, borderColor: '#E5C178' },
+                        { backgroundColor: '#FFEDD5', borderColor: '#FED7AA' },
                       ]}
                     >
-                      <Icon name="home" size={18} color={ConstructoColors.destaque} />
+                      <Icon name="home" size={18} color="#EA580C" />
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
                       <View style={styles.personaTitleRow}>
                         <Typography variant="bodyStrong" color="strong">
                           Beatriz Lima
                         </Typography>
-                        <Badge label="COMPRADOR" variant="destaqueSuave" size="sm" />
+                        <Badge label="COMPRADOR" variant="laranja" size="sm" />
                       </View>
                       <Typography variant="caption" color="muted">
                         Unidade 202 (Torre A) • Diário fotográfico, evolução física e memorial
@@ -362,15 +362,20 @@ export default function LoginScreen() {
                     onPress={() => entrarComCredencialDiretorio('demo.admin@example.com')}
                     style={styles.personaCard}
                   >
-                    <View style={styles.personaIconBox}>
-                      <Icon name="shield-check" size={18} color={ConstructoColors.primaria} />
+                    <View
+                      style={[
+                        styles.personaIconBox,
+                        { backgroundColor: '#EDE9FE', borderColor: '#DDD6FE' },
+                      ]}
+                    >
+                      <Icon name="shield-check" size={18} color="#7C3AED" />
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
                       <View style={styles.personaTitleRow}>
                         <Typography variant="bodyStrong" color="strong">
                           Marina Albuquerque
                         </Typography>
-                        <Badge label="GOVERNANÇA" variant="neutro" size="sm" />
+                        <Badge label="GOVERNANÇA" variant="roxo" size="sm" />
                       </View>
                       <Typography variant="caption" color="muted">
                         Diretoria Executiva • Controle multi-empreendimentos e contratos

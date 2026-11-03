@@ -30,16 +30,16 @@ export function StampChancela({
   const isPendente = status === 'PENDENTE';
 
   const corTema = isAprovado
-    ? ConstructoColors.primaria
+    ? ConstructoColors.esmeralda
     : isPendente
-      ? ConstructoColors.destaque
+      ? ConstructoColors.alerta
       : ConstructoColors.erro;
 
   const corFundo = isAprovado
-    ? 'rgba(35, 101, 87, 0.06)'
+    ? 'rgba(5, 150, 105, 0.08)'
     : isPendente
-      ? 'rgba(185, 114, 0, 0.06)'
-      : 'rgba(180, 40, 40, 0.06)';
+      ? 'rgba(217, 119, 6, 0.08)'
+      : 'rgba(220, 38, 38, 0.08)';
 
   const rotuloStatus = isAprovado
     ? 'LAUDO HOMOLOGADO'
@@ -197,3 +197,4 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
 });
+

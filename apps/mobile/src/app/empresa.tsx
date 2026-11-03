@@ -525,7 +525,25 @@ export default function EmpresaScreen() {
         >
           <View style={styles.noHierarquiaHeader}>
             <View style={styles.noHierarquiaTituloRow}>
-              <View style={styles.iconeLocalBox}>
+              <View
+                style={[
+                  styles.iconeLocalBox,
+                  {
+                    backgroundColor:
+                      no.tipo === 'BLOCO' || no.tipo === 'TORRE'
+                        ? '#E0F2FE'
+                        : no.tipo === 'PAVIMENTO'
+                          ? '#EDE9FE'
+                          : '#D1FAE5',
+                    borderColor:
+                      no.tipo === 'BLOCO' || no.tipo === 'TORRE'
+                        ? '#0284C7'
+                        : no.tipo === 'PAVIMENTO'
+                          ? '#7C3AED'
+                          : '#059669',
+                  },
+                ]}
+              >
                 <Icon
                   name={
                     no.tipo === 'BLOCO' || no.tipo === 'TORRE'
@@ -535,7 +553,13 @@ export default function EmpresaScreen() {
                         : 'home'
                   }
                   size={16}
-                  color={ConstructoColors.primaria}
+                  color={
+                    no.tipo === 'BLOCO' || no.tipo === 'TORRE'
+                      ? '#0284C7'
+                      : no.tipo === 'PAVIMENTO'
+                        ? '#7C3AED'
+                        : '#059669'
+                  }
                 />
               </View>
               <View style={styles.flex1}>
@@ -657,21 +681,28 @@ export default function EmpresaScreen() {
       {/* Régua Técnica de Canteiro & Condições Operacionais */}
       <View style={styles.siteStatusTicker}>
         <View style={styles.siteTickerItem}>
-          <Icon name="sun" size={11} color={ConstructoColors.destaque} />
-          <Typography variant="mono" color="muted" style={styles.siteTickerText}>
-            CANTEIRO: 28°C • CLARO
+          <View style={[styles.tickerPill, { backgroundColor: '#FEF3C7' }]}>
+            <Icon name="sun" size={11} color="#D97706" />
+          </View>
+          <Typography variant="mono" color="strong" style={styles.siteTickerText}>
+            28°C • CÉU CLARO
           </Typography>
         </View>
         <View style={styles.siteTickerDot} />
         <View style={styles.siteTickerItem}>
-          <Icon name="shield-check" size={11} color={ConstructoColors.sucesso} />
-          <Typography variant="mono" color="muted" style={styles.siteTickerText}>
-            SLUMP CONFORME
+          <View style={[styles.tickerPill, { backgroundColor: '#D1FAE5' }]}>
+            <Icon name="shield-check" size={11} color="#059669" />
+          </View>
+          <Typography variant="mono" color="strong" style={styles.siteTickerText}>
+            SLUMP TEST OK
           </Typography>
         </View>
         <View style={styles.siteTickerDot} />
         <View style={styles.siteTickerItem}>
-          <Typography variant="mono" color="primary" style={styles.siteTickerText}>
+          <View style={[styles.tickerPill, { backgroundColor: '#E0F2FE' }]}>
+            <Icon name="contract" size={11} color="#0284C7" />
+          </View>
+          <Typography variant="mono" color="strong" style={styles.siteTickerText}>
             ART-2026 ATIVA
           </Typography>
         </View>
@@ -711,16 +742,18 @@ export default function EmpresaScreen() {
            ========================================================= */}
         {abaAtiva === 'canteiro' ? (
           <View style={styles.abaContainer}>
-            {/* Grid de 4 KPIs Executivos */}
+            {/* Grid de 4 KPIs Executivos com Acentos Cromáticos */}
             <View style={styles.kpiGrid}>
-              <Card style={styles.kpiCard}>
+              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#059669' }]}>
                 <View style={styles.kpiTopRow}>
                   <Typography variant="label" color="muted">
                     AVANÇO FÍSICO
                   </Typography>
-                  <Icon name="chart" size={15} color={ConstructoColors.primaria} />
+                  <View style={[styles.kpiIconBox, { backgroundColor: '#D1FAE5' }]}>
+                    <Icon name="chart" size={14} color="#059669" />
+                  </View>
                 </View>
-                <Typography variant="titleLarge" color="primary" tabular>
+                <Typography variant="titleLarge" tabular style={{ color: '#059669', fontWeight: '800' }}>
                   {kpis.avancoGlobal}%
                 </Typography>
                 <Typography variant="caption" color="muted">
@@ -728,14 +761,16 @@ export default function EmpresaScreen() {
                 </Typography>
               </Card>
 
-              <Card style={styles.kpiCard}>
+              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#0284C7' }]}>
                 <View style={styles.kpiTopRow}>
                   <Typography variant="label" color="muted">
                     MARCOS
                   </Typography>
-                  <Icon name="check-circle" size={15} color={ConstructoColors.primaria} />
+                  <View style={[styles.kpiIconBox, { backgroundColor: '#E0F2FE' }]}>
+                    <Icon name="check-circle" size={14} color="#0284C7" />
+                  </View>
                 </View>
-                <Typography variant="titleLarge" color="strong" tabular>
+                <Typography variant="titleLarge" tabular style={{ color: '#0284C7', fontWeight: '800' }}>
                   {kpis.marcosConcluidos}/{kpis.totalMarcos}
                 </Typography>
                 <Typography variant="caption" color="muted">
@@ -743,14 +778,16 @@ export default function EmpresaScreen() {
                 </Typography>
               </Card>
 
-              <Card style={styles.kpiCard}>
+              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#7C3AED' }]}>
                 <View style={styles.kpiTopRow}>
                   <Typography variant="label" color="muted">
                     APROVADAS
                   </Typography>
-                  <Icon name="shield-check" size={15} color={ConstructoColors.sucesso} />
+                  <View style={[styles.kpiIconBox, { backgroundColor: '#EDE9FE' }]}>
+                    <Icon name="shield-check" size={14} color="#7C3AED" />
+                  </View>
                 </View>
-                <Typography variant="titleLarge" color="success" tabular>
+                <Typography variant="titleLarge" tabular style={{ color: '#7C3AED', fontWeight: '800' }}>
                   {kpis.evidenciasValidas}
                 </Typography>
                 <Typography variant="caption" color="muted">
@@ -758,14 +795,16 @@ export default function EmpresaScreen() {
                 </Typography>
               </Card>
 
-              <Card style={styles.kpiCard}>
+              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#EA580C' }]}>
                 <View style={styles.kpiTopRow}>
                   <Typography variant="label" color="muted">
                     EM AUDITORIA
                   </Typography>
-                  <Icon name="clock" size={15} color={ConstructoColors.destaque} />
+                  <View style={[styles.kpiIconBox, { backgroundColor: '#FFEDD5' }]}>
+                    <Icon name="clock" size={14} color="#EA580C" />
+                  </View>
                 </View>
-                <Typography variant="titleLarge" color="accent" tabular>
+                <Typography variant="titleLarge" tabular style={{ color: '#EA580C', fontWeight: '800' }}>
                   {kpis.evidenciasPendentes}
                 </Typography>
                 <Typography variant="caption" color="muted">
@@ -827,6 +866,14 @@ export default function EmpresaScreen() {
                 ] as { id: FiltroStatusEvidencia; label: string }[]
               ).map((item) => {
                 const ativo = filtroValidacao === item.id;
+                const corChipAtivo =
+                  item.id === 'VALIDA'
+                    ? { bg: '#059669', border: '#059669' }
+                    : item.id === 'PENDENTE'
+                      ? { bg: '#EA580C', border: '#EA580C' }
+                      : item.id === 'INVALIDA'
+                        ? { bg: '#DC2626', border: '#DC2626' }
+                        : { bg: '#236557', border: '#236557' };
                 return (
                   <Pressable
                     key={item.id}
@@ -834,7 +881,10 @@ export default function EmpresaScreen() {
                       Haptics.selectionAsync();
                       setFiltroValidacao(item.id);
                     }}
-                    style={[styles.chipFiltro, ativo && styles.chipFiltroAtivo]}
+                    style={[
+                      styles.chipFiltro,
+                      ativo && { backgroundColor: corChipAtivo.bg, borderColor: corChipAtivo.border },
+                    ]}
                   >
                     <Typography
                       variant="caption"
@@ -1066,7 +1116,15 @@ export default function EmpresaScreen() {
                     <View
                       style={[
                         styles.barraPreenchimento,
-                        { width: `${Math.min(100, Math.max(0, percEtapa))}%` },
+                        {
+                          width: `${Math.min(100, Math.max(0, percEtapa))}%`,
+                          backgroundColor:
+                            percEtapa >= 100
+                              ? '#059669'
+                              : percEtapa > 40
+                                ? '#0284C7'
+                                : '#D97706',
+                        },
                       ]}
                     />
                   </View>
@@ -1102,10 +1160,10 @@ export default function EmpresaScreen() {
                               }
                               variant={
                                 marco.status === 'CONCLUIDO'
-                                  ? 'sucesso'
+                                  ? 'esmeralda'
                                   : marco.status === 'EM_ANDAMENTO'
-                                    ? 'destaqueSuave'
-                                    : 'neutro'
+                                    ? 'azul'
+                                    : 'laranja'
                               }
                               size="sm"
                               dot
@@ -1256,17 +1314,17 @@ export default function EmpresaScreen() {
                 <Animated.View key={ctr.id} entering={FadeInDown.delay(Math.min(ctrIndex, 6) * 45).duration(200)}>
                 <Card style={styles.contratoCard}>
                   <View style={styles.contratoTopRow}>
-                    <Typography variant="mono" color="primary">
+                    <Typography variant="mono" style={{ color: '#7C3AED', fontWeight: '800' }}>
                       {ctr.numero_contrato}
                     </Typography>
                     <Badge
                       label={ctr.status}
                       variant={
                         ctr.status === 'ATIVO'
-                          ? 'primariaSuave'
+                          ? 'esmeralda'
                           : ctr.status === 'CONCLUIDO'
-                            ? 'sucesso'
-                            : 'destaqueSuave'
+                            ? 'azul'
+                            : 'laranja'
                       }
                       size="sm"
                       dot
@@ -1970,6 +2028,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  kpiIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tickerPill: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   secaoHeader: {
     flexDirection: 'row',

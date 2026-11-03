@@ -32,13 +32,25 @@ export const ConstructoColors = {
   textoSuave: '#62706D',       // Texto secundário / rótulos (constructo-texto-suave)
   textoInvertido: '#FFFFFF',
 
-  // Semânticos de Engenharia
-  sucesso: '#147A55',
-  sucessoSuave: '#E8F7F0',
-  alerta: '#9A5B0A',
+  // Semânticos de Engenharia & Cores Vivas
+  sucesso: '#059669',          // Esmeralda vibrante
+  sucessoSuave: '#D1FAE5',
+  alerta: '#D97706',           // Âmbar dourado
   alertaSuave: '#FEF3C7',
-  erro: '#A0443B',
-  erroSuave: '#FCECEA',
+  erro: '#DC2626',             // Vermelho vivo
+  erroSuave: '#FEE2E2',
+
+  // Acentos Cromáticos Vivos para Gráficos, KPIs e Badges
+  azulTecnico: '#0284C7',      // Azul ciano técnico
+  azulSuave: '#E0F2FE',
+  laranjaObra: '#EA580C',      // Laranja solar de canteiro
+  laranjaSuave: '#FFEDD5',
+  roxoContrato: '#7C3AED',     // Roxo nobre / Jurídico / Contratos
+  roxoSuave: '#EDE9FE',
+  ouro: '#B45309',             // Ouro
+  ouroSuave: '#FEF3C7',
+  esmeralda: '#059669',
+  esmeraldaSuave: '#D1FAE5',
 } as const;
 
 export const ConstructoRadius = {

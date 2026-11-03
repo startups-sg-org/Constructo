@@ -104,7 +104,7 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
             <Typography variant="titleSmall" color="strong">
               Registro Técnico de Campo
             </Typography>
-            <Badge label="Fluxo de Vistoria" variant="primariaSuave" size="sm" dot />
+            <Badge label="Fluxo de Vistoria" variant="azul" size="sm" dot />
           </View>
           <Typography variant="caption" color="muted">
             {nomeObra

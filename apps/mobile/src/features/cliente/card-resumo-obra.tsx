@@ -19,6 +19,8 @@ export interface CardResumoObraProps {
   previsaoTermino?: string;
 }
 
+const CORES_ETAPAS = ['#D97706', '#059669', '#0284C7', '#7C3AED'];
+
 export function CardResumoObra({
   nomeObra,
   enderecoObra = 'Rua das Acácias, 450 — Araguaína/TO',
@@ -57,7 +59,7 @@ export function CardResumoObra({
             />
             <Badge
               label="Cronograma em Dia"
-              variant="sucesso"
+              variant="esmeralda"
               size="sm"
               dot
             />
@@ -119,35 +121,35 @@ export function CardResumoObra({
         </View>
       </View>
 
-      {/* Mini Grid das Macroetapas da Obra */}
+      {/* Mini Grid das Macroetapas da Obra com Cores Vivas */}
       {etapasResumo.length > 0 ? (
         <View style={styles.etapasMiniGrid}>
-          {etapasResumo.slice(0, 4).map((etapa) => (
-            <View key={etapa.etapa_id} style={styles.etapaMiniItem}>
-              <View style={styles.etapaMiniHeader}>
-                <Typography variant="caption" color="strong" numberOfLines={1} style={{ flex: 1 }}>
-                  {etapa.nome}
-                </Typography>
-                <Typography variant="mono" color="primary">
-                  {etapa.percentual}%
-                </Typography>
+          {etapasResumo.slice(0, 4).map((etapa, idx) => {
+            const corEtapa = CORES_ETAPAS[idx % CORES_ETAPAS.length];
+            return (
+              <View key={etapa.etapa_id} style={styles.etapaMiniItem}>
+                <View style={styles.etapaMiniHeader}>
+                  <Typography variant="caption" color="strong" numberOfLines={1} style={{ flex: 1 }}>
+                    {etapa.nome}
+                  </Typography>
+                  <Typography variant="mono" style={{ color: corEtapa, fontWeight: '700' }}>
+                    {etapa.percentual}%
+                  </Typography>
+                </View>
+                <View style={styles.etapaMiniTrack}>
+                  <View
+                    style={[
+                      styles.etapaMiniFill,
+                      {
+                        width: `${Math.min(100, etapa.percentual)}%`,
+                        backgroundColor: corEtapa,
+                      },
+                    ]}
+                  />
+                </View>
               </View>
-              <View style={styles.etapaMiniTrack}>
-                <View
-                  style={[
-                    styles.etapaMiniFill,
-                    {
-                      width: `${Math.min(100, etapa.percentual)}%`,
-                      backgroundColor:
-                        etapa.percentual >= 100
-                          ? ConstructoColors.sucesso
-                          : ConstructoColors.primaria,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       ) : null}
 
@@ -215,9 +217,9 @@ const styles = StyleSheet.create({
   },
   percentualContainer: {
     alignItems: 'flex-end',
-    backgroundColor: ConstructoColors.superficieSutil,
+    backgroundColor: '#ECFDF5',
     borderWidth: 1,
-    borderColor: ConstructoColors.borda,
+    borderColor: '#A7F3D0',
     borderRadius: ConstructoRadius.field,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
   numeroPercentual: {
     fontSize: 30,
     fontWeight: '800',
-    color: ConstructoColors.primaria,
+    color: '#059669',
   },
   trilhaBarra: {
     height: 10,
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
   },
   preenchimentoBarra: {
     height: '100%',
-    backgroundColor: ConstructoColors.primaria,
+    backgroundColor: '#059669',
     borderRadius: 5,
   },
   reguaTicks: {

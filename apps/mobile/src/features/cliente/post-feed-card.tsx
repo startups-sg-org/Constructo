@@ -80,7 +80,7 @@ export function PostFeedCard({
           </Typography>
         </View>
 
-        <Badge label={post.etapa.nome} variant="primariaSuave" size="sm" />
+        <Badge label={post.etapa.nome} variant="azul" size="sm" />
       </View>
 
       {/* Linha de Contexto Físico (Local + Marco) */}
@@ -124,14 +124,14 @@ export function PostFeedCard({
           {post.statusValidacao === 'VALIDA' ? (
             <Badge
               label="Vistoria Homologada"
-              variant="sucesso"
+              variant="esmeralda"
               size="sm"
               iconName="check-circle"
             />
           ) : (
             <Badge
               label="Em auditoria técnica"
-              variant="destaqueSuave"
+              variant="laranja"
               size="sm"
               iconName="clock"
             />
@@ -341,16 +341,16 @@ const styles = StyleSheet.create({
   },
   preenchimentoBarra: {
     height: '100%',
-    backgroundColor: ConstructoColors.primaria,
+    backgroundColor: '#059669',
     borderRadius: 4,
   },
   corpoTexto: {
     gap: 4,
   },
   proximoPassoBox: {
-    backgroundColor: ConstructoColors.superficieSutil,
+    backgroundColor: '#F0F9FF',
     borderWidth: 1,
-    borderColor: ConstructoColors.borda,
+    borderColor: '#BAE6FD',
     borderRadius: ConstructoRadius.field,
     padding: 12,
     gap: 4,

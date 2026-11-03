@@ -10,9 +10,9 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import {
@@ -46,11 +46,17 @@ export function BottomSheet({
 
   useEffect(() => {
     if (visible) {
-      backdropOpacity.value = withTiming(0.45, { duration: 220 });
-      translateY.value = withSpring(0, { damping: 19, stiffness: 240 });
+      backdropOpacity.value = withTiming(0.45, { duration: 200 });
+      translateY.value = withTiming(0, {
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+      });
     } else {
-      backdropOpacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(600, { duration: 180 });
+      backdropOpacity.value = withTiming(0, { duration: 160 });
+      translateY.value = withTiming(600, {
+        duration: 180,
+        easing: Easing.in(Easing.cubic),
+      });
     }
   }, [visible, backdropOpacity, translateY]);
 
