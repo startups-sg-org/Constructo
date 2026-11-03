@@ -16,6 +16,7 @@ import {
   Card,
   ConstructoLogo,
   Icon,
+  StampChancela,
   Typography,
 } from '../components/ui';
 import { ConstructoColors, ConstructoRadius } from '../constants/theme';
@@ -380,30 +381,20 @@ export default function ClienteScreen() {
               </View>
             </Card>
 
-            {/* Responsável Técnico da Obra */}
-            <Card style={styles.engCard}>
+            {/* Responsabilidade Técnica & Chancela do Empreendimento */}
+            <View style={{ gap: 8 }}>
               <Typography variant="label" color="muted">
-                RESPONSABILIDADE TÉCNICA DA OBRA
+                RESPONSABILIDADE TÉCNICA & CERTIDÃO DA OBRA
               </Typography>
-              <View style={styles.engRow}>
-                <View style={styles.engAvatar}>
-                  <Typography variant="bodyStrong" color="primary">
-                    RN
-                  </Typography>
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Typography variant="bodyStrong" color="strong">
-                    Eng. Rafael Nogueira
-                  </Typography>
-                  <Typography variant="caption" color="muted">
-                    Engenheiro Civil Residente • CREA-TO 506.912/D
-                  </Typography>
-                  <Typography variant="caption" color="primary">
-                    ART de Execução nº 20260948120 • Canteiro Parque das Águas
-                  </Typography>
-                </View>
-              </View>
-            </Card>
+              <StampChancela
+                status="HOMOLOGADO"
+                codigoArt="ART-2026/0948120"
+                responsavelTecnico="Eng. Rafael Nogueira"
+                registroCrea="CREA-TO 506.912/D"
+                dataHora="03/NOV/2026 • REG. IMÓVEIS R-3/114.892"
+                coordenadasGps="-23.5874, -46.6812 (WGS84)"
+              />
+            </View>
 
             {/* Preferências de Notificação de Avanço */}
             <Card style={styles.notifCard}>
@@ -440,7 +431,7 @@ export default function ClienteScreen() {
                     Relatório Quinzenal por E-mail
                   </Typography>
                   <Typography variant="caption" color="muted">
-                    Enviado para {usuario?.email || 'demo.comprador2@example.com'}
+                    Enviado para {usuario?.email || 'comprador@constructo.com.br'}
                   </Typography>
                 </View>
                 <Switch

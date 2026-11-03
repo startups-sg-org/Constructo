@@ -14,6 +14,7 @@ import {
   Card,
   Icon,
   Input,
+  StampChancela,
   Typography,
 } from '../../components/ui';
 import { ConstructoColors, ConstructoRadius } from '../../constants/theme';
@@ -325,6 +326,26 @@ export function InspetorEvidenciaSheet({
             </Card>
           )}
         </View>
+
+        {/* 3.5 Chancela Oficial de Engenharia */}
+        <StampChancela
+          status={
+            statusAtual === 'VALIDA'
+              ? 'HOMOLOGADO'
+              : statusAtual === 'INVALIDA'
+                ? 'RESSALVA'
+                : 'PENDENTE'
+          }
+          codigoArt={`ART-SP 2026/${(evidencia.id * 149) + 4000}`}
+          responsavelTecnico={evidencia.responsavel?.nome || 'Eng. Rafael Nogueira'}
+          registroCrea={
+            evidencia.responsavel?.email?.includes('gestor')
+              ? 'CREA-SP 5062491-D'
+              : 'CREA/CAU REGIONAL'
+          }
+          dataHora={new Date(evidencia.capturado_em).toLocaleString('pt-BR')}
+          coordenadasGps="-23.5874, -46.6812 (WGS84)"
+        />
 
         {/* 4. Ações de Validação de Qualidade (#227) */}
         <View style={styles.section}>

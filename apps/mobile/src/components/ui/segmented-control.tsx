@@ -7,11 +7,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import {
   ConstructoColors,
@@ -34,8 +29,6 @@ export interface SegmentedControlProps<T extends string> {
   style?: StyleProp<ViewStyle>;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export function SegmentedControl<T extends string>({
   options,
   value,
@@ -53,7 +46,7 @@ export function SegmentedControl<T extends string>({
             active={active}
             onPress={() => {
               if (!active) {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Haptics.selectionAsync();
                 onChange(opt.value);
               }
             }}
@@ -73,25 +66,13 @@ function SegmentItem<T extends string>({
   active: boolean;
   onPress: () => void;
 }) {
-  const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <AnimatedPressable
-      onPressIn={() => {
-        scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-      }}
+    <Pressable
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         styles.segmentButton,
         active ? styles.segmentButtonActive : null,
-        animStyle,
+        pressed && !active ? styles.segmentButtonPressed : null,
       ]}
     >
       {option.iconName ? (
@@ -122,12 +103,13 @@ function SegmentItem<T extends string>({
           </Text>
         </View>
       ) : null}
-    </AnimatedPressable>
+    </Pressable>
   );
 }
 
 /**
- * Barra de Navegação Inferior Corporativa (Bottom Tab Bar) com física tátil.
+ * Barra de Navegação Inferior Corporativa (Bottom Tab Bar).
+ * Estável, estática, sem saltos/pulos, com feedback tátil de alta fidelidade.
  */
 export function BottomTabBar<T extends string>({
   tabs,
@@ -169,21 +151,15 @@ function BottomTabButton<T extends string>({
   active: boolean;
   onPress: () => void;
 }) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <AnimatedPressable
-      onPressIn={() => {
-        scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-      }}
+    <Pressable
       onPress={onPress}
-      style={[styles.tabButton, animStyle]}
+      style={({ pressed }) => [
+        styles.tabButton,
+        pressed ? styles.tabButtonPressed : null,
+      ]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
     >
       <View style={[styles.tabIconPill, active ? styles.tabIconPillActive : null]}>
         {tab.iconName ? (
@@ -208,7 +184,7 @@ function BottomTabButton<T extends string>({
       >
         {tab.label}
       </Text>
-    </AnimatedPressable>
+    </Pressable>
   );
 }
 
@@ -231,6 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     gap: 6,
+  },
+  segmentButtonPressed: {
+    opacity: 0.7,
   },
   segmentButtonActive: {
     backgroundColor: ConstructoColors.superficie,
@@ -281,6 +260,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
+  tabButtonPressed: {
+    opacity: 0.75,
+  },
   tabIconPill: {
     paddingHorizontal: 16,
     paddingVertical: 5,
@@ -323,4 +305,3 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
 });
-

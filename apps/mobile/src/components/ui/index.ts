@@ -9,3 +9,4 @@ export * from './slider-tatil';
 export * from './skeleton-loader';
 export * from './bottom-sheet';
 export * from './segmented-control';
+export * from './stamp-chancela';

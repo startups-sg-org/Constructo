@@ -11,7 +11,7 @@ export interface CameraSelectorProps {
   nomeObra?: string;
 }
 
-const FOTOS_CAMPO_DEMO = [
+const AMOSTRAS_VISTORIA_TECNICA = [
   '/uploads/empreendimentos/1/evidencias/parque-das-aguas-06.jpeg',
   '/uploads/empreendimentos/1/evidencias/parque-das-aguas-07.jpeg',
   '/uploads/empreendimentos/1/evidencias/parque-das-aguas-08.jpeg',
@@ -20,8 +20,8 @@ const FOTOS_CAMPO_DEMO = [
 ];
 
 export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProps) {
-  const acionarFotoDemo = () => {
-    const aleatoria = FOTOS_CAMPO_DEMO[Math.floor(Math.random() * FOTOS_CAMPO_DEMO.length)];
+  const carregarDoAcervoTecnico = () => {
+    const aleatoria = AMOSTRAS_VISTORIA_TECNICA[Math.floor(Math.random() * AMOSTRAS_VISTORIA_TECNICA.length)];
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onFotoCapturada(resolverUrlMidia(aleatoria));
   };
@@ -47,7 +47,7 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
       if (status !== 'granted') {
         Alert.alert(
           'Permissão de Câmera',
-          'Ative o acesso à câmera nas configurações ou utilize uma foto da galeria.'
+          'Ative o acesso à câmera nas configurações ou utilize o acervo técnico.'
         );
         return;
       }
@@ -64,7 +64,7 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
         onFotoCapturada(resultado.assets[0].uri);
       }
     } catch {
-      acionarFotoDemo();
+      carregarDoAcervoTecnico();
     }
   };
 
@@ -89,7 +89,7 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
         onFotoCapturada(resultado.assets[0].uri);
       }
     } catch {
-      acionarFotoDemo();
+      carregarDoAcervoTecnico();
     }
   };
 
@@ -104,19 +104,19 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
             <Typography variant="titleSmall" color="strong">
               Registro Técnico de Campo
             </Typography>
-            <Badge label="Fluxo 3-Cliques" variant="primariaSuave" size="sm" dot />
+            <Badge label="Fluxo de Vistoria" variant="primariaSuave" size="sm" dot />
           </View>
           <Typography variant="caption" color="muted">
             {nomeObra
-              ? `Capture e vincule evidências diretamente em ${nomeObra}`
-              : 'Capture a evidência e publique o avanço para auditoria e clientes'}
+              ? `Capture e vincule evidências com geolocalização em ${nomeObra}`
+              : 'Capture a evidência física e homologue o avanço para auditoria e compradores'}
           </Typography>
         </View>
       </View>
 
       <View style={styles.botoesLinha}>
         <Button
-          label="Capturar Câmera"
+          label="Fotografar Obra"
           iconName="camera"
           variant="primary"
           size="lg"
@@ -133,16 +133,19 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
         />
       </View>
 
-      <View style={styles.quickSimRow}>
-        <Typography variant="caption" color="muted" style={{ flex: 1 }}>
-          Sem câmera física no emulador?
-        </Typography>
+      <View style={styles.acervoRow}>
+        <View style={styles.acervoInfo}>
+          <Icon name="archive" size={13} color={ConstructoColors.textoSuave} />
+          <Typography variant="caption" color="muted">
+            Acervo Técnico Local
+          </Typography>
+        </View>
         <Button
-          label="Simular Captura de Canteiro"
+          label="Carregar Amostra da Obra"
           iconName="bolt"
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onPress={acionarFotoDemo}
+          onPress={carregarDoAcervoTecnico}
         />
       </View>
     </Card>
@@ -164,35 +167,38 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: ConstructoRadius.field,
     backgroundColor: ConstructoColors.primariaSuave,
-    borderWidth: 1,
-    borderColor: ConstructoColors.bordaFoco,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: ConstructoColors.bordaFoco,
   },
   titleLine: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    flexWrap: 'wrap',
   },
   botoesLinha: {
     flexDirection: 'row',
     gap: 10,
   },
   btnAcao: {
-    flex: 1.6,
+    flex: 1.4,
   },
   btnGaleria: {
     flex: 1,
   },
-  quickSimRow: {
+  acervoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 10,
+    paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: ConstructoColors.borda,
-    gap: 8,
+    borderTopColor: ConstructoColors.bordaSutil,
+  },
+  acervoInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

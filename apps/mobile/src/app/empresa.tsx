@@ -511,7 +511,7 @@ export default function EmpresaScreen() {
     return (
       <Animated.View
         key={no.id}
-        entering={FadeInDown.delay(Math.min(nivel, 4) * 45).springify().damping(16)}
+        entering={FadeInDown.delay(Math.min(nivel, 4) * 35).duration(200)}
         style={[
           styles.noHierarquiaContainer,
           nivel > 0 && { marginLeft: nivel * 16 },
@@ -652,6 +652,29 @@ export default function EmpresaScreen() {
             <Icon name="chevron-down" size={14} color={ConstructoColors.primaria} />
           </View>
         </Pressable>
+      </View>
+
+      {/* Régua Técnica de Canteiro & Condições Operacionais */}
+      <View style={styles.siteStatusTicker}>
+        <View style={styles.siteTickerItem}>
+          <Icon name="sun" size={11} color={ConstructoColors.destaque} />
+          <Typography variant="mono" color="muted" style={styles.siteTickerText}>
+            CANTEIRO: 28°C • CLARO
+          </Typography>
+        </View>
+        <View style={styles.siteTickerDot} />
+        <View style={styles.siteTickerItem}>
+          <Icon name="shield-check" size={11} color={ConstructoColors.sucesso} />
+          <Typography variant="mono" color="muted" style={styles.siteTickerText}>
+            SLUMP CONFORME
+          </Typography>
+        </View>
+        <View style={styles.siteTickerDot} />
+        <View style={styles.siteTickerItem}>
+          <Typography variant="mono" color="primary" style={styles.siteTickerText}>
+            ART-2026 ATIVA
+          </Typography>
+        </View>
       </View>
 
       {/* Toast Flutuante */}
@@ -891,8 +914,7 @@ export default function EmpresaScreen() {
                     <Animated.View
                       key={item.id}
                       entering={FadeInDown.delay(Math.min(index, 8) * 45)
-                        .springify()
-                        .damping(16)}
+                        .duration(200)}
                     >
                       <Card
                         style={styles.cardEvidenciaItem}
@@ -1010,7 +1032,7 @@ export default function EmpresaScreen() {
               );
 
               return (
-                <Animated.View key={etapa.id} entering={FadeInDown.delay(Math.min(etapaIndex, 6) * 45).springify().damping(16)}>
+                <Animated.View key={etapa.id} entering={FadeInDown.delay(Math.min(etapaIndex, 6) * 45).duration(200)}>
                 <Card style={styles.etapaCard}>
                   <View style={styles.etapaHeader}>
                     <View style={styles.flex1}>
@@ -1231,7 +1253,7 @@ export default function EmpresaScreen() {
               );
 
               return (
-                <Animated.View key={ctr.id} entering={FadeInDown.delay(Math.min(ctrIndex, 6) * 45).springify().damping(16)}>
+                <Animated.View key={ctr.id} entering={FadeInDown.delay(Math.min(ctrIndex, 6) * 45).duration(200)}>
                 <Card style={styles.contratoCard}>
                   <View style={styles.contratoTopRow}>
                     <Typography variant="mono" color="primary">
@@ -1886,6 +1908,31 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: ConstructoRadius.full,
     backgroundColor: ConstructoColors.primariaSuave,
+  },
+  siteStatusTicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: ConstructoColors.superficie,
+    borderBottomWidth: 1,
+    borderBottomColor: ConstructoColors.borda,
+  },
+  siteTickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  siteTickerText: {
+    fontSize: 9.5,
+    letterSpacing: 0.3,
+  },
+  siteTickerDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: ConstructoColors.borda,
   },
   toastBanner: {
     flexDirection: 'row',

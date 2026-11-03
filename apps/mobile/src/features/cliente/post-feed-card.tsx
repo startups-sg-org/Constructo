@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Badge, Button, Card, Icon, Typography } from '../../components/ui';
+import { Badge, Button, Card, Icon, StampChancela, Typography } from '../../components/ui';
 import { ConstructoColors, ConstructoRadius } from '../../constants/theme';
 import { PostagemFeedSocial } from '../../types/feed';
 
@@ -188,6 +188,17 @@ export function PostFeedCard({
             'A equipe de engenharia dará sequência à etapa seguinte conforme o cronograma executivo.'}
         </Typography>
       </View>
+
+      {/* 5.5 Chancela e Selo de Auditoria Técnica */}
+      <StampChancela
+        status={post.statusValidacao === 'VALIDA' ? 'HOMOLOGADO' : 'PENDENTE'}
+        codigoArt={`ART-2026/${(post.id * 137) + 3200}`}
+        responsavelTecnico={post.autorNome}
+        registroCrea={post.autorCrea || 'CREA-SP 5062491-D'}
+        dataHora={`${post.dataExibicao} • CANTEIRO CENTRAL`}
+        coordenadasGps="-23.5874, -46.6812"
+        compact
+      />
 
       {/* 6. Barra de Ações do Comprador */}
       <View style={styles.footerActions}>

@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
  */
 export const ConstructoColors = {
   // Fundos e Superfícies (Alinhados ao @theme)
+  fundo: '#F5F7F6',            // Alias de conveniência para fundoPainel
   fundoPainel: '#F5F7F6',      // Off-white mineral (constructo-fundo-painel)
   superficie: '#FFFFFF',       // Branco puro elevado (constructo-superficie)
   superficieSutil: '#F8FAF9',  // Superfície secundária (constructo-superficie-sutil)
@@ -21,6 +22,7 @@ export const ConstructoColors = {
 
   // Bordas Nítidas (1px sólido)
   borda: '#DFE5E3',            // Borda padrão (constructo-borda)
+  bordaSutil: '#EDF1F0',       // Borda sutil de divisão interna
   bordaFoco: '#B9CDC7',        // Borda de foco (constructo-borda-forte)
 
   // Tipografia de Alto Contraste

@@ -42,7 +42,9 @@ export type IconName =
   | 'home'
   | 'check'
   | 'info'
-  | 'bolt';
+  | 'bolt'
+  | 'sun'
+  | 'archive';
 
 interface SymbolMapping {
   ios: string;
@@ -90,6 +92,8 @@ const ICON_MAP: Record<IconName, SymbolMapping> = {
   check: { ios: 'checkmark', android: 'check', glyph: '✓' },
   info: { ios: 'info.circle.fill', android: 'info', glyph: 'i' },
   bolt: { ios: 'bolt.fill', android: 'bolt', glyph: '◆' },
+  sun: { ios: 'sun.max.fill', android: 'wb_sunny', glyph: '☼' },
+  archive: { ios: 'archivebox.fill', android: 'inventory_2', glyph: '▤' },
 };
 
 export interface IconProps {

@@ -181,7 +181,7 @@ export function FeedLista({
         }
         renderItem={({ item, index }) => (
           <Animated.View
-            entering={FadeInDown.delay(index * 45).springify().damping(16)}
+            entering={FadeInDown.delay(Math.min(index, 6) * 35).duration(200)}
           >
             <PostFeedCard
               post={item}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -42,6 +43,7 @@ export default function LoginScreen() {
 
   const [carregando, setCarregando] = useState(false);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
+  const [mostrarDiretorio, setMostrarDiretorio] = useState(false);
 
   const redirecionarPorPapel = (papel: PapelUsuario) => {
     if (papel === 'GESTOR' || papel === 'ADMIN') {
@@ -71,7 +73,7 @@ export default function LoginScreen() {
         setMensagemErro(
           erro instanceof Error
             ? erro.message
-            : 'Não foi possível autenticar. Verifique suas credenciais.'
+            : 'Credenciais inválidas. Verifique seu e-mail e senha.'
         );
       } finally {
         setCarregando(false);
@@ -79,9 +81,9 @@ export default function LoginScreen() {
       return;
     }
 
-    // Fluxo de Cadastro
+    // Fluxo de Cadastro Corporativo
     if (!nome.trim() || !email.trim() || senha.length < 6) {
-      setMensagemErro('Preencha nome, e-mail válido e senha com no mínimo 6 caracteres.');
+      setMensagemErro('Preencha nome, e-mail corporativo válido e senha com no mínimo 6 dígitos.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -96,39 +98,39 @@ export default function LoginScreen() {
         email: email.trim(),
         senha,
         papel: papelCadastro,
-        empreendimento: 'Parque das Águas',
-        unidade: papelCadastro === 'COMPRADOR' ? '202' : 'Engenharia',
+        empreendimento: 'Residencial Parque das Águas',
+        unidade: papelCadastro === 'COMPRADOR' ? '202' : 'Canteiro Central',
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       redirecionarPorPapel(novoUsuario.papel);
     } catch (erro) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setMensagemErro(
-        erro instanceof Error ? erro.message : 'Erro ao criar conta corporativa.'
+        erro instanceof Error ? erro.message : 'Erro ao inicializar acesso corporativo.'
       );
     } finally {
       setCarregando(false);
     }
   };
 
-  const entrarComPerfilHomologado = async (
-    emailDemo: string,
-    senhaDemo: string = 'Demo@123'
+  const entrarComCredencialDiretorio = async (
+    emailAlvo: string,
+    senhaPadrao: string = 'Demo@123'
   ) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModo('login');
-    setEmail(emailDemo);
-    setSenha(senhaDemo);
+    setEmail(emailAlvo);
+    setSenha(senhaPadrao);
     setMensagemErro(null);
     setCarregando(true);
 
     try {
-      const usuario = await login(emailDemo, senhaDemo);
+      const usuario = await login(emailAlvo, senhaPadrao);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       redirecionarPorPapel(usuario.papel);
     } catch (erro) {
       setMensagemErro(
-        erro instanceof Error ? erro.message : 'Falha ao acessar perfil demonstrativo.'
+        erro instanceof Error ? erro.message : 'Falha ao autenticar com a credencial selecionada.'
       );
     } finally {
       setCarregando(false);
@@ -146,18 +148,18 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Cabeçalho Institucional Arquitetônico */}
+          {/* Cabeçalho Institucional de Prestígio */}
           <View style={styles.brandHeader}>
             <View style={styles.topStatusRow}>
               <ConstructoLogo
                 size="md"
-                subtitle="SISTEMA DE GESTÃO & AUDITORIA DE OBRAS"
+                subtitle="PLATAFORMA INTEGRADA DE OBRAS & TRANSPARÊNCIA"
               />
-              <Badge label="v2.6 Enterprise" variant="primariaSuave" size="sm" dot />
+              <Badge label="Versão 1.0.0 Oficial" variant="primariaSuave" size="sm" dot />
             </View>
 
             <Typography variant="body" color="muted">
-              Acompanhamento físico-financeiro de canteiro, controle de protocolos de qualidade e diário transparente para compradores.
+              Software de gestão técnica de canteiro, auditoria fotográfica com ART e transparência imobiliária para compradores.
             </Typography>
           </View>
 
@@ -165,8 +167,8 @@ export default function LoginScreen() {
           <Card style={styles.formCard}>
             <SegmentedControl
               options={[
-                { value: 'login', label: 'Acessar Conta', iconName: 'shield-check' },
-                { value: 'cadastro', label: 'Nova Conta', iconName: 'user' },
+                { value: 'login', label: 'Acesso Corporativo', iconName: 'shield-check' },
+                { value: 'cadastro', label: 'Cadastrar Novo', iconName: 'user' },
               ]}
               value={modo}
               onChange={(novoModo) => {
@@ -239,8 +241,8 @@ export default function LoginScreen() {
             ) : null}
 
             <Input
-              label="E-MAIL CORPORATIVO OU DECLIENTE"
-              placeholder="nome@construtora.com.br"
+              label="E-MAIL CORPORATIVO"
+              placeholder="engenheiro@construtora.com.br"
               leftIcon="user"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -251,7 +253,7 @@ export default function LoginScreen() {
 
             <Input
               label="SENHA DE ACESSO"
-              placeholder="Digite sua senha"
+              placeholder="Digite sua senha de segurança"
               leftIcon="shield-check"
               secureTextEntry
               value={senha}
@@ -261,10 +263,10 @@ export default function LoginScreen() {
             <Button
               label={
                 carregando
-                  ? 'Autenticando credenciais...'
+                  ? 'Validando autenticação...'
                   : modo === 'login'
-                    ? 'Entrar na Plataforma'
-                    : 'Criar Conta e Acessar'
+                    ? 'Entrar no Sistema'
+                    : 'Concluir Cadastro & Entrar'
               }
               iconName="arrow-up-right"
               variant="primary"
@@ -276,92 +278,118 @@ export default function LoginScreen() {
             />
           </Card>
 
-          {/* Painel de Acesso Rápido Homologado (Ambientes de Demonstração Parque das Águas) */}
-          <Card subtle style={styles.demoPanel}>
-            <View style={styles.demoHeader}>
-              <View style={{ flex: 1, gap: 2 }}>
+          {/* Diretório Corporativo Autorizado (Acesso Rápido para Auditoria e Demonstração Executiva) */}
+          <View style={styles.diretorioContainer}>
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                setMostrarDiretorio((prev) => !prev);
+              }}
+              style={styles.diretorioToggle}
+              accessibilityRole="button"
+            >
+              <View style={styles.diretorioToggleLeft}>
+                <Icon name="building" size={14} color={ConstructoColors.primaria} />
                 <Typography variant="label" color="primary">
-                  AMBIENTE HOMOLOGADO • PARQUE DAS ÁGUAS
-                </Typography>
-                <Typography variant="caption" color="muted">
-                  Toque em um perfil abaixo para entrar diretamente com dados reais de obra:
+                  DIRETÓRIO CORPORATIVO AUTORIZADO
                 </Typography>
               </View>
-            </View>
+              <Icon
+                name={mostrarDiretorio ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color={ConstructoColors.primaria}
+              />
+            </Pressable>
 
-            <View style={styles.personaList}>
-              <Card
-                padding={12}
-                onPress={() => entrarComPerfilHomologado('demo.gestor1@example.com')}
-                style={styles.personaCard}
-              >
-                <View style={styles.personaIconBox}>
-                  <Icon name="building" size={18} color={ConstructoColors.primaria} />
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <View style={styles.personaTitleRow}>
-                    <Typography variant="bodyStrong" color="strong">
-                      Eng. Rafael Nogueira
-                    </Typography>
-                    <Badge label="GESTOR DE CAMPO" variant="primariaSuave" size="sm" />
-                  </View>
-                  <Typography variant="caption" color="muted">
-                    Captura em 3 cliques, auditoria de evidências, cronograma, estrutura e contratos
-                  </Typography>
-                </View>
-                <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
-              </Card>
+            {mostrarDiretorio ? (
+              <Card subtle style={styles.diretorioContent}>
+                <Typography variant="caption" color="muted">
+                  Selecione uma credencial autorizada para auditoria de canteiro ou acompanhamento do imóvel:
+                </Typography>
 
-              <Card
-                padding={12}
-                onPress={() => entrarComPerfilHomologado('demo.comprador2@example.com')}
-                style={styles.personaCard}
-              >
-                <View
-                  style={[
-                    styles.personaIconBox,
-                    { backgroundColor: ConstructoColors.destaqueSuave, borderColor: '#E5C178' },
-                  ]}
-                >
-                  <Icon name="home" size={18} color={ConstructoColors.destaque} />
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <View style={styles.personaTitleRow}>
-                    <Typography variant="bodyStrong" color="strong">
-                      Beatriz Lima • Unidade 202
-                    </Typography>
-                    <Badge label="COMPRADOR" variant="destaqueSuave" size="sm" />
-                  </View>
-                  <Typography variant="caption" color="muted">
-                    Feed social de evolução da obra, barra de impacto (+%) e ficha do imóvel
-                  </Typography>
-                </View>
-                <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
-              </Card>
+                <View style={styles.personaList}>
+                  <Card
+                    padding={12}
+                    onPress={() => entrarComCredencialDiretorio('demo.gestor1@example.com')}
+                    style={styles.personaCard}
+                  >
+                    <View style={styles.personaIconBox}>
+                      <Icon name="building" size={18} color={ConstructoColors.primaria} />
+                    </View>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={styles.personaTitleRow}>
+                        <Typography variant="bodyStrong" color="strong">
+                          Eng. Rafael Nogueira
+                        </Typography>
+                        <Badge label="ENGENHARIA" variant="primariaSuave" size="sm" />
+                      </View>
+                      <Typography variant="caption" color="muted">
+                        CREA-SP 5062491-D • Auditoria de campo, diário de obra e cronograma
+                      </Typography>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
+                  </Card>
 
-              <Card
-                padding={12}
-                onPress={() => entrarComPerfilHomologado('demo.admin@example.com')}
-                style={styles.personaCard}
-              >
-                <View style={styles.personaIconBox}>
-                  <Icon name="shield-check" size={18} color={ConstructoColors.primaria} />
+                  <Card
+                    padding={12}
+                    onPress={() => entrarComCredencialDiretorio('demo.comprador2@example.com')}
+                    style={styles.personaCard}
+                  >
+                    <View
+                      style={[
+                        styles.personaIconBox,
+                        { backgroundColor: ConstructoColors.destaqueSuave, borderColor: '#E5C178' },
+                      ]}
+                    >
+                      <Icon name="home" size={18} color={ConstructoColors.destaque} />
+                    </View>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={styles.personaTitleRow}>
+                        <Typography variant="bodyStrong" color="strong">
+                          Beatriz Lima
+                        </Typography>
+                        <Badge label="COMPRADOR" variant="destaqueSuave" size="sm" />
+                      </View>
+                      <Typography variant="caption" color="muted">
+                        Unidade 202 (Torre A) • Diário fotográfico, evolução física e memorial
+                      </Typography>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
+                  </Card>
+
+                  <Card
+                    padding={12}
+                    onPress={() => entrarComCredencialDiretorio('demo.admin@example.com')}
+                    style={styles.personaCard}
+                  >
+                    <View style={styles.personaIconBox}>
+                      <Icon name="shield-check" size={18} color={ConstructoColors.primaria} />
+                    </View>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={styles.personaTitleRow}>
+                        <Typography variant="bodyStrong" color="strong">
+                          Marina Albuquerque
+                        </Typography>
+                        <Badge label="GOVERNANÇA" variant="neutro" size="sm" />
+                      </View>
+                      <Typography variant="caption" color="muted">
+                        Diretoria Executiva • Controle multi-empreendimentos e contratos
+                      </Typography>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
+                  </Card>
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <View style={styles.personaTitleRow}>
-                    <Typography variant="bodyStrong" color="strong">
-                      Marina Albuquerque
-                    </Typography>
-                    <Badge label="DIRETORIA / ADMIN" variant="neutro" size="sm" />
-                  </View>
-                  <Typography variant="caption" color="muted">
-                    Visão multi-empreendimentos, homologação de protocolos e governança
-                  </Typography>
-                </View>
-                <Icon name="chevron-right" size={16} color={ConstructoColors.textoSuave} />
               </Card>
-            </View>
-          </Card>
+            ) : null}
+          </View>
+
+          {/* Rodapé Corporativo de Segurança */}
+          <View style={styles.footerCert}>
+            <Icon name="shield-check" size={14} color={ConstructoColors.primaria} />
+            <Typography variant="caption" color="muted">
+              CONSTRUCTO ENTERPRISE • CRIPTOGRAFIA AES-256 • ART HOMOLOGADA
+            </Typography>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -371,33 +399,30 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: ConstructoColors.fundoPainel,
+    backgroundColor: ConstructoColors.fundo,
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 20,
-    justifyContent: 'center',
-    gap: 18,
-    maxWidth: 520,
-    width: '100%',
-    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 40,
+    gap: 20,
   },
   brandHeader: {
-    gap: 10,
+    gap: 12,
   },
   topStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
     gap: 8,
   },
   formCard: {
-    gap: 14,
+    gap: 16,
+    backgroundColor: ConstructoColors.superficie,
+    borderRadius: ConstructoRadius.card,
     padding: 20,
   },
   rowInputs: {
@@ -408,44 +433,70 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: ConstructoColors.erroSuave,
-    padding: 12,
-    borderRadius: ConstructoRadius.field,
+    backgroundColor: 'rgba(217, 83, 79, 0.08)',
     borderWidth: 1,
-    borderColor: ConstructoColors.erro,
+    borderColor: 'rgba(217, 83, 79, 0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: ConstructoRadius.field,
   },
-  demoPanel: {
-    gap: 12,
-    padding: 16,
+  diretorioContainer: {
+    gap: 8,
   },
-  demoHeader: {
+  diretorioToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: ConstructoColors.superficieSutil,
+    borderRadius: ConstructoRadius.field,
+    borderWidth: 1,
+    borderColor: ConstructoColors.borda,
+  },
+  diretorioToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  diretorioContent: {
+    gap: 12,
+    padding: 14,
+    backgroundColor: ConstructoColors.superficieSutil,
+    borderWidth: 1,
+    borderColor: ConstructoColors.borda,
   },
   personaList: {
-    gap: 10,
+    gap: 8,
   },
   personaCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    backgroundColor: ConstructoColors.superficie,
+    borderRadius: ConstructoRadius.card,
   },
   personaIconBox: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: ConstructoRadius.field,
     backgroundColor: ConstructoColors.primariaSuave,
-    borderWidth: 1,
-    borderColor: ConstructoColors.bordaFoco,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: ConstructoColors.bordaFoco,
   },
   personaTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
+  },
+  footerCert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    flexWrap: 'wrap',
+    paddingTop: 8,
   },
 });

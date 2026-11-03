@@ -95,6 +95,30 @@ export function CardResumoObra({
         <Animated.View style={[styles.preenchimentoBarra, barAnimatedStyle]} />
       </View>
 
+      {/* Régua de Precisão de Engenharia */}
+      <View style={styles.reguaTicks}>
+        <View style={styles.tickCol}>
+          <View style={styles.tickMarkMajor} />
+          <Typography variant="mono" color="muted" style={styles.tickLabel}>0%</Typography>
+        </View>
+        <View style={styles.tickCol}>
+          <View style={styles.tickMarkMinor} />
+          <Typography variant="mono" color="muted" style={styles.tickLabel}>25%</Typography>
+        </View>
+        <View style={styles.tickCol}>
+          <View style={styles.tickMarkMajor} />
+          <Typography variant="mono" color="muted" style={styles.tickLabel}>50%</Typography>
+        </View>
+        <View style={styles.tickCol}>
+          <View style={styles.tickMarkMinor} />
+          <Typography variant="mono" color="muted" style={styles.tickLabel}>75%</Typography>
+        </View>
+        <View style={[styles.tickCol, { alignItems: 'flex-end' }]}>
+          <View style={styles.tickMarkMajor} />
+          <Typography variant="mono" color="muted" style={styles.tickLabel}>100%</Typography>
+        </View>
+      </View>
+
       {/* Mini Grid das Macroetapas da Obra */}
       {etapasResumo.length > 0 ? (
         <View style={styles.etapasMiniGrid}>
@@ -213,6 +237,31 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: ConstructoColors.primaria,
     borderRadius: 5,
+  },
+  reguaTicks: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    marginTop: -4,
+    marginBottom: 4,
+  },
+  tickCol: {
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  tickMarkMajor: {
+    width: 1,
+    height: 5,
+    backgroundColor: ConstructoColors.borda,
+  },
+  tickMarkMinor: {
+    width: 1,
+    height: 3,
+    backgroundColor: ConstructoColors.bordaSutil,
+  },
+  tickLabel: {
+    fontSize: 9,
+    letterSpacing: 0.2,
   },
   etapasMiniGrid: {
     flexDirection: 'row',
