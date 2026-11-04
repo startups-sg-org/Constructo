@@ -49,6 +49,7 @@ import { achatarLocaisHierarquia, PROTOCOLOS_SEED, snapshotStore } from '../serv
 import { API_BASE_URL } from '../services/api';
 import { resolverUrlMidia } from '../features/feed/feed.adapter';
 import { CameraSelector } from '../features/empresa/camera-selector';
+import { PainelExecutivoCanteiro } from '../features/empresa/painel-executivo-canteiro';
 import { SubmissaoRapidaModal } from '../features/empresa/submissao-rapida';
 import { SincronizadorOffline } from '../features/empresa/sincronizador-offline';
 import { InspetorEvidenciaSheet } from '../features/empresa/inspetor-evidencia-sheet';
@@ -761,79 +762,23 @@ export default function EmpresaScreen() {
            ========================================================= */}
         {abaAtiva === 'canteiro' ? (
           <View style={styles.abaContainer}>
-            {/* Grid de 4 KPIs Executivos com Acentos Cromáticos */}
-            <View style={styles.kpiGrid}>
-              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#059669' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Typography variant="label" color="muted">
-                    AVANÇO FÍSICO
-                  </Typography>
-                  <View style={[styles.kpiIconBox, { backgroundColor: '#D1FAE5' }]}>
-                    <Icon name="chart" size={14} color="#059669" />
-                  </View>
-                </View>
-                <Typography variant="titleLarge" tabular style={{ color: '#059669', fontWeight: '800' }}>
-                  {kpis.avancoGlobal}%
-                </Typography>
-                <Typography variant="caption" color="muted">
-                  Meta mensal em dia
-                </Typography>
-              </Card>
-
-              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#0284C7' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Typography variant="label" color="muted">
-                    MARCOS
-                  </Typography>
-                  <View style={[styles.kpiIconBox, { backgroundColor: '#E0F2FE' }]}>
-                    <Icon name="check-circle" size={14} color="#0284C7" />
-                  </View>
-                </View>
-                <Typography variant="titleLarge" tabular style={{ color: '#0284C7', fontWeight: '800' }}>
-                  {kpis.marcosConcluidos}/{kpis.totalMarcos}
-                </Typography>
-                <Typography variant="caption" color="muted">
-                  Etapas homologadas
-                </Typography>
-              </Card>
-
-              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#7C3AED' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Typography variant="label" color="muted">
-                    APROVADAS
-                  </Typography>
-                  <View style={[styles.kpiIconBox, { backgroundColor: '#EDE9FE' }]}>
-                    <Icon name="shield-check" size={14} color="#7C3AED" />
-                  </View>
-                </View>
-                <Typography variant="titleLarge" tabular style={{ color: '#7C3AED', fontWeight: '800' }}>
-                  {kpis.evidenciasValidas}
-                </Typography>
-                <Typography variant="caption" color="muted">
-                  Laudos no feed
-                </Typography>
-              </Card>
-
-              <Card style={[styles.kpiCard, { borderTopWidth: 3, borderTopColor: '#EA580C' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Typography variant="label" color="muted">
-                    EM AUDITORIA
-                  </Typography>
-                  <View style={[styles.kpiIconBox, { backgroundColor: '#FFEDD5' }]}>
-                    <Icon name="clock" size={14} color="#EA580C" />
-                  </View>
-                </View>
-                <Typography variant="titleLarge" tabular style={{ color: '#EA580C', fontWeight: '800' }}>
-                  {kpis.evidenciasPendentes}
-                </Typography>
-                <Typography variant="caption" color="muted">
-                  Aguardando validação
-                </Typography>
-              </Card>
-            </View>
+            {/* Painel Executivo de Canteiro & KPIs Dinâmicos com Animação Numérica */}
+            <PainelExecutivoCanteiro
+              nomeObra={obraSelecionada?.nome || 'Residencial Parque das Águas'}
+              avancoGlobal={kpis.avancoGlobal}
+              marcosConcluidos={kpis.marcosConcluidos}
+              totalMarcos={kpis.totalMarcos}
+              evidenciasValidas={kpis.evidenciasValidas}
+              evidenciasPendentes={kpis.evidenciasPendentes}
+              etapas={etapas}
+              progresso={progresso}
+            />
 
             {/* Captura Hero em 3 Cliques */}
-            <CameraSelector onFotoCapturada={(uri) => handleFotoCapturada(uri)} />
+            <CameraSelector
+              nomeObra={obraSelecionada?.nome}
+              onFotoCapturada={(uri) => handleFotoCapturada(uri)}
+            />
 
             {/* Cabeçalho + Filtros da Galeria de Evidências */}
             <View style={styles.secaoHeader}>

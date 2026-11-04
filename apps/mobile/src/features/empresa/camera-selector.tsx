@@ -102,9 +102,9 @@ export function CameraSelector({ onFotoCapturada, nomeObra }: CameraSelectorProp
         <View style={{ flex: 1, gap: 2 }}>
           <View style={styles.titleLine}>
             <Typography variant="titleSmall" color="strong" numberOfLines={1} style={{ flexShrink: 1 }}>
-              Registro Técnico
+              Registro Técnico em Campo
             </Typography>
-            <Badge label="Vistoria" variant="azul" size="sm" dot />
+            <Badge label="3 Toques" variant="esmeralda" size="sm" iconName="bolt" />
           </View>
           <Typography variant="caption" color="muted">
             {nomeObra

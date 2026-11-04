@@ -7,6 +7,8 @@ export interface ConstructoLogoProps {
   size?: 'sm' | 'md' | 'lg';
   showWordmark?: boolean;
   subtitle?: string;
+  /** Versão para fundos escuros: emblema branco e texto claro. */
+  inverted?: boolean;
 }
 
 /**
@@ -17,6 +19,7 @@ export function ConstructoLogo({
   size = 'md',
   showWordmark = true,
   subtitle,
+  inverted = false,
 }: ConstructoLogoProps) {
   const dimensions = size === 'sm' ? 34 : size === 'lg' ? 54 : 42;
   const innerSize = Math.round(dimensions * 0.52);
@@ -32,6 +35,7 @@ export function ConstructoLogo({
             height: dimensions,
             borderRadius,
           },
+          inverted && styles.emblemOuterInverted,
         ]}
       >
         {/* Monograma Arquitetônico em C estrutural */}
@@ -44,6 +48,7 @@ export function ConstructoLogo({
               borderRadius: Math.round(innerSize * 0.28),
               borderWidth: size === 'sm' ? 2.5 : 3.5,
             },
+            inverted && styles.emblemCInverted,
           ]}
         />
         <View
@@ -54,6 +59,7 @@ export function ConstructoLogo({
               height: size === 'sm' ? 5 : 7,
               borderRadius: 4,
             },
+            inverted && styles.accentNodeInverted,
           ]}
         />
       </View>
@@ -62,13 +68,17 @@ export function ConstructoLogo({
         <View style={styles.wordmarkCol}>
           <Typography
             variant={size === 'lg' ? 'titleLarge' : 'titleMedium'}
-            color="strong"
+            color={inverted ? 'inverted' : 'strong'}
             style={styles.brandTitle}
           >
             Constructo
           </Typography>
           {subtitle ? (
-            <Typography variant="label" color="muted" style={styles.subtitle}>
+            <Typography
+              variant="label"
+              color={inverted ? 'inverted' : 'muted'}
+              style={[styles.subtitle, inverted && styles.subtitleInverted]}
+            >
               {subtitle}
             </Typography>
           ) : null}
@@ -79,6 +89,20 @@ export function ConstructoLogo({
 }
 
 const styles = StyleSheet.create({
+  emblemOuterInverted: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  emblemCInverted: {
+    borderColor: ConstructoColors.primaria,
+    borderRightColor: 'transparent',
+  },
+  accentNodeInverted: {
+    backgroundColor: ConstructoColors.destaque,
+  },
+  subtitleInverted: {
+    opacity: 0.75,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

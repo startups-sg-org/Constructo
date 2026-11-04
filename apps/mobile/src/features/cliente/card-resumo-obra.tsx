@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withDelay,
+  withTiming,
 } from 'react-native-reanimated';
 import { Badge, Card, Icon, Typography } from '../../components/ui';
 import { ConstructoColors, ConstructoRadius } from '../../constants/theme';
 import { ProgressoEmpreendimento } from '../../types/obras';
+import { AnimatedNumber } from './animated-number';
 
 export interface CardResumoObraProps {
   nomeObra: string;
@@ -33,16 +36,28 @@ export function CardResumoObra({
   const percentual = progressoGlobal?.percentual ?? 52;
   const etapasResumo = progressoGlobal?.etapas || progressoGlobal?.macroetapas || [];
   const larguraAnimada = useSharedValue(0);
+  const brilho = useSharedValue(-1);
 
   useEffect(() => {
-    larguraAnimada.value = withSpring(percentual, {
-      damping: 18,
-      stiffness: 90,
+    larguraAnimada.value = withTiming(percentual, {
+      duration: 1000,
+      easing: Easing.out(Easing.cubic),
     });
-  }, [percentual, larguraAnimada]);
+    // Reflexo único que percorre a barra ao concluir o preenchimento.
+    brilho.value = -1;
+    brilho.value = withDelay(
+      900,
+      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) })
+    );
+  }, [percentual, larguraAnimada, brilho]);
 
   const barAnimatedStyle = useAnimatedStyle(() => ({
     width: `${Math.min(larguraAnimada.value, 100)}%`,
+  }));
+
+  const brilhoStyle = useAnimatedStyle(() => ({
+    opacity: brilho.value >= 1 ? 0 : 0.55,
+    left: `${(brilho.value + 1) * 50 - 30}%`,
   }));
 
   return (
@@ -81,20 +96,22 @@ export function CardResumoObra({
           <Typography variant="label" color="muted">
             AVANÇO GLOBAL
           </Typography>
-          <Typography
+          <AnimatedNumber
+            value={percentual}
+            suffix="%"
+            duration={1000}
             variant="display"
             color="primary"
-            tabular
             style={styles.numeroPercentual}
-          >
-            {percentual}%
-          </Typography>
+          />
         </View>
       </View>
 
       {/* Trilha da Barra de Progresso Global */}
       <View style={styles.trilhaBarra}>
-        <Animated.View style={[styles.preenchimentoBarra, barAnimatedStyle]} />
+        <Animated.View style={[styles.preenchimentoBarra, barAnimatedStyle]}>
+          <Animated.View style={[styles.brilho, brilhoStyle]} />
+        </Animated.View>
       </View>
 
       {/* Régua de Precisão de Engenharia */}
@@ -239,6 +256,14 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#059669',
     borderRadius: 5,
+    overflow: 'hidden',
+  },
+  brilho: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '30%',
+    backgroundColor: '#FFFFFF',
   },
   reguaTicks: {
     flexDirection: 'row',

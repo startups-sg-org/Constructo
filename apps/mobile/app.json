@@ -43,6 +43,17 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "fdbface4-54a6-4335-8475-297f8d1136ad"
+      }
+    },
+    "owner": "ricardo.tomaz"
   }
 }

@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import {
   Badge,
   Button,
   Card,
-  ConstructoLogo,
   Icon,
   Input,
   SegmentedControl,
@@ -22,6 +22,7 @@ import {
 } from '../components/ui';
 import { ConstructoColors, ConstructoRadius } from '../constants/theme';
 import { useAuth } from '../context/auth-context';
+import { LoginHero, LOGIN_HERO_COR_FUNDO } from '../features/auth/login-hero';
 import { PapelUsuario } from '../types/auth';
 
 type ModoAutenticacao = 'login' | 'cadastro';
@@ -138,33 +139,36 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
       >
         <ScrollView
+          style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Cabeçalho Institucional de Prestígio */}
-          <View style={styles.brandHeader}>
-            <View style={styles.topStatusRow}>
-              <ConstructoLogo
-                size="md"
-                subtitle="PLATAFORMA INTEGRADA DE OBRAS & TRANSPARÊNCIA"
-              />
-              <Badge label="Versão 1.0.0 Oficial" variant="esmeralda" size="sm" dot />
+          {/* Hero institucional: grade técnica, edifício em construção e fluxo em 3 passos */}
+          <LoginHero />
+
+          {/* Folha de autenticação sobreposta ao hero */}
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(460)}
+            style={styles.formSheet}
+          >
+            <View style={styles.formTitulos}>
+              <Typography variant="titleLarge" color="strong">
+                {modo === 'login' ? 'Bem-vindo de volta' : 'Crie seu acesso'}
+              </Typography>
+              <Typography variant="body" color="muted">
+                {modo === 'login'
+                  ? 'Entre para acompanhar e registrar o avanço da obra.'
+                  : 'Cadastre-se como engenharia ou comprador do imóvel.'}
+              </Typography>
             </View>
 
-            <Typography variant="body" color="muted">
-              Software de gestão técnica de canteiro, auditoria fotográfica com ART e transparência imobiliária para compradores.
-            </Typography>
-          </View>
-
-          {/* Card Principal de Autenticação */}
-          <Card style={styles.formCard}>
             <SegmentedControl
               options={[
                 { value: 'login', label: 'Acesso Corporativo', iconName: 'shield-check' },
@@ -276,7 +280,7 @@ export default function LoginScreen() {
               disabled={carregando}
               onPress={handleSubmeter}
             />
-          </Card>
+          </Animated.View>
 
           {/* Diretório Corporativo Autorizado (Acesso Rápido para Auditoria e Demonstração Executiva) */}
           <View style={styles.diretorioContainer}>
@@ -388,11 +392,11 @@ export default function LoginScreen() {
             ) : null}
           </View>
 
-          {/* Rodapé Corporativo de Segurança */}
+          {/* Rodapé */}
           <View style={styles.footerCert}>
             <Icon name="shield-check" size={14} color={ConstructoColors.primaria} />
             <Typography variant="caption" color="muted">
-              CONSTRUCTO ENTERPRISE • CRIPTOGRAFIA AES-256 • ART HOMOLOGADA
+              CONSTRUCTO • ART HOMOLOGADA • ACESSO POR PERFIL
             </Typography>
           </View>
         </ScrollView>
@@ -404,31 +408,32 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: ConstructoColors.fundo,
+    backgroundColor: LOGIN_HERO_COR_FUNDO,
   },
   keyboardView: {
     flex: 1,
   },
+  scroll: {
+    backgroundColor: ConstructoColors.fundo,
+  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
     paddingBottom: 40,
     gap: 20,
   },
-  brandHeader: {
-    gap: 12,
-  },
-  topStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  formCard: {
+  formSheet: {
     gap: 16,
+    marginTop: -32,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 24,
     backgroundColor: ConstructoColors.superficie,
-    borderRadius: ConstructoRadius.card,
-    padding: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderTopWidth: 1,
+    borderColor: ConstructoColors.borda,
+  },
+  formTitulos: {
+    gap: 4,
   },
   rowInputs: {
     flexDirection: 'row',
@@ -447,6 +452,7 @@ const styles = StyleSheet.create({
   },
   diretorioContainer: {
     gap: 8,
+    marginHorizontal: 20,
   },
   diretorioToggle: {
     flexDirection: 'row',
@@ -503,5 +509,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingTop: 8,
+    marginHorizontal: 20,
   },
 });

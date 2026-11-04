@@ -3,6 +3,7 @@ packages:
   - "packages/*"
 allowBuilds:
   '@parcel/watcher': false
+  'unrs-resolver': true
 minimumReleaseAgeExclude:
   - "@expo/cli@58.1.18 || 58.1.19"
   - "@expo/config@58.0.10 || 58.0.11"

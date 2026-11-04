@@ -1,12 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeInDown,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import {
   Badge,
   BottomSheet,
@@ -17,12 +23,22 @@ import {
   Input,
   Typography,
 } from '../../components/ui';
-import { ConstructoColors } from '../../constants/theme';
+import { ConstructoColors, ConstructoRadius, ConstructoShadows } from '../../constants/theme';
 import { PostagemFeedSocial } from '../../types/feed';
 import { ProgressoEmpreendimento } from '../../types/obras';
 import { CardResumoObra } from './card-resumo-obra';
+import { EtapaStories } from './etapa-stories';
 import { PostFeedCard } from './post-feed-card';
 import { ImageLightbox } from './image-lightbox';
+
+const AnimatedFlatList = Animated.createAnimatedComponent(
+  FlatList<PostagemFeedSocial>
+);
+
+/** Altura aproximada do cabeçalho (resumo + filtros) a partir da qual o mini-indicador aparece. */
+const SCROLL_MINI_INDICADOR = 360;
+
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 30 };
 
 export interface FeedListaProps {
   posts: PostagemFeedSocial[];
@@ -50,11 +66,70 @@ export function FeedLista({
   const [postDetalhe, setPostDetalhe] = useState<PostagemFeedSocial | null>(null);
   const [etapaSelecionada, setEtapaSelecionada] = useState<string>(etapaFiltroInicial || 'TODAS');
   const [busca, setBusca] = useState<string>('');
+  const [revelados, setRevelados] = useState<Set<number>>(() => new Set([]));
+  const scrollY = useSharedValue(0);
 
-  const etapasUnicas = useMemo(() => {
-    const nomes = Array.from(new Set(posts.map((p) => p.etapa.nome)));
-    return ['TODAS', ...nomes];
-  }, [posts]);
+  const scrollHandler = useAnimatedScrollHandler((evento) => {
+    scrollY.value = evento.contentOffset.y;
+  });
+
+  const aoMudarVisiveis = useCallback(
+    ({ viewableItems }: { viewableItems: { item?: PostagemFeedSocial }[] }) => {
+      const novos = viewableItems
+        .map((v) => v.item?.id)
+        .filter((id): id is number => typeof id === 'number');
+      if (novos.length === 0) return;
+      setRevelados((anterior) => {
+        if (novos.every((id) => anterior.has(id))) return anterior;
+        const proximo = new Set(anterior);
+        novos.forEach((id) => proximo.add(id));
+        return proximo;
+      });
+    },
+    []
+  );
+
+  const percentualGlobal = progressoGlobal?.percentual ?? 52;
+
+  const miniIndicadorStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [SCROLL_MINI_INDICADOR, SCROLL_MINI_INDICADOR + 60],
+      [0, 1],
+      'clamp'
+    ),
+    transform: [
+      {
+        translateY: interpolate(
+          scrollY.value,
+          [SCROLL_MINI_INDICADOR, SCROLL_MINI_INDICADOR + 60],
+          [-12, 0],
+          'clamp'
+        ),
+      },
+    ],
+  }));
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: PostagemFeedSocial; index: number }) => (
+      <Animated.View
+        entering={FadeInDown.delay(Math.min(index, 3) * 70)
+          .duration(380)
+          .easing(Easing.out(Easing.cubic))}
+      >
+        <PostFeedCard
+          post={item}
+          index={index}
+          revelado={revelados.has(item.id)}
+          onImagePress={(url) =>
+            setSelectedImage({ url, caption: `${item.marcoNome} — ${item.legenda}` })
+          }
+          onDetalhesPress={(p) => setPostDetalhe(p)}
+        />
+      </Animated.View>
+    ),
+    [revelados]
+  );
 
   const postsFiltrados = useMemo(() => {
     return posts.filter((post) => {
@@ -90,12 +165,18 @@ export function FeedLista({
   }
 
   return (
-    <>
-      <FlatList
+    <View style={styles.root}>
+      <AnimatedFlatList
         data={postsFiltrados}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        onViewableItemsChanged={aoMudarVisiveis}
+        viewabilityConfig={VIEWABILITY_CONFIG}
+        initialNumToRender={3}
+        windowSize={7}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -114,36 +195,22 @@ export function FeedLista({
               totalEvidencias={posts.length}
             />
 
-            {/* Barra de Busca e Filtro por Etapa */}
-            <Card padding={12} style={styles.filterCard}>
+            {/* Etapas com foto de capa (filtro rápido) e busca */}
+            <View style={styles.filtros}>
+              <EtapaStories
+                posts={posts}
+                selecionada={etapaSelecionada}
+                onSelect={setEtapaSelecionada}
+              />
               <Input
                 leftIcon="search"
-                placeholder="Buscar por etapa, unidade, laje ou engenheiro..."
+                placeholder="Buscar por etapa, laje ou engenheiro..."
                 value={busca}
                 onChangeText={setBusca}
                 rightIcon={busca ? 'close' : undefined}
                 onRightIconPress={() => setBusca('')}
               />
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.pillsRow}
-              >
-                {etapasUnicas.map((nomeEtapa) => {
-                  const ativo = etapaSelecionada === nomeEtapa;
-                  return (
-                    <Button
-                      key={nomeEtapa}
-                      label={nomeEtapa === 'TODAS' ? `Todas (${posts.length})` : nomeEtapa}
-                      variant={ativo ? 'primary' : 'secondary'}
-                      size="sm"
-                      onPress={() => setEtapaSelecionada(nomeEtapa)}
-                    />
-                  );
-                })}
-              </ScrollView>
-            </Card>
+            </View>
 
             <View style={styles.feedSectionTitle}>
               <Typography variant="titleSmall" color="strong">
@@ -157,6 +224,7 @@ export function FeedLista({
             </View>
           </View>
         }
+
         ListEmptyComponent={
           <Card style={styles.emptyCard}>
             <Icon name="layers" size={28} color={ConstructoColors.primaria} />
@@ -179,21 +247,20 @@ export function FeedLista({
             ) : null}
           </Card>
         }
-        renderItem={({ item, index }) => (
-          <Animated.View
-            entering={FadeInDown.delay(Math.min(index, 6) * 35).duration(200)}
-          >
-            <PostFeedCard
-              post={item}
-              index={index}
-              onImagePress={(url) =>
-                setSelectedImage({ url, caption: `${item.marcoNome} — ${item.legenda}` })
-              }
-              onDetalhesPress={(p) => setPostDetalhe(p)}
-            />
-          </Animated.View>
-        )}
+        renderItem={renderItem}
       />
+
+      {/* Mini indicador de avanço: surge ao rolar além do cabeçalho */}
+      <Animated.View pointerEvents="none" style={[styles.miniIndicador, miniIndicadorStyle]}>
+        <Icon name="building" size={14} color="#FFFFFF" />
+        <Typography variant="caption" color="inverted" numberOfLines={1} style={styles.miniIndicadorTexto}>
+          {unidadeCliente || nomeObra}
+        </Typography>
+        <View style={styles.miniIndicadorDivisor} />
+        <Typography variant="bodyStrong" color="inverted" tabular>
+          {percentualGlobal}%
+        </Typography>
+      </Animated.View>
 
       {/* Lightbox Imersivo em Tela Cheia */}
       <ImageLightbox
@@ -301,11 +368,40 @@ export function FeedLista({
           </View>
         ) : null}
       </BottomSheet>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  miniIndicador: {
+    position: 'absolute',
+    top: 10,
+    alignSelf: 'center',
+    maxWidth: '88%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: ConstructoRadius.full,
+    backgroundColor: ConstructoColors.primaria,
+    ...ConstructoShadows.card,
+  },
+  miniIndicadorTexto: {
+    flexShrink: 1,
+    fontWeight: '600',
+  },
+  miniIndicadorDivisor: {
+    width: 1,
+    height: 14,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  filtros: {
+    gap: 12,
+  },
   listContent: {
     padding: 16,
     paddingBottom: 32,
@@ -316,13 +412,6 @@ const styles = StyleSheet.create({
   headerWrapper: {
     gap: 12,
     marginBottom: 12,
-  },
-  filterCard: {
-    gap: 10,
-  },
-  pillsRow: {
-    gap: 8,
-    paddingTop: 2,
   },
   feedSectionTitle: {
     flexDirection: 'row',
